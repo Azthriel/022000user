@@ -1,4 +1,4 @@
-package com.example.project_022000iot_user
+package com.calefactor.smart.sime
 
 import io.flutter.embedding.android.FlutterActivity
 
