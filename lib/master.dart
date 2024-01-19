@@ -64,6 +64,12 @@ MqttServerClient? mqttClient;
 Timer? locationTimer;
 bool mqttConected = false;
 
+//!------------------------------VERSION NUMBER---------------------------------------
+
+String appVersionNumber = '24011900';
+
+//!------------------------------VERSION NUMBER---------------------------------------
+
 // FUNCIONES //
 
 void showToast(String message) {

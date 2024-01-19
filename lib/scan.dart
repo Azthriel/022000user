@@ -397,7 +397,7 @@ class LoadState extends State<LoadingPage> {
               Align(
                   alignment: Alignment.bottomCenter,
                   child: Text(
-                    'Versión 24011702',
+                    'Versión $appVersionNumber',
                     style: TextStyle(color: Colors.grey[400], fontSize: 12),
                   )),
               const SizedBox(height: 20),
