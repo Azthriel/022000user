@@ -17,7 +17,6 @@ dependencies:
   qr_code_scanner: ^1.0.1
   flutter_blue_plus: ^1.31.8
   fluttertoast: ^8.2.4
-  share: ^2.0.4
   path_provider: ^2.1.1
   easy_refresh: ^3.3.2+4
   cloud_firestore: ^4.13.6
@@ -41,7 +40,6 @@ icons_launcher:
     android:
       enable: true
       image_path: 'assets/lg.png'
-      # adaptive_background_color: '#ffffff'
       adaptive_background_image: 'assets/bckgr.png'
       adaptive_foreground_image: 'assets/BiocaldenForegroundWhiteWM2.png'
 

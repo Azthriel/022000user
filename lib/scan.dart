@@ -35,6 +35,7 @@ class ScanPageState extends State<ScanPage> {
     _controller = EasyRefreshController(
       controlFinishRefresh: true,
     );
+    showPrivacyDialogIfNeeded();
     setupMqtt();
     scan();
   }

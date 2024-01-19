@@ -16,10 +16,11 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:project_022000iot_user/firebase_options.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart';
+
+// VARIABLES //
 
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -85,9 +86,21 @@ Stacktrace: ${details.stack}
 }
 
 void sendReportOnWhatsApp(String filePath) async {
-  const text = 'Attached is the error report';
+  const text = '¡Hola! Este es un reporte de error de la app Calefactor Smart';
   final file = File(filePath);
-  await Share.shareFiles([file.path], text: text);
+  final base64File = base64Encode(file.readAsBytesSync());
+  final fileName = Uri.encodeComponent(file.path.split('/').last);
+
+  const phoneNumber = '5491130621338';
+
+  Uri url = Uri.parse(
+      'whatsapp://send?phone=$phoneNumber&text=$text&file=$base64File&filename=$fileName');
+
+  if (await canLaunchUrl(url)) {
+    await launchUrl(url);
+  } else {
+    print('No se pudo lanzar la URL de WhatsApp');
+  }
 }
 
 String getWifiErrorSintax(int errorCode) {
@@ -520,6 +533,51 @@ void showUbiText() {
             ],
           );
         });
+  }
+}
+
+void showPrivacyDialogIfNeeded() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool hasShownDialog = prefs.getBool('hasShownDialog') ?? false;
+
+  if (!hasShownDialog) {
+    await showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Política de Privacidad'),
+          content: const SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    'En calefactor Smart,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Leer nuestra politica de privacidad'),
+              onPressed: () async {
+                Uri uri = Uri.parse('');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  showToast('No se pudo abrir el sitio web');
+                }
+              },
+            ),
+            TextButton(
+              child: const Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    await prefs.setBool('hasShownDialog', true);
   }
 }
 
@@ -1400,10 +1458,6 @@ void callbackDispatcher() {
 }
 
 void scheduleBackgroundTask(String userEmail, String deviceName) {
-  // String timestamp = DateTime.now().toString();
-  // String uniqueId = "$userEmail+$deviceName+$timestamp";
-  // taskId = uniqueId;
-
   Workmanager().registerPeriodicTask(
     'ControldeDistancia', // ID único para la tarea
     "checkLocationTask", // Nombre de la tarea
