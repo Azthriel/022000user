@@ -28,10 +28,6 @@ Future<void> main() async {
       print('Failed to get external storage directory');
     }
   };
-
-  checkBle();
-  startLocationMonitoring();
-
   runApp(const MyApp());
 }
 
@@ -110,7 +106,6 @@ class PermissionHandlerState extends State<PermissionHandler> {
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&
         permissionStatus3.isGranted) {
-      inApp = true;
       return const AskLoginPage();
     } else {
       return AlertDialog(

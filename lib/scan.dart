@@ -24,8 +24,11 @@ class ScanPageState extends State<ScanPage> {
   final FocusNode searchFocusNode = FocusNode();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
+    startBluetoothMonitoring();
+    startLocationMonitoring();
+
     loadNicknamesMap().then((loadedMap) {
       setState(() {
         nicknamesMap = loadedMap;

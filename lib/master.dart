@@ -57,16 +57,16 @@ bool turnOn = false;
 Map<String, String> nicknamesMap = {};
 bool isTaskScheduled = false;
 bool deviceOwner = false;
-bool inApp = false;
 bool trueStatus = false;
 late bool nightMode;
 MqttServerClient? mqttClient;
 Timer? locationTimer;
+Timer? bluetoothTimer;
 bool mqttConected = false;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24011901';
+String appVersionNumber = '24011902';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -449,51 +449,63 @@ void sendMessagemqtt(String topic, String message) {
   }
 }
 
-void checkBle() async {
+void startBluetoothMonitoring() {
+  bluetoothTimer = Timer.periodic(
+      const Duration(seconds: 1), (Timer t) => bluetoothStatus());
+}
+
+void bluetoothStatus() async {
   FlutterBluePlus.adapterState.listen((state) {
-    if (state != BluetoothAdapterState.on && inApp) {
-      if (!checkbleFlag) {
-        checkbleFlag = true;
-        showDialog(
-          context: navigatorKey.currentContext!,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              backgroundColor: const Color.fromARGB(255, 37, 34, 35),
-              title: const Text(
-                'Bluetooth apagado',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-              ),
-              content: const Text(
-                'No se puede continuar sin Bluetooth',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-              ),
-              actions: [
-                TextButton(
-                  style: const ButtonStyle(
-                      foregroundColor: MaterialStatePropertyAll(
-                          Color.fromARGB(255, 255, 255, 255))),
-                  onPressed: () async {
-                    if (Platform.isAndroid) {
-                      await FlutterBluePlus.turnOn();
-                      checkbleFlag = false;
-                      navigatorKey.currentState?.pop();
-                    } else {
-                      checkbleFlag = false;
-                      navigatorKey.currentState?.pop();
-                    }
-                  },
-                  child: const Text('Aceptar'),
-                ),
-              ],
-            );
-          },
-        );
-      }
-    } else if (state == BluetoothAdapterState.on) {
+    // print('Estado ble: $state');
+    if (state != BluetoothAdapterState.on) {
+      bluetoothOn = false;
+      showBleText();
+    } else {
       bluetoothOn = true;
     }
   });
+}
+
+void showBleText() async {
+  if (!checkbleFlag) {
+    checkbleFlag = true;
+    showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          title: const Text(
+            'Bluetooth apagado',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          content: const Text(
+            'No se puede continuar sin Bluetooth',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          actions: [
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 255, 255, 255))),
+              onPressed: () async {
+                if (Platform.isAndroid) {
+                  await FlutterBluePlus.turnOn();
+                  checkbleFlag = false;
+                  bluetoothOn = true;
+                  navigatorKey.currentState?.pop();
+                } else {
+                  checkbleFlag = false;
+                  navigatorKey.currentState?.pop();
+                }
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 void startLocationMonitoring() {
@@ -574,7 +586,8 @@ void showPrivacyDialogIfNeeded() async {
                       Color.fromARGB(255, 255, 255, 255))),
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
-                Uri uri = Uri.parse('https://calefactorescalden.com.ar/privacidad/');
+                Uri uri =
+                    Uri.parse('https://calefactorescalden.com.ar/privacidad/');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
                 } else {
