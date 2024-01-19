@@ -59,6 +59,7 @@ class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    showPrivacyDialogIfNeeded();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
         print('Usuario no está logueado');
@@ -300,7 +301,8 @@ class LoginPageState extends State<LoginPage> {
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscureText ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.white, size: 25,
+                        color: Colors.white,
+                        size: 25,
                       ),
                       onPressed: () {
                         setState(() {

@@ -66,7 +66,7 @@ bool mqttConected = false;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24011900';
+String appVersionNumber = '24011901';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -552,20 +552,29 @@ void showPrivacyDialogIfNeeded() async {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Política de Privacidad'),
+          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          title: const Text(
+            'Política de Privacidad',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
           content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
-                    'En calefactor Smart,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.'),
+                  'En calefactor Smart,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.',
+                  style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                ),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 255, 255, 255))),
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
-                Uri uri = Uri.parse('');
+                Uri uri = Uri.parse('https://calefactorescalden.com.ar/privacidad/');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
                 } else {
@@ -574,6 +583,9 @@ void showPrivacyDialogIfNeeded() async {
               },
             ),
             TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 255, 255, 255))),
               child: const Text('Aceptar'),
               onPressed: () {
                 Navigator.of(context).pop();
