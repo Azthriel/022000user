@@ -70,7 +70,7 @@ late List<String> pikachu;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24012200';
+String appVersionNumber = '24012201';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
