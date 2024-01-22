@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print, use_build_context_synchronously
 
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -23,7 +24,7 @@ Future<void> main() async {
     if (directory != null) {
       final file = File('${directory.path}/$fileName');
       await file.writeAsString(errorReport);
-      sendReportOnWhatsApp(file.path);
+      sendReportError(file.path);
     } else {
       print('Failed to get external storage directory');
     }

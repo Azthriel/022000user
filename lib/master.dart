@@ -19,6 +19,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:workmanager/workmanager.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 
 // VARIABLES //
 
@@ -63,10 +64,13 @@ MqttServerClient? mqttClient;
 Timer? locationTimer;
 Timer? bluetoothTimer;
 bool mqttConected = false;
+bool userConnected = false;
+
+late List<String> pikachu;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24011902';
+String appVersionNumber = '24012200';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -91,21 +95,20 @@ Stacktrace: ${details.stack}
   ''';
 }
 
-void sendReportOnWhatsApp(String filePath) async {
-  const text = '¡Hola! Este es un reporte de error de la app Calefactor Smart';
-  final file = File(filePath);
-  final base64File = base64Encode(file.readAsBytesSync());
-  final fileName = Uri.encodeComponent(file.path.split('/').last);
+void sendReportError(String filePath) async {
+  final Email email = Email(
+    body: '¡Hola! Te envio el reporte de error que surgió en mi app',
+    subject: 'Reporte de error $deviceName',
+    recipients: ['ingenieria@intelligentgas.com.ar'],
+    attachmentPaths: [filePath],
+    isHTML: false,
+  );
 
-  const phoneNumber = '5491130621338';
-
-  Uri url = Uri.parse(
-      'whatsapp://send?phone=$phoneNumber&text=$text&file=$base64File&filename=$fileName');
-
-  if (await canLaunchUrl(url)) {
-    await launchUrl(url);
-  } else {
-    print('No se pudo lanzar la URL de WhatsApp');
+  try {
+    await FlutterEmailSender.send(email);
+    print('Correo enviado');
+  } catch (error) {
+    print('Error al enviar el correo: $error');
   }
 }
 
@@ -403,10 +406,10 @@ String generateRandomNumbers(int length) {
 }
 
 void setupMqtt() async {
-  String deviceId = 'SIME${generateRandomNumbers(32)}';
-  String hostname = 'nee8a41e.ala.us-east-1.emqxsl.com';
-  String username = 'trillo';
-  String password = '4199';
+  String deviceId = 'calden_IOT/${generateRandomNumbers(32)}';
+  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
+  String username = '022000_IOT';
+  String password = '022000_IOT';
 
   // Cargar el certificado CA
   ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
@@ -439,8 +442,12 @@ Future<void> mqttconnect(String u, String p) async {
   }
 }
 
-void sendMessagemqtt(String topic, String message) {
+void sendMessagemqtt(String deviceName, String message) {
   print('Estado del mqtt: $mqttConected');
+  final regex = RegExp(r'Calefactor(\d+)');
+  final match = regex.firstMatch(deviceName);
+  final serialNum = match!.group(1);
+  String topic = '022000_IOT/$serialNum';
   if (mqttConected) {
     final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
     builder.addString(message);
@@ -1245,7 +1252,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             },
                           );
                         },
-                        child: const Text('Dejar de ser administrador'))
+                        child: const Text('Dejar de ser administrador')),
                   ],
                 ),
               ),

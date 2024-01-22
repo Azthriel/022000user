@@ -80,6 +80,12 @@ class ControlPageState extends State<ControlPage> {
       }
     }
 
+    final regex = RegExp(r'\((\d+)\)');
+    final match = regex.firstMatch(parts[2]);
+    int users = int.parse(match!.group(1).toString());
+    print('Hay $users conectados');
+    userConnected = users > 1;
+
     setState(() {});
   }
 
@@ -362,291 +368,261 @@ class ControlPageState extends State<ControlPage> {
                   },
                   child: Text(nickname),
                 ),
-                actions: deviceOwner
-                    ? <Widget>[
-                        IconButton(
-                          icon: Icon(
-                            wifiIcon,
-                            size: 24.0,
-                            semanticLabel: 'Icono de wifi',
-                          ),
-                          onPressed: () {
-                            showDialog(
-                              barrierDismissible: true,
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  backgroundColor:
-                                      const Color.fromARGB(255, 37, 34, 35),
-                                  title: Row(children: [
-                                    const Text.rich(TextSpan(
-                                        text: 'Estado de conexión: ',
-                                        style: TextStyle(
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255),
-                                          fontSize: 14,
-                                        ))),
-                                    Text.rich(TextSpan(
-                                        text: textState,
-                                        style: TextStyle(
-                                            color: statusColor,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)))
-                                  ]),
-                                  content: SingleChildScrollView(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text.rich(TextSpan(
-                                            text: 'Error: $errorMessage',
-                                            style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255)))),
-                                        const SizedBox(height: 10),
-                                        Text.rich(TextSpan(
-                                            text: 'Sintax: $errorSintax',
-                                            style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255)))),
-                                        const SizedBox(height: 10),
-                                        Row(children: [
-                                          const Text.rich(TextSpan(
-                                              text: 'Red actual: ',
-                                              style: TextStyle(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255)))),
-                                          Text.rich(TextSpan(
-                                              text: nameOfWifi,
-                                              style: const TextStyle(
-                                                  fontSize: 20,
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255)))),
-                                        ]),
-                                        const SizedBox(height: 10),
+                actions: userConnected
+                    ? null
+                    : deviceOwner
+                        ? <Widget>[
+                            IconButton(
+                              icon: Icon(
+                                wifiIcon,
+                                size: 24.0,
+                                semanticLabel: 'Icono de wifi',
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                  barrierDismissible: true,
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      backgroundColor:
+                                          const Color.fromARGB(255, 37, 34, 35),
+                                      title: Row(children: [
                                         const Text.rich(TextSpan(
-                                            text: 'Ingrese los datos de WiFi',
+                                            text: 'Estado de conexión: ',
                                             style: TextStyle(
-                                                fontSize: 20,
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255),
-                                                fontWeight: FontWeight.bold))),
-                                        IconButton(
-                                          icon: const Icon(Icons.qr_code),
-                                          iconSize: 50,
-                                          color: const Color.fromARGB(
-                                              255, 255, 255, 255),
-                                          onPressed: () async {
-                                            PermissionStatus permissionStatusC =
-                                                await Permission.camera
-                                                    .request();
-                                            if (!permissionStatusC.isGranted) {
-                                              await Permission.camera.request();
-                                            }
-                                            permissionStatusC =
-                                                await Permission.camera.status;
-                                            if (permissionStatusC.isGranted) {
-                                              openQRScanner(
-                                                  navigatorKey.currentContext!);
-                                            }
-                                          },
-                                        ),
-                                        TextField(
-                                          style: const TextStyle(
                                               color: Color.fromARGB(
-                                                  255, 255, 255, 255)),
-                                          cursorColor: const Color.fromARGB(
-                                              255, 189, 189, 189),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Nombre de la red',
-                                            hintStyle: TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255)),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color.fromARGB(
-                                                      255, 189, 189, 189)),
+                                                  255, 255, 255, 255),
+                                              fontSize: 14,
+                                            ))),
+                                        Text.rich(TextSpan(
+                                            text: textState,
+                                            style: TextStyle(
+                                                color: statusColor,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold)))
+                                      ]),
+                                      content: SingleChildScrollView(
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text.rich(TextSpan(
+                                                text: 'Error: $errorMessage',
+                                                style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color.fromARGB(
+                                                        255, 255, 255, 255)))),
+                                            const SizedBox(height: 10),
+                                            Text.rich(TextSpan(
+                                                text: 'Sintax: $errorSintax',
+                                                style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: Color.fromARGB(
+                                                        255, 255, 255, 255)))),
+                                            const SizedBox(height: 10),
+                                            Row(children: [
+                                              const Text.rich(TextSpan(
+                                                  text: 'Red actual: ',
+                                                  style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Color.fromARGB(255,
+                                                          255, 255, 255)))),
+                                              Text.rich(TextSpan(
+                                                  text: nameOfWifi,
+                                                  style: const TextStyle(
+                                                      fontSize: 20,
+                                                      color: Color.fromARGB(255,
+                                                          255, 255, 255)))),
+                                            ]),
+                                            const SizedBox(height: 10),
+                                            const Text.rich(TextSpan(
+                                                text:
+                                                    'Ingrese los datos de WiFi',
+                                                style: TextStyle(
+                                                    fontSize: 20,
+                                                    color: Color.fromARGB(
+                                                        255, 255, 255, 255),
+                                                    fontWeight:
+                                                        FontWeight.bold))),
+                                            IconButton(
+                                              icon: const Icon(Icons.qr_code),
+                                              iconSize: 50,
+                                              color: const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                              onPressed: () async {
+                                                PermissionStatus
+                                                    permissionStatusC =
+                                                    await Permission.camera
+                                                        .request();
+                                                if (!permissionStatusC
+                                                    .isGranted) {
+                                                  await Permission.camera
+                                                      .request();
+                                                }
+                                                permissionStatusC =
+                                                    await Permission
+                                                        .camera.status;
+                                                if (permissionStatusC
+                                                    .isGranted) {
+                                                  openQRScanner(navigatorKey
+                                                      .currentContext!);
+                                                }
+                                              },
                                             ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
+                                            TextField(
+                                              style: const TextStyle(
                                                   color: Color.fromARGB(
-                                                      255, 189, 189, 189)),
+                                                      255, 255, 255, 255)),
+                                              cursorColor: const Color.fromARGB(
+                                                  255, 189, 189, 189),
+                                              decoration: const InputDecoration(
+                                                hintText: 'Nombre de la red',
+                                                hintStyle: TextStyle(
+                                                    color: Color.fromARGB(
+                                                        255, 255, 255, 255)),
+                                                enabledBorder:
+                                                    UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Color.fromARGB(
+                                                          255, 189, 189, 189)),
+                                                ),
+                                                focusedBorder:
+                                                    UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Color.fromARGB(
+                                                          255, 189, 189, 189)),
+                                                ),
+                                              ),
+                                              onChanged: (value) {
+                                                wifiName = value;
+                                              },
                                             ),
-                                          ),
-                                          onChanged: (value) {
-                                            wifiName = value;
-                                          },
+                                            TextField(
+                                              style: const TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 255, 255, 255)),
+                                              cursorColor: const Color.fromARGB(
+                                                  255, 189, 189, 189),
+                                              decoration: const InputDecoration(
+                                                hintText: 'Contraseña',
+                                                hintStyle: TextStyle(
+                                                    color: Color.fromARGB(
+                                                        255, 255, 255, 255)),
+                                                enabledBorder:
+                                                    UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Color.fromARGB(
+                                                          255, 189, 189, 189)),
+                                                ),
+                                                focusedBorder:
+                                                    UnderlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Color.fromARGB(
+                                                          255, 189, 189, 189)),
+                                                ),
+                                              ),
+                                              obscureText: true,
+                                              onChanged: (value) {
+                                                wifiPassword = value;
+                                              },
+                                            ),
+                                          ],
                                         ),
-                                        TextField(
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 255, 255, 255)),
-                                          cursorColor: const Color.fromARGB(
-                                              255, 189, 189, 189),
-                                          decoration: const InputDecoration(
-                                            hintText: 'Contraseña',
-                                            hintStyle: TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255)),
-                                            enabledBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color.fromARGB(
-                                                      255, 189, 189, 189)),
-                                            ),
-                                            focusedBorder: UnderlineInputBorder(
-                                              borderSide: BorderSide(
-                                                  color: Color.fromARGB(
-                                                      255, 189, 189, 189)),
-                                            ),
-                                          ),
-                                          obscureText: true,
-                                          onChanged: (value) {
-                                            wifiPassword = value;
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          style: const ButtonStyle(
+                                              foregroundColor:
+                                                  MaterialStatePropertyAll(
+                                                      Color.fromARGB(
+                                                          255, 255, 255, 255))),
+                                          child: const Text('Aceptar'),
+                                          onPressed: () {
+                                            sendWifitoBle();
+                                            navigatorKey.currentState?.pop();
                                           },
                                         ),
                                       ],
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      style: const ButtonStyle(
-                                          foregroundColor:
-                                              MaterialStatePropertyAll(
-                                                  Color.fromARGB(
-                                                      255, 255, 255, 255))),
-                                      child: const Text('Aceptar'),
-                                      onPressed: () {
-                                        sendWifitoBle();
-                                        navigatorKey.currentState?.pop();
-                                      },
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 );
                               },
-                            );
-                          },
-                        ),
-                      ]
-                    : null),
-            drawer: deviceOwner
-                ? DeviceDrawer(
-                    night: nightMode,
-                  )
-                : null,
+                            ),
+                          ]
+                        : null),
+            drawer: userConnected
+                ? null
+                : deviceOwner
+                    ? DeviceDrawer(
+                        night: nightMode,
+                      )
+                    : null,
             body: SingleChildScrollView(
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 30),
-                    deviceOwner
-                        ? const SizedBox(height: 0)
-                        : const Text('Estado:',
-                            style: TextStyle(
-                                fontSize: 30,
-                                color: Color.fromARGB(255, 255, 255, 255))),
-                    Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Text.rich(TextSpan(
-                          text: turnOn
-                              ? trueStatus
-                                  ? 'Calentando'
-                                  : 'Encendido'
-                              : 'Apagado',
-                          style: TextStyle(
-                              color: turnOn
-                                  ? trueStatus
-                                      ? Colors.amber[600]
-                                      : Colors.green
-                                  : Colors.red,
-                              fontSize: 30))),
-                      if (trueStatus) ...[
-                        Icon(Icons.flash_on_rounded,
-                            size: 30, color: Colors.amber[600]),
-                      ]
-                    ]),
-                    if (deviceOwner) ...[
-                      const SizedBox(height: 30),
-                      Transform.scale(
-                        scale: 3.0,
-                        child: Switch(
-                          activeColor: const Color.fromARGB(255, 189, 189, 189),
-                          activeTrackColor:
-                              const Color.fromARGB(255, 255, 255, 255),
-                          inactiveThumbColor:
-                              const Color.fromARGB(255, 255, 255, 255),
-                          inactiveTrackColor:
-                              const Color.fromARGB(255, 189, 189, 189),
-                          value: turnOn,
-                          onChanged: (value) {
-                            turnDeviceOn(value);
-                            setState(() {
-                              turnOn = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 50),
-                    const Text('Temperatura de corte:',
-                        style: TextStyle(
-                            fontSize: 25,
-                            color: Color.fromARGB(255, 255, 255, 255))),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text.rich(TextSpan(
-                            text: tempValue.round().toString(),
-                            style: const TextStyle(
-                                fontSize: 30,
-                                color: Color.fromARGB(255, 255, 255, 255)))),
-                        const Text.rich(TextSpan(
-                            text: '°C',
-                            style: TextStyle(
-                                fontSize: 30,
-                                color: Color.fromARGB(255, 255, 255, 255)))),
-                      ],
-                    ),
-                    if (deviceOwner) ...[
-                      SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          trackHeight: 50.0,
-                          thumbColor: Colors.white,
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 0.0,
-                          ),
-                        ),
-                        child: Slider(
-                          activeColor: const Color.fromARGB(255, 255, 255, 255),
-                          inactiveColor:
-                              const Color.fromARGB(255, 189, 189, 189),
-                          value: tempValue,
-                          onChanged: (value) {
-                            setState(() {
-                              tempValue = value;
-                            });
-                          },
-                          onChangeEnd: (value) {
-                            print(value);
-                            sendTemperature(value.round());
-                          },
-                          min: 10,
-                          max: 40,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
+                child: userConnected
+                    ? const Center(
+                        child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text('Activar control\n por distancia:',
+                            SizedBox(
+                              height: 50,
+                            ),
+                            Text('Actualmente hay un usuario usando el calefactor',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 25,
+                                    fontSize: 28,
                                     color: Color.fromARGB(255, 255, 255, 255))),
-                            const SizedBox(width: 30),
+                            Text('Espere a que se desconecte para poder usarla',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 28,
+                                    color: Color.fromARGB(255, 255, 255, 255))),
+                                    SizedBox(
+                              height: 20,
+                            ),
+                            CircularProgressIndicator(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 30),
+                          deviceOwner
+                              ? const SizedBox(height: 0)
+                              : const Text('Estado:',
+                                  style: TextStyle(
+                                      fontSize: 30,
+                                      color:
+                                          Color.fromARGB(255, 255, 255, 255))),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text.rich(TextSpan(
+                                    text: turnOn
+                                        ? trueStatus
+                                            ? 'Calentando'
+                                            : 'Encendido'
+                                        : 'Apagado',
+                                    style: TextStyle(
+                                        color: turnOn
+                                            ? trueStatus
+                                                ? Colors.amber[600]
+                                                : Colors.green
+                                            : Colors.red,
+                                        fontSize: 30))),
+                                if (trueStatus) ...[
+                                  Icon(Icons.flash_on_rounded,
+                                      size: 30, color: Colors.amber[600]),
+                                ]
+                              ]),
+                          if (deviceOwner) ...[
+                            const SizedBox(height: 30),
                             Transform.scale(
-                              scale: 1.5,
+                              scale: 3.0,
                               child: Switch(
                                 activeColor:
                                     const Color.fromARGB(255, 189, 189, 189),
@@ -656,158 +632,240 @@ class ControlPageState extends State<ControlPage> {
                                     const Color.fromARGB(255, 255, 255, 255),
                                 inactiveTrackColor:
                                     const Color.fromARGB(255, 189, 189, 189),
-                                value: isTaskScheduled,
+                                value: turnOn,
                                 onChanged: (value) {
-                                  verifyPermission().then((result) {
-                                    if (result == true) {
-                                      saveControlValue(value);
-                                      controlTask(value);
-                                    } else {
-                                      showToast(
-                                          'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
-                                      openAppSettings();
-                                    }
+                                  turnDeviceOn(value);
+                                  setState(() {
+                                    turnOn = value;
                                   });
                                 },
                               ),
                             ),
-                          ]),
-                      const SizedBox(height: 25),
-                      if (isTaskScheduled) ...[
-                        const Row(
+                          ],
+                          const SizedBox(height: 50),
+                          const Text('Temperatura de corte:',
+                              style: TextStyle(
+                                  fontSize: 25,
+                                  color: Color.fromARGB(255, 255, 255, 255))),
+                          Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('Distancia de apagado',
-                                  style: TextStyle(
-                                      fontSize: 20,
+                              Text.rich(TextSpan(
+                                  text: tempValue.round().toString(),
+                                  style: const TextStyle(
+                                      fontSize: 30,
                                       color:
-                                          Color.fromARGB(255, 255, 255, 255)))
-                            ]),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text.rich(TextSpan(
-                                text: distOffValue.round().toString(),
-                                style: const TextStyle(
-                                    fontSize: 30,
-                                    color:
-                                        Color.fromARGB(255, 255, 255, 255)))),
-                            const Text.rich(TextSpan(
-                                text: 'Metros',
-                                style: TextStyle(
-                                    fontSize: 30,
-                                    color:
-                                        Color.fromARGB(255, 255, 255, 255)))),
-                          ],
-                        ),
-                        SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 30.0,
-                            thumbColor: Colors.white,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 0.0,
-                            ),
-                          ),
-                          child: Slider(
-                            activeColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            value: distOffValue,
-                            divisions: 20,
-                            onChanged: (value) {
-                              setState(() {
-                                distOffValue = value;
-                              });
-                            },
-                            onChangeEnd: (value) {
-                              print('Valor enviado: ${value.round()}');
-                              sendValueOffToFirestore();
-                            },
-                            min: 100,
-                            max: 300,
-                          ),
-                        ),
-                        const SizedBox(height: 0),
-                        const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Distancia de encendido',
+                                          Color.fromARGB(255, 255, 255, 255)))),
+                              const Text.rich(TextSpan(
+                                  text: '°C',
                                   style: TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 30,
                                       color:
-                                          Color.fromARGB(255, 255, 255, 255)))
-                            ]),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text.rich(TextSpan(
-                                text: distOnValue.round().toString(),
-                                style: const TextStyle(
-                                    fontSize: 30,
-                                    color:
-                                        Color.fromARGB(255, 255, 255, 255)))),
-                            const Text.rich(TextSpan(
-                                text: 'Metros',
-                                style: TextStyle(
-                                    fontSize: 30,
-                                    color:
-                                        Color.fromARGB(255, 255, 255, 255)))),
-                          ],
-                        ),
-                        SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 30.0,
-                            thumbColor: Colors.white,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 0.0,
+                                          Color.fromARGB(255, 255, 255, 255)))),
+                            ],
+                          ),
+                          if (deviceOwner) ...[
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                trackHeight: 50.0,
+                                thumbColor: Colors.white,
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 0.0,
+                                ),
+                              ),
+                              child: Slider(
+                                activeColor:
+                                    const Color.fromARGB(255, 255, 255, 255),
+                                inactiveColor:
+                                    const Color.fromARGB(255, 189, 189, 189),
+                                value: tempValue,
+                                onChanged: (value) {
+                                  setState(() {
+                                    tempValue = value;
+                                  });
+                                },
+                                onChangeEnd: (value) {
+                                  print(value);
+                                  sendTemperature(value.round());
+                                },
+                                min: 10,
+                                max: 40,
+                              ),
                             ),
-                          ),
-                          child: Slider(
-                            activeColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            value: distOnValue,
-                            divisions: 20,
-                            onChanged: (value) {
-                              setState(() {
-                                distOnValue = value;
-                              });
-                            },
-                            onChangeEnd: (value) {
-                              print('Valor enviado: ${value.round()}');
-                              sendValueOnToFirestore();
-                            },
-                            min: 3000,
-                            max: 5000,
-                          ),
-                        ),
-                      ]
-                    ] else ...[
-                      const SizedBox(height: 30),
-                      const Text('Modo actual: ',
-                          style: TextStyle(fontSize: 25, color: Colors.white)),
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            nightMode = !nightMode;
-                            print('Estado: $nightMode');
-                            int fun = nightMode ? 1 : 0;
-                            String data = '022000_IOT[7]($fun)';
-                            print(data);
-                            myDevice.toolsUuid.write(data.codeUnits);
-                          });
-                        },
-                        icon: nightMode
-                            ? const Icon(Icons.nightlight,
-                                color: Colors.white, size: 50)
-                            : const Icon(Icons.wb_sunny,
-                                color: Colors.white, size: 50),
+                            const SizedBox(height: 20),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text('Activar control\n por distancia:',
+                                      style: TextStyle(
+                                          fontSize: 25,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255))),
+                                  const SizedBox(width: 30),
+                                  Transform.scale(
+                                    scale: 1.5,
+                                    child: Switch(
+                                      activeColor: const Color.fromARGB(
+                                          255, 189, 189, 189),
+                                      activeTrackColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      inactiveThumbColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      inactiveTrackColor: const Color.fromARGB(
+                                          255, 189, 189, 189),
+                                      value: isTaskScheduled,
+                                      onChanged: (value) {
+                                        verifyPermission().then((result) {
+                                          if (result == true) {
+                                            saveControlValue(value);
+                                            controlTask(value);
+                                          } else {
+                                            showToast(
+                                                'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
+                                            openAppSettings();
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ]),
+                            const SizedBox(height: 25),
+                            if (isTaskScheduled) ...[
+                              const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Distancia de apagado',
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255)))
+                                  ]),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text.rich(TextSpan(
+                                      text: distOffValue.round().toString(),
+                                      style: const TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255)))),
+                                  const Text.rich(TextSpan(
+                                      text: 'Metros',
+                                      style: TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255)))),
+                                ],
+                              ),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 30.0,
+                                  thumbColor: Colors.white,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 0.0,
+                                  ),
+                                ),
+                                child: Slider(
+                                  activeColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  value: distOffValue,
+                                  divisions: 20,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      distOffValue = value;
+                                    });
+                                  },
+                                  onChangeEnd: (value) {
+                                    print('Valor enviado: ${value.round()}');
+                                    sendValueOffToFirestore();
+                                  },
+                                  min: 100,
+                                  max: 300,
+                                ),
+                              ),
+                              const SizedBox(height: 0),
+                              const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('Distancia de encendido',
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255)))
+                                  ]),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text.rich(TextSpan(
+                                      text: distOnValue.round().toString(),
+                                      style: const TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255)))),
+                                  const Text.rich(TextSpan(
+                                      text: 'Metros',
+                                      style: TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255)))),
+                                ],
+                              ),
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 30.0,
+                                  thumbColor: Colors.white,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 0.0,
+                                  ),
+                                ),
+                                child: Slider(
+                                  activeColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  value: distOnValue,
+                                  divisions: 20,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      distOnValue = value;
+                                    });
+                                  },
+                                  onChangeEnd: (value) {
+                                    print('Valor enviado: ${value.round()}');
+                                    sendValueOnToFirestore();
+                                  },
+                                  min: 3000,
+                                  max: 5000,
+                                ),
+                              ),
+                            ]
+                          ] else ...[
+                            const SizedBox(height: 30),
+                            const Text('Modo actual: ',
+                                style: TextStyle(
+                                    fontSize: 25, color: Colors.white)),
+                            IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  nightMode = !nightMode;
+                                  print('Estado: $nightMode');
+                                  int fun = nightMode ? 1 : 0;
+                                  String data = '022000_IOT[7]($fun)';
+                                  print(data);
+                                  myDevice.toolsUuid.write(data.codeUnits);
+                                });
+                              },
+                              icon: nightMode
+                                  ? const Icon(Icons.nightlight,
+                                      color: Colors.white, size: 50)
+                                  : const Icon(Icons.wb_sunny,
+                                      color: Colors.white, size: 50),
+                            ),
+                          ],
+                        ],
                       ),
-                    ],
-                  ],
-                ),
               ),
             )));
   }

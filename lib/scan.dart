@@ -357,7 +357,12 @@ class LoadState extends State<LoadingPage> {
           FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
       await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
       sendMessagemqtt(deviceName, turnOn ? '1' : '0');
-
+      var parts3 = utf8.decode(credsValues).split(':');
+      final regex = RegExp(r'\((\d+)\)');
+      final match = regex.firstMatch(parts3[2]);
+      int users = int.parse(match!.group(1).toString());
+      print('Hay $users conectados');
+      userConnected = users > 1;
       print('Valores tools: $toolsValues');
       print('Valores creds: $credsValues');
       return Future.value(true);
