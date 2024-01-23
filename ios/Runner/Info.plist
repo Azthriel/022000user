@@ -45,5 +45,33 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+
+	<!-- Permisos de Bluetooth -->
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Necesitamos acceso a Bluetooth para conectarnos a los calefactores cercanos.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Nuestra app necesita Bluetooth para conectarse constantemente a los calefactores cercanos.</string>
+
+    <!-- Permisos de Localización -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Necesitamos tu ubicación para el uso de bluetooth y el control por distancia.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Necesitamos acceso a tu ubicación en todo momento para el uso de bluetooth y el control por distancia.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Necesitamos acceso a tu ubicación en todo momento para el uso de bluetooth y el control por distancia.</string>
+
+	<!-- Permiso de Cámara -->
+    <key>NSCameraUsageDescription</key>
+    <string>Necesitamos acceso a tu cámara para escanear los qr de wifi.</string>
+
+    <!-- Configuración adicional para URL Schemes y otros permisos si son necesarios -->
+    <!-- Por ejemplo, si tu aplicación necesita abrir URLs en un navegador -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>https</string>
+		<string>whatsapp</string>
+        <!-- Añade otros esquemas aquí si es necesario -->
+    </array>
+
 </dict>
 </plist>
