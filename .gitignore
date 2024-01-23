@@ -44,4 +44,4 @@ app.*.map.json
 
 \android\key.properties
 
-/assets/cert
+/assets/cert/
