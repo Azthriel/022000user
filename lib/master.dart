@@ -65,12 +65,13 @@ Timer? locationTimer;
 Timer? bluetoothTimer;
 bool mqttConected = false;
 bool userConnected = false;
+bool alreadySetup = false;
 
 late List<String> pikachu;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24012201';
+String appVersionNumber = '24012300';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -382,6 +383,21 @@ Future<bool> loadControlValue() async {
   }
 }
 
+Future<void> saveSetupMqtt(bool setup) async{
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('alreadySetup', setup);
+}
+
+Future<bool> loadSetupMqtt() async {
+  final prefs = await SharedPreferences.getInstance();
+  bool? setup = prefs.getBool('alreadySetup');
+  if (setup != null) {
+    return setup;
+  } else {
+    return false;
+  }
+}
+
 void sendOwner() async {
   try {
     String userEmail =
@@ -406,6 +422,8 @@ String generateRandomNumbers(int length) {
 }
 
 void setupMqtt() async {
+  alreadySetup = true;
+  saveControlValue(alreadySetup);
   String deviceId = 'calden_IOT/${generateRandomNumbers(32)}';
   String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
   String username = '022000_IOT';

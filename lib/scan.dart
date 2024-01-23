@@ -29,6 +29,8 @@ class ScanPageState extends State<ScanPage> {
     startBluetoothMonitoring();
     startLocationMonitoring();
 
+    askSetup();
+
     loadNicknamesMap().then((loadedMap) {
       setState(() {
         nicknamesMap = loadedMap;
@@ -38,7 +40,9 @@ class ScanPageState extends State<ScanPage> {
     _controller = EasyRefreshController(
       controlFinishRefresh: true,
     );
-    setupMqtt();
+    if (!alreadySetup) {
+      setupMqtt();
+    }
     scan();
   }
 
@@ -46,6 +50,10 @@ class ScanPageState extends State<ScanPage> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void askSetup() async{
+    alreadySetup = await loadSetupMqtt();
   }
 
   void scan() async {
