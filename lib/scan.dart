@@ -52,7 +52,7 @@ class ScanPageState extends State<ScanPage> {
     super.dispose();
   }
 
-  void askSetup() async{
+  void askSetup() async {
     alreadySetup = await loadSetupMqtt();
   }
 
@@ -370,7 +370,9 @@ class LoadState extends State<LoadingPage> {
       final match = regex.firstMatch(parts3[2]);
       int users = int.parse(match!.group(1).toString());
       print('Hay $users conectados');
+
       userConnected = users > 1;
+      lastUser = users;
       print('Valores tools: $toolsValues');
       print('Valores creds: $credsValues');
       return Future.value(true);

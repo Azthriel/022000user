@@ -21,6 +21,7 @@ class ControlPageState extends State<ControlPage> {
   var parts2 = utf8.decode(varsValues).split(':');
   late double tempValue;
   late String nickname;
+  bool werror = false;
 
   @override
   void initState() {
@@ -49,6 +50,9 @@ class ControlPageState extends State<ControlPage> {
         textState = 'CONECTADO';
         statusColor = Colors.green;
         wifiIcon = Icons.wifi;
+        errorMessage = '';
+        errorSintax = '';
+        werror = false;
       });
     } else if (parts[0] == 'WCS_DISCONNECTED') {
       isWifiConnected = false;
@@ -65,6 +69,8 @@ class ControlPageState extends State<ControlPage> {
         setState(() {
           wifiIcon = Icons.warning_amber_rounded;
         });
+
+        werror = true;
 
         if (parts[1] == '202' || parts[1] == '15') {
           errorMessage = 'Contraseña incorrecta';
@@ -84,7 +90,8 @@ class ControlPageState extends State<ControlPage> {
     final match = regex.firstMatch(parts[2]);
     int users = int.parse(match!.group(1).toString());
     print('Hay $users conectados');
-    userConnected = users > 1;
+    userConnected = users > 1 && lastUser != 1;
+    lastUser = users;
 
     setState(() {});
   }
@@ -405,19 +412,27 @@ class ControlPageState extends State<ControlPage> {
                                         child: Column(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text.rich(TextSpan(
-                                                text: 'Error: $errorMessage',
-                                                style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255)))),
-                                            const SizedBox(height: 10),
-                                            Text.rich(TextSpan(
-                                                text: 'Sintax: $errorSintax',
-                                                style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255)))),
+                                            if (werror) ...[
+                                              Text.rich(TextSpan(
+                                                  text: 'Error: $errorMessage',
+                                                  style: const TextStyle(
+                                                      fontSize: 10,
+                                                      color: Color.fromARGB(255,
+                                                          255, 255, 255)))),
+                                              const SizedBox(height: 10),
+                                              Text.rich(
+                                                TextSpan(
+                                                    text:
+                                                        'Sintax: $errorSintax',
+                                                    style: const TextStyle(
+                                                        fontSize: 10,
+                                                        color: Color.fromARGB(
+                                                            255,
+                                                            255,
+                                                            255,
+                                                            255))),
+                                              ),
+                                            ],
                                             const SizedBox(height: 10),
                                             Row(children: [
                                               const Text.rich(TextSpan(
@@ -568,7 +583,8 @@ class ControlPageState extends State<ControlPage> {
                             SizedBox(
                               height: 50,
                             ),
-                            Text('Actualmente hay un usuario usando el calefactor',
+                            Text(
+                                'Actualmente hay un usuario usando el calefactor',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 28,
@@ -578,7 +594,7 @@ class ControlPageState extends State<ControlPage> {
                                 style: TextStyle(
                                     fontSize: 28,
                                     color: Color.fromARGB(255, 255, 255, 255))),
-                                    SizedBox(
+                            SizedBox(
                               height: 20,
                             ),
                             CircularProgressIndicator(

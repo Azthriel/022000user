@@ -66,6 +66,7 @@ Timer? bluetoothTimer;
 bool mqttConected = false;
 bool userConnected = false;
 bool alreadySetup = false;
+int lastUser = 0;
 
 late List<String> pikachu;
 
@@ -1307,7 +1308,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                           IconButton(
                                               onPressed: () => _sendWhatsAppMessage(
                                                   '5491162234181',
-                                                  '¡Hola! Tengo una duda comercial sobre el Calefactor022000: \n'),
+                                                  '¡Hola! Tengo una duda comercial sobre los calefactores smart: \n'),
                                               icon: const Icon(
                                                 Icons.phone,
                                                 color: Colors.white,
@@ -1329,7 +1330,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                               IconButton(
                                                 onPressed: () => _launchEmail(
                                                     'ceat@ibsanitarios.com.ar',
-                                                    'Consulta comercial 022000eIOT',
+                                                    'Consulta comercial calefactores smart',
                                                     '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                                                 icon: const Icon(
                                                   Icons.mail,
