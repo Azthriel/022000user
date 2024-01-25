@@ -293,7 +293,7 @@ class ControlPageState extends State<ControlPage> {
               style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
             ),
             content: const Text(
-                'Esto es para realizar el control por ubicación.',
+                'Calefactor Smart utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
                 style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
             actions: <Widget>[
               TextButton(

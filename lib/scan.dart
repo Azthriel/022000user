@@ -332,7 +332,7 @@ class LoadState extends State<LoadingPage> {
       String userEmail =
           FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
       var parts = utf8.decode(toolsValues).split(':');
-      if (parts[2] == 'NA') {
+      if (parts[3] == 'NA') {
         deviceOwner = true;
         String mailData = '022000_IOT[6]($userEmail)';
         myDevice.toolsUuid.write(mailData.codeUnits);
@@ -340,7 +340,7 @@ class LoadState extends State<LoadingPage> {
         distOnValue = await readDistanceOnValue();
         isTaskScheduled = await loadControlValue();
         sendOwner();
-      } else if (parts[2] == userEmail) {
+      } else if (parts[3] == userEmail) {
         deviceOwner = true;
         distOffValue = await readDistanceOffValue();
         distOnValue = await readDistanceOnValue();

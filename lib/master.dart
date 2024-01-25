@@ -72,7 +72,7 @@ late List<String> pikachu;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24012300';
+String appVersionNumber = '24012500';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -424,7 +424,7 @@ String generateRandomNumbers(int length) {
 
 void setupMqtt() async {
   alreadySetup = true;
-  saveControlValue(alreadySetup);
+  saveSetupMqtt(alreadySetup);
   String deviceId = 'calden_IOT/${generateRandomNumbers(32)}';
   String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
   String username = '022000_IOT';
