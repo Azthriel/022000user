@@ -73,7 +73,7 @@ late List<String> pikachu;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24012600';
+String appVersionNumber = '24020501'; //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -899,95 +899,145 @@ class MyDrawerState extends State<MyDrawer> {
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 37, 34, 35),
-      child: ListView.builder(
-        itemCount: previusConnections.length + 1,
-        itemBuilder: (BuildContext context, int index) {
-          if (index == 0) {
-            // El primer ítem será el DrawerHeader
-            return const DrawerHeader(
-                decoration: BoxDecoration(
-                    // color: Colors.blue,
-                    ),
-                child:
-                    Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-                  Text(
-                    'Mis equipos\nregistrados:',
-                    style: TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
-                      fontSize: 24,
+      child: previusConnections.isEmpty
+          ? ListView(
+              children: const [
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: Text(
+                        'Aún no se ha conectado a ningún calefactor',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 255, 255, 255),
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 80),
-                  Icon(Icons.wifi, color: Colors.white)
-                ]));
-          }
+                ),
+              ],
+            )
+          : ListView.builder(
+              itemCount: previusConnections.length + 1,
+              itemBuilder: (BuildContext context, int index) {
+                if (index == 0) {
+                  // El primer ítem será el DrawerHeader
+                  return const DrawerHeader(
+                      decoration: BoxDecoration(
+                          // color: Colors.blue,
+                          ),
+                      child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mis equipos\nregistrados:',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 24,
+                              ),
+                            ),
+                            SizedBox(width: 80),
+                            Icon(Icons.wifi, color: Colors.white)
+                          ]));
+                }
 
-          String deviceName = previusConnections[index - 1];
-          return FutureBuilder<DocumentSnapshot>(
-            future: _firestore.collection(deviceName).doc('info').get(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done &&
-                  snapshot.hasData) {
-                bool estado = snapshot.data!['estado'];
-                return ListTile(
-                  title: Text(deviceName,
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 18)),
-                  subtitle: estado
-                      ? const Text('Encendido',
-                          style: TextStyle(color: Colors.green, fontSize: 15))
-                      : const Text('Apagado',
-                          style: TextStyle(color: Colors.red, fontSize: 15)),
-                  trailing: FutureBuilder<DocumentSnapshot>(
-                    future: _firestore
-                        .collection(deviceName)
-                        .doc(widget.userMail)
-                        .get(),
-                    builder: (context, ownerSnapshot) {
-                      if (ownerSnapshot.connectionState ==
-                          ConnectionState.done) {
-                        if (ownerSnapshot.data != null &&
-                            ownerSnapshot.data!.exists) {
-                          // Si el documento existe, mostrar el Switch
-                          return Switch(
-                            activeColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            activeTrackColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveThumbColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveTrackColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            value: estado,
-                            onChanged: (newValue) {
-                              toggleState(deviceName, newValue);
-                              setState(() {
-                                estado = newValue;
-                              });
-                            },
-                          );
-                        } else {
-                          // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
-                          return const SizedBox(height: 0, width: 0);
-                        }
-                      } else {
-                        // Manejo de otros estados de conexión
-                        return const CircularProgressIndicator(color: Colors.white,);
-                      }
-                    },
-                  ),
+                String deviceName = previusConnections[index - 1];
+                return FutureBuilder<DocumentSnapshot>(
+                  future: _firestore.collection(deviceName).doc('info').get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done &&
+                        snapshot.hasData) {
+                      bool estado = snapshot.data!['estado'];
+                      return ListTile(
+                        leading: SizedBox(
+                          width: 20,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                print('Eliminando de la lista');
+                                setState(() {
+                                  previusConnections.removeAt(index - 1);
+                                });
+                                guardarLista(previusConnections);
+                              },
+                            ),
+                          ),
+                        ),
+                        title: Text(nicknamesMap[deviceName] ?? deviceName,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+                        subtitle: estado
+                            ? const Text('Encendido',
+                                style: TextStyle(
+                                    color: Colors.green, fontSize: 15))
+                            : const Text('Apagado',
+                                style:
+                                    TextStyle(color: Colors.red, fontSize: 15)),
+                        trailing: FutureBuilder<DocumentSnapshot>(
+                          future: _firestore
+                              .collection(deviceName)
+                              .doc(widget.userMail)
+                              .get(),
+                          builder: (context, ownerSnapshot) {
+                            if (ownerSnapshot.connectionState ==
+                                ConnectionState.done) {
+                              if (ownerSnapshot.data != null &&
+                                  ownerSnapshot.data!.exists) {
+                                // Si el documento existe, mostrar el Switch
+                                return Switch(
+                                  activeColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  activeTrackColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveThumbColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  value: estado,
+                                  onChanged: (newValue) {
+                                    toggleState(deviceName, newValue);
+                                    setState(() {
+                                      estado = newValue;
+                                    });
+                                  },
+                                );
+                              } else {
+                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
+                                return const SizedBox(height: 0, width: 0);
+                              }
+                            } else {
+                              // Manejo de otros estados de conexión
+                              return const CircularProgressIndicator(
+                                color: Colors.white,
+                              );
+                            }
+                          },
+                        ),
+                      );
+                    }
+                    return ListTile(
+                        title: Text(nicknamesMap[deviceName] ?? deviceName,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 15)),
+                        subtitle: const Text('Cargando...',
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 15)),
+                        trailing: const CircularProgressIndicator(
+                          color: Colors.white,
+                        ));
+                  },
                 );
-              }
-              return ListTile(
-                title: Text(deviceName,
-                    style: const TextStyle(color: Colors.white, fontSize: 18)),
-                subtitle: const Text('Cargando...',
-                    style: TextStyle(color: Colors.white, fontSize: 15)),
-              );
-            },
-          );
-        },
-      ),
+              },
+            ),
     );
   }
 }
