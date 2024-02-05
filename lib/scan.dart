@@ -29,6 +29,7 @@ class ScanPageState extends State<ScanPage> {
     startBluetoothMonitoring();
     startLocationMonitoring();
 
+    loadList();
     askSetup();
 
     loadNicknamesMap().then((loadedMap) {
@@ -50,6 +51,10 @@ class ScanPageState extends State<ScanPage> {
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  void loadList() async {
+    previusConnections = await cargarLista();
   }
 
   void askSetup() async {
@@ -348,12 +353,10 @@ class LoadState extends State<LoadingPage> {
         sendOwner();
       } else {
         deviceOwner = false;
-        String userEmail =
-            FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-        FirebaseFirestore.instance
-            .collection(userEmail)
-            .doc(deviceName)
-            .set({'owner': FieldValue.delete()}, SetOptions(merge: true));
+      }
+      if (!previusConnections.contains(deviceName)) {
+        previusConnections.add(deviceName);
+        guardarLista(previusConnections);
       }
       var parts2 = utf8.decode(varsValues).split(':');
       print(parts2);
@@ -362,7 +365,7 @@ class LoadState extends State<LoadingPage> {
       nightMode = parts2[4] == '1';
       print('Estado: $turnOn');
       DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+          FirebaseFirestore.instance.collection(deviceName).doc('info');
       await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
       sendMessagemqtt(deviceName, turnOn ? '1' : '0');
       var parts3 = utf8.decode(credsValues).split(':');

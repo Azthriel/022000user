@@ -137,10 +137,8 @@ class ControlPageState extends State<ControlPage> {
     String data = '022000_IOT[2]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     try {
-      String userEmail =
-          FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
       DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+          FirebaseFirestore.instance.collection(deviceName).doc('info');
       await documentRef.set({'estado': on}, SetOptions(merge: true));
       sendMessagemqtt(deviceName, on ? '1' : '0');
     } catch (e, s) {
@@ -153,7 +151,7 @@ class ControlPageState extends State<ControlPage> {
       String userEmail =
           FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
       DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
       await documentRef
           .set({'distanciaOff': distOffValue.round()}, SetOptions(merge: true));
     } catch (e, s) {
@@ -166,7 +164,7 @@ class ControlPageState extends State<ControlPage> {
       String userEmail =
           FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
       DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
       await documentRef
           .set({'distanciaOn': distOnValue.round()}, SetOptions(merge: true));
     } catch (e, s) {
@@ -262,7 +260,7 @@ class ControlPageState extends State<ControlPage> {
         String userEmail =
             FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
         DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
         await documentRef.set(
             {'ubicacion': GeoPoint(position.latitude, position.longitude)},
             SetOptions(merge: true));
@@ -879,6 +877,14 @@ class ControlPageState extends State<ControlPage> {
                                   : const Icon(Icons.wb_sunny,
                                       color: Colors.white, size: 50),
                             ),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            const Text(
+                                'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 25, color: Colors.white)),
                           ],
                         ],
                       ),

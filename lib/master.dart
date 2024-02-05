@@ -67,6 +67,7 @@ bool mqttConected = false;
 bool userConnected = false;
 bool alreadySetup = false;
 int lastUser = 0;
+List<String> previusConnections = [];
 
 late List<String> pikachu;
 
@@ -280,8 +281,8 @@ Future<double> readDistanceOnValue() async {
 
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(userEmail)
-        .doc(deviceName)
+        .collection(deviceName)
+        .doc(userEmail)
         .get();
     if (documentSnapshot.exists) {
       Map<String, dynamic> data =
@@ -304,8 +305,8 @@ Future<double> readDistanceOffValue() async {
 
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(userEmail)
-        .doc(deviceName)
+        .collection(deviceName)
+        .doc(userEmail)
         .get();
     if (documentSnapshot.exists) {
       Map<String, dynamic> data =
@@ -323,13 +324,10 @@ Future<double> readDistanceOffValue() async {
 }
 
 Future<bool> readStatusValue() async {
-  String userEmail =
-      FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(userEmail)
-        .doc(deviceName)
+        .collection(deviceName)
+        .doc('info')
         .get();
     if (documentSnapshot.exists) {
       Map<String, dynamic> data =
@@ -343,15 +341,6 @@ Future<bool> readStatusValue() async {
     print("Error al leer de Firestore: $e");
     return false;
   }
-}
-
-Future<List<DocumentoEquipo>> obtenerDocumentos(String userMail) async {
-  QuerySnapshot querySnapshot =
-      await FirebaseFirestore.instance.collection(userMail).get();
-
-  return querySnapshot.docs
-      .map((doc) => DocumentoEquipo.fromFirestore(doc))
-      .toList();
 }
 
 Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
@@ -384,7 +373,7 @@ Future<bool> loadControlValue() async {
   }
 }
 
-Future<void> saveSetupMqtt(bool setup) async{
+Future<void> saveSetupMqtt(bool setup) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool('alreadySetup', setup);
 }
@@ -403,9 +392,9 @@ void sendOwner() async {
   try {
     String userEmail =
         FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-    DocumentReference documentRef =
-        FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
-    await documentRef.set({'owner': userEmail}, SetOptions(merge: true));
+    await FirebaseFirestore.instance.collection(deviceName).doc(userEmail).set({
+      'owner': userEmail,
+    });
   } catch (e, s) {
     print('Error al enviar owner a firebase $e $s');
   }
@@ -636,6 +625,16 @@ void showPrivacyDialogIfNeeded() async {
     );
     await prefs.setBool('hasShownDialog', true);
   }
+}
+
+Future<void> guardarLista(List<String> listaDispositivos) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('dispositivos_conectados', listaDispositivos);
+}
+
+Future<List<String>> cargarLista() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getStringList('dispositivos_conectados') ?? [];
 }
 
 // CLASES //
@@ -876,29 +875,8 @@ class MyDevice {
 
 //*-Drawer-*//Menú lateral con dispositivos
 
-class DocumentoEquipo {
-  String id;
-  bool estado;
-  String owner;
-
-  DocumentoEquipo(
-      {required this.id, required this.estado, required this.owner});
-
-  factory DocumentoEquipo.fromFirestore(DocumentSnapshot doc) {
-    // Realizar un cast explícito de los datos a Map<String, dynamic>
-    Map<String, dynamic> data = doc.data()! as Map<String, dynamic>;
-
-    return DocumentoEquipo(
-      id: doc.id,
-      estado: data['estado'] ?? false,
-      owner: data['owner'] ?? 'NA',
-    );
-  }
-}
-
 class MyDrawer extends StatefulWidget {
   final String userMail;
-
   const MyDrawer({super.key, required this.userMail});
 
   @override
@@ -906,17 +884,15 @@ class MyDrawer extends StatefulWidget {
 }
 
 class MyDrawerState extends State<MyDrawer> {
-  List<DocumentoEquipo> documentos = [];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  @override
-  void initState() {
-    super.initState();
-    cargarDocumentos();
-  }
-
-  cargarDocumentos() async {
-    documentos = await obtenerDocumentos(widget.userMail);
-    setState(() {});
+  void toggleState(String deviceName, bool newState) async {
+    // Función para cambiar el estado
+    await _firestore
+        .collection(deviceName)
+        .doc('info')
+        .update({'estado': newState});
+    sendMessagemqtt(deviceName, newState ? '1' : '0');
   }
 
   @override
@@ -924,9 +900,8 @@ class MyDrawerState extends State<MyDrawer> {
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 37, 34, 35),
       child: ListView.builder(
-        itemCount:
-            documentos.length + 1, // Aumenta el conteo en 1 para el encabezado
-        itemBuilder: (context, index) {
+        itemCount: previusConnections.length + 1,
+        itemBuilder: (BuildContext context, int index) {
           if (index == 0) {
             // El primer ítem será el DrawerHeader
             return const DrawerHeader(
@@ -947,58 +922,73 @@ class MyDrawerState extends State<MyDrawer> {
                 ]));
           }
 
-          // Ajusta el índice para los documentos debido al encabezado
-          DocumentoEquipo doc = documentos[index - 1];
-          String userEmail =
-              FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-          bool owner = userEmail == doc.owner;
-          return ListTile(
-            title: Row(
-              children: [
-                Text(
-                  nicknamesMap[doc.id] ?? doc.id,
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255)),
-                ),
-                doc.estado
-                    ? Icon(Icons.flash_on_rounded,
-                        size: 20, color: Colors.amber[600])
-                    : const SizedBox(width: 0, height: 0),
-              ],
-            ),
-            trailing: owner
-                ? Switch(
-                    activeColor: const Color.fromARGB(255, 189, 189, 189),
-                    activeTrackColor: const Color.fromARGB(255, 255, 255, 255),
-                    inactiveThumbColor:
-                        const Color.fromARGB(255, 255, 255, 255),
-                    inactiveTrackColor:
-                        const Color.fromARGB(255, 189, 189, 189),
-                    value: doc.estado,
-                    onChanged: (bool value) {
-                      setState(() {
-                        doc.estado = value;
-                      });
-                      actualizarEstadoDocumento(widget.userMail, doc.id, value);
-                      sendMessagemqtt(doc.id, value ? '1' : '0');
+          String deviceName = previusConnections[index - 1];
+          return FutureBuilder<DocumentSnapshot>(
+            future: _firestore.collection(deviceName).doc('info').get(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done &&
+                  snapshot.hasData) {
+                bool estado = snapshot.data!['estado'];
+                return ListTile(
+                  title: Text(deviceName,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 18)),
+                  subtitle: estado
+                      ? const Text('Encendido',
+                          style: TextStyle(color: Colors.green, fontSize: 15))
+                      : const Text('Apagado',
+                          style: TextStyle(color: Colors.red, fontSize: 15)),
+                  trailing: FutureBuilder<DocumentSnapshot>(
+                    future: _firestore
+                        .collection(deviceName)
+                        .doc(widget.userMail)
+                        .get(),
+                    builder: (context, ownerSnapshot) {
+                      if (ownerSnapshot.connectionState ==
+                          ConnectionState.done) {
+                        if (ownerSnapshot.data != null &&
+                            ownerSnapshot.data!.exists) {
+                          // Si el documento existe, mostrar el Switch
+                          return Switch(
+                            activeColor:
+                                const Color.fromARGB(255, 189, 189, 189),
+                            activeTrackColor:
+                                const Color.fromARGB(255, 255, 255, 255),
+                            inactiveThumbColor:
+                                const Color.fromARGB(255, 255, 255, 255),
+                            inactiveTrackColor:
+                                const Color.fromARGB(255, 189, 189, 189),
+                            value: estado,
+                            onChanged: (newValue) {
+                              toggleState(deviceName, newValue);
+                              setState(() {
+                                estado = newValue;
+                              });
+                            },
+                          );
+                        } else {
+                          // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
+                          return const SizedBox(height: 0, width: 0);
+                        }
+                      } else {
+                        // Manejo de otros estados de conexión
+                        return const CircularProgressIndicator(color: Colors.white,);
+                      }
                     },
-                  )
-                : doc.estado
-                    ? const Text('Encendido',
-                        style: TextStyle(color: Colors.green))
-                    : const Text('Apagado',
-                        style: TextStyle(color: Colors.red)),
+                  ),
+                );
+              }
+              return ListTile(
+                title: Text(deviceName,
+                    style: const TextStyle(color: Colors.white, fontSize: 18)),
+                subtitle: const Text('Cargando...',
+                    style: TextStyle(color: Colors.white, fontSize: 15)),
+              );
+            },
           );
         },
       ),
     );
-  }
-
-  actualizarEstadoDocumento(String userMail, String docId, bool estado) async {
-    await FirebaseFirestore.instance
-        .collection(userMail)
-        .doc(docId)
-        .update({'estado': estado});
   }
 }
 
@@ -1252,10 +1242,9 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                 .instance.currentUser?.email ??
                                             'usuario_desconocido';
                                         FirebaseFirestore.instance
-                                            .collection(userEmail)
-                                            .doc(deviceName)
-                                            .set({'owner': FieldValue.delete()},
-                                                SetOptions(merge: true));
+                                            .collection(deviceName)
+                                            .doc(userEmail)
+                                            .delete();
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
@@ -1454,8 +1443,8 @@ void callbackDispatcher() {
 
     // Leer datos de Firestore
     DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection(userEmail)
-        .doc(deviceName)
+        .collection(deviceName)
+        .doc(userEmail)
         .get();
 
     if (snapshot.exists) {
@@ -1498,14 +1487,14 @@ void callbackDispatcher() {
       if (distance2.round() <= distanceOn && distance1 > distance2) {
         print('Usuario cerca, encendiendo');
         DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
         await documentRef.set({'estado': true}, SetOptions(merge: true));
         //En un futuro acá agrego las notificaciones unu
       } else if (distance2.round() >= distanceOff && distance1 < distance2) {
         print('Usuario lejos, apagando');
         //Estas re lejos apago el calefactor
         DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(userEmail).doc(deviceName);
+            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
         await documentRef.set({'estado': false}, SetOptions(merge: true));
       }
     }
