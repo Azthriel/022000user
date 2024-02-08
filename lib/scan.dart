@@ -1,13 +1,13 @@
 // ignore_for_file: avoid_print
 
 import 'dart:convert';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'master.dart';
+import 'package:project_022000iot_user/master.dart';
+import 'calefactores/master_calefactor.dart';
 
 class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
@@ -22,6 +22,7 @@ class ScanPageState extends State<ScanPage> {
   TextEditingController searchController = TextEditingController();
   late EasyRefreshController _controller;
   final FocusNode searchFocusNode = FocusNode();
+  bool toastFlag = false;
 
   @override
   void initState() {
@@ -30,7 +31,9 @@ class ScanPageState extends State<ScanPage> {
     startLocationMonitoring();
 
     loadList();
-    askSetup();
+    setupMqtt5773();
+    setupMqtt022000();
+    setupMqtt027000();
 
     loadNicknamesMap().then((loadedMap) {
       setState(() {
@@ -41,9 +44,6 @@ class ScanPageState extends State<ScanPage> {
     _controller = EasyRefreshController(
       controlFinishRefresh: true,
     );
-    if (!alreadySetup) {
-      setupMqtt();
-    }
     scan();
   }
 
@@ -55,10 +55,6 @@ class ScanPageState extends State<ScanPage> {
 
   void loadList() async {
     previusConnections = await cargarLista();
-  }
-
-  void askSetup() async {
-    alreadySetup = await loadSetupMqtt();
   }
 
   void scan() async {
@@ -334,6 +330,9 @@ class LoadState extends State<LoadingPage> {
       toolsValues = await myDevice.toolsUuid.read();
       credsValues = await myDevice.credsUuid.read();
       varsValues = await myDevice.varsUuid.read();
+      DocumentReference documentRef =
+          FirebaseFirestore.instance.collection(deviceName).doc('info');
+      await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
       String userEmail =
           FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
       var parts = utf8.decode(toolsValues).split(':');
@@ -364,10 +363,7 @@ class LoadState extends State<LoadingPage> {
       trueStatus = parts2[3] == '1';
       nightMode = parts2[4] == '1';
       print('Estado: $turnOn');
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc('info');
-      await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
-      sendMessagemqtt(deviceName, turnOn ? '1' : '0');
+      await documentRef.set({'tipo': deviceType}, SetOptions(merge: true));
       var parts3 = utf8.decode(credsValues).split(':');
       final regex = RegExp(r'\((\d+)\)');
       final match = regex.firstMatch(parts3[2]);

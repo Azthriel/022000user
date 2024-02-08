@@ -17,24 +17,15 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -52,11 +43,39 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyAalsgddUz49N0n3pkvPu7DIDVNwVZWa1E',
+    appId: '1:629146285429:web:e43eff8635b2291d690f3c',
+    messagingSenderId: '629146285429',
+    projectId: 'eiot-2b484',
+    authDomain: 'eiot-2b484.firebaseapp.com',
+    storageBucket: 'eiot-2b484.appspot.com',
+    measurementId: 'G-HLYG1HT7N0',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCN27B6sJr9pQ5NOOiRX_uXk3EP6ZBDjkI',
-    appId: '1:629146285429:android:e3a42c98f218e4f8690f3c',
+    appId: '1:629146285429:android:7881f1a638e0c06c690f3c',
     messagingSenderId: '629146285429',
     projectId: 'eiot-2b484',
     storageBucket: 'eiot-2b484.appspot.com',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBs9pZwhUpk3YBoW9jcIwN2DXGQjV_1cBA',
+    appId: '1:629146285429:ios:aec0aed7e75bd72e690f3c',
+    messagingSenderId: '629146285429',
+    projectId: 'eiot-2b484',
+    storageBucket: 'eiot-2b484.appspot.com',
+    iosBundleId: 'com.example.project022000iotUser',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBs9pZwhUpk3YBoW9jcIwN2DXGQjV_1cBA',
+    appId: '1:629146285429:ios:5c7715f14011e5aa690f3c',
+    messagingSenderId: '629146285429',
+    projectId: 'eiot-2b484',
+    storageBucket: 'eiot-2b484.appspot.com',
+    iosBundleId: 'com.example.project022000iotUser.RunnerTests',
   );
 }

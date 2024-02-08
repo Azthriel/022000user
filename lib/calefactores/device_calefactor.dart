@@ -5,9 +5,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:project_022000iot_user/master.dart';
+import 'package:project_022000iot_user/calefactores/master_calefactor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:project_022000iot_user/master.dart';
 
 //CONTROL TAB // On Off y set temperatura
 
@@ -37,8 +38,7 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void updateWifiValues(List<int> data) {
-    var fun =
-        utf8.decode(data); //Wifi status | wifi ssid | ble status | nickname
+    var fun = utf8.decode(data); //Wifi status | wifi ssid | ble status(users)
     fun = fun.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
     print(fun);
     var parts = fun.split(':');
@@ -128,19 +128,19 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void sendTemperature(int temp) {
-    String data = '022000_IOT[1]($temp)';
+    String data = '${command(deviceType)}[1]($temp)';
     myDevice.toolsUuid.write(data.codeUnits);
   }
 
   void turnDeviceOn(bool on) async {
     int fun = on ? 1 : 0;
-    String data = '022000_IOT[2]($fun)';
+    String data = '${command(deviceType)}[2]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     try {
       DocumentReference documentRef =
           FirebaseFirestore.instance.collection(deviceName).doc('info');
       await documentRef.set({'estado': on}, SetOptions(merge: true));
-      sendMessagemqtt(deviceName, on ? '1' : '0');
+      sendMessagemqtt(deviceName, on ? '1' : '0', deviceType);
     } catch (e, s) {
       print('Error al enviar valor a firebase $e $s');
     }
@@ -195,7 +195,7 @@ class ControlPageState extends State<ControlPage> {
         return AlertDialog(
           backgroundColor: const Color.fromARGB(255, 37, 34, 35),
           title: const Text(
-            'Editar identificación del calefactor',
+            'Editar identificación del dispositivo',
             style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
           ),
           content: TextField(
@@ -203,7 +203,7 @@ class ControlPageState extends State<ControlPage> {
             cursorColor: const Color.fromARGB(255, 189, 189, 189),
             controller: nicknameController,
             decoration: const InputDecoration(
-              hintText: "Introduce tu nueva identificación del calefactor",
+              hintText: "Introduce tu nueva identificación del dispositivo",
               hintStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
               enabledBorder: UnderlineInputBorder(
                 borderSide:
@@ -629,8 +629,11 @@ class ControlPageState extends State<ControlPage> {
                                             : Colors.red,
                                         fontSize: 30))),
                                 if (trueStatus) ...[
-                                  Icon(Icons.flash_on_rounded,
-                                      size: 30, color: Colors.amber[600]),
+                                  deviceType == '022000'
+                                      ? Icon(Icons.flash_on_rounded,
+                                          size: 30, color: Colors.amber[600])
+                                      : Icon(Icons.local_fire_department,
+                                          size: 30, color: Colors.amber[600]),
                                 ]
                               ]),
                           if (deviceOwner) ...[

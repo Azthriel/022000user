@@ -4,28 +4,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:project_022000iot_user/firebase_options.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:workmanager/workmanager.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
-
-// VARIABLES //
 
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-String legajoConectado = '';
 String myDeviceid = '';
 String deviceName = '';
 bool bluetoothOn = false;
@@ -37,11 +32,6 @@ String errorSintax = '';
 String nameOfWifi = '';
 var wifiIcon = Icons.wifi_off;
 bool connectionFlag = false;
-bool alreadySubOta = false;
-List<int> toolsValues = [];
-List<int> credsValues = [];
-List<int> varsValues = [];
-bool alreadySubTools = false;
 String wifiName = '';
 String wifiPassword = '';
 bool atemp = false;
@@ -49,31 +39,25 @@ bool isWifiConnected = false;
 bool wifilogoConnected = false;
 MaterialColor statusColor = Colors.grey;
 bool alreadyLog = false;
-bool toastFlag = false;
 int wrongPass = 0;
 final FirebaseAuth auth = FirebaseAuth.instance;
-double distOnValue = 0.0;
-double distOffValue = 0.0;
-bool turnOn = false;
-Map<String, String> nicknamesMap = {};
-bool isTaskScheduled = false;
-bool deviceOwner = false;
-bool trueStatus = false;
-late bool nightMode;
-MqttServerClient? mqttClient;
 Timer? locationTimer;
 Timer? bluetoothTimer;
-bool mqttConected = false;
-bool userConnected = false;
-bool alreadySetup = false;
 int lastUser = 0;
 List<String> previusConnections = [];
-
-late List<String> pikachu;
+Map<String, String> nicknamesMap = {};
+String deviceType = '';
+MqttServerClient? mqttClient5773;
+MqttServerClient? mqttClient022000;
+MqttServerClient? mqttClient027000;
+bool mqttConected022000 = false;
+bool mqttConected027000 = false;
+bool mqttConected5773 = false;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24020501'; //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
+String appVersionNumber = '24020802';
+//ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -89,6 +73,146 @@ void showToast(String message) {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       textColor: const Color.fromARGB(255, 37, 34, 35),
       fontSize: 16.0);
+}
+
+Future<void> sendWifitoBle() async {
+  MyDevice myDevice = MyDevice();
+  String value = '$wifiName#$wifiPassword';
+  String dataToSend = '${command(deviceType)}[3]($value)';
+  print(dataToSend);
+  try {
+    await myDevice.toolsUuid.write(dataToSend.codeUnits);
+    print('Se mando el wifi ANASHE');
+  } catch (e) {
+    print('Error al conectarse a Wifi $e');
+  }
+  atemp = true;
+  wifiName = '';
+  wifiPassword = '';
+}
+
+String command(String device) {
+  switch (device) {
+    case '022000':
+      return '022000_IOT';
+    case '027000':
+      return '027000_IOT';
+    case '5773':
+      return '57_IOT';
+    default:
+      return '';
+  }
+}
+
+void setupMqtt5773() async {
+  String deviceId = 'intelligentgas_IOT/${generateRandomNumbers(32)}';
+  String hostname = '';
+  String username = '';
+  String password = '';
+
+  // Cargar el certificado CA
+  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
+  SecurityContext context = SecurityContext(withTrustedRoots: false);
+  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
+
+  mqttClient5773 = MqttServerClient.withPort(hostname, deviceId, 8883);
+
+  mqttClient5773!.secure = true;
+
+  mqttClient5773!.logging(on: true);
+  mqttClient5773!.onDisconnected = mqttonDisconnected;
+
+  // Configuración de las credenciales
+  mqttClient5773!.setProtocolV311();
+  mqttClient5773!.keepAlivePeriod = 3;
+  await mqttClient5773!.connect(username, password);
+  mqttConected5773 = true;
+}
+
+void setupMqtt022000() async {
+  String deviceId = 'calden022000_IOT/${generateRandomNumbers(32)}';
+  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
+  String username = '022000_IOT';
+  String password = '022000_IOT';
+
+  // Cargar el certificado CA
+  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
+  SecurityContext context = SecurityContext(withTrustedRoots: false);
+  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
+
+  mqttClient022000 = MqttServerClient.withPort(hostname, deviceId, 8883);
+
+  mqttClient022000!.secure = true;
+
+  mqttClient022000!.logging(on: true);
+  mqttClient022000!.onDisconnected = mqttonDisconnected;
+
+  // Configuración de las credenciales
+  mqttClient022000!.setProtocolV311();
+  mqttClient022000!.keepAlivePeriod = 3;
+  await mqttClient022000!.connect(username, password);
+  mqttConected022000 = true;
+}
+
+void setupMqtt027000() async {
+  String deviceId = 'calden_IOT027000/${generateRandomNumbers(32)}';
+  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
+  String username = '027000_IOT';
+  String password = '027000_IOT';
+
+  // Cargar el certificado CA
+  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
+  SecurityContext context = SecurityContext(withTrustedRoots: false);
+  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
+
+  mqttClient027000 = MqttServerClient.withPort(hostname, deviceId, 8883);
+
+  mqttClient027000!.secure = true;
+
+  mqttClient027000!.logging(on: true);
+  mqttClient027000!.onDisconnected = mqttonDisconnected;
+
+  // Configuración de las credenciales
+  mqttClient027000!.setProtocolV311();
+  mqttClient027000!.keepAlivePeriod = 3;
+  await mqttClient027000!.connect(username, password);
+  mqttConected027000 = true;
+}
+
+void mqttonDisconnected() {
+  mqttConected5773 = false;
+  mqttConected022000 = false;
+  mqttConected027000 = false;
+  print('Desconectado de mqtt');
+}
+
+void sendMessagemqtt(String deviceName, String message, String device) {
+  print(
+      'Conexiones: 57 $mqttConected5773 :: 022000 $mqttConected022000 :: 027000 $mqttConected027000');
+  late RegExpMatch? match;
+  if (device == '022000' || device == '027000') {
+    final regex = RegExp(r'Calefactor(\d+)');
+    match = regex.firstMatch(deviceName);
+  } else {
+    final regex = RegExp(r'Detector(\d+)');
+    match = regex.firstMatch(deviceName);
+  }
+
+  final serialNum = match!.group(1);
+  String topic = '${command(device)}/$serialNum';
+  final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
+  builder.addString(message);
+
+  if (device == '022000' && mqttConected022000) {
+    mqttClient022000!
+        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  } else if (device == '027000' && mqttConected027000) {
+    mqttClient027000!
+        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  } else if (device == '5773' && mqttConected5773) {
+    mqttClient5773!
+        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  }
 }
 
 String generateErrorReport(FlutterErrorDetails details) {
@@ -229,238 +353,6 @@ String getWifiErrorSintax(int errorCode) {
       return "WIFI_REASON_ROAMING";
     default:
       return "Error Desconocido";
-  }
-}
-
-Future<void> sendWifitoBle() async {
-  MyDevice myDevice = MyDevice();
-  String value = '$wifiName#$wifiPassword';
-  String dataToSend = '022000_IOT[3]($value)';
-  print(dataToSend);
-  try {
-    await myDevice.toolsUuid.write(dataToSend.codeUnits);
-    print('Se mando el wifi ANASHE');
-  } catch (e) {
-    print('Error al conectarse a Wifi $e');
-  }
-  atemp = true;
-  wifiName = '';
-  wifiPassword = '';
-}
-
-Future<void> openQRScanner(BuildContext context) async {
-  try {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      var qrResult = await navigatorKey.currentState
-          ?.push(MaterialPageRoute(builder: (context) => const QRScanPage()));
-      if (qrResult != null) {
-        var wifiData = parseWifiQR(qrResult);
-        wifiName = wifiData['SSID']!;
-        wifiPassword = wifiData['password']!;
-        sendWifitoBle();
-      }
-    });
-  } catch (e) {
-    print("Error during navigation: $e");
-  }
-}
-
-Map<String, String> parseWifiQR(String qrContent) {
-  print(qrContent);
-  final ssidMatch = RegExp(r'S:([^;]+)').firstMatch(qrContent);
-  final passwordMatch = RegExp(r'P:([^;]+)').firstMatch(qrContent);
-
-  final ssid = ssidMatch?.group(1) ?? '';
-  final password = passwordMatch?.group(1) ?? '';
-  return {"SSID": ssid, "password": password};
-}
-
-Future<double> readDistanceOnValue() async {
-  String userEmail =
-      FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc(userEmail)
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['distanciaOn']?.toDouble() ??
-          3000.0; // Retorna 100.0 si no se encuentra el campo
-    } else {
-      print("Documento no encontrado");
-      return 3000.0;
-    }
-  } catch (e) {
-    print("Error al leer de Firestore: $e");
-    return 3000.0;
-  }
-}
-
-Future<double> readDistanceOffValue() async {
-  String userEmail =
-      FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc(userEmail)
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['distanciaOff']?.toDouble() ??
-          100.0; // Retorna 100.0 si no se encuentra el campo
-    } else {
-      print("Documento no encontrado");
-      return 100.0;
-    }
-  } catch (e) {
-    print("Error al leer de Firestore: $e");
-    return 100.0;
-  }
-}
-
-Future<bool> readStatusValue() async {
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc('info')
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['estado'];
-    } else {
-      print("Documento no encontrado");
-      return false;
-    }
-  } catch (e) {
-    print("Error al leer de Firestore: $e");
-    return false;
-  }
-}
-
-Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
-  final prefs = await SharedPreferences.getInstance();
-  String nicknamesString = json.encode(nicknamesMap);
-  await prefs.setString('nicknamesMap', nicknamesString);
-}
-
-Future<Map<String, String>> loadNicknamesMap() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? nicknamesString = prefs.getString('nicknamesMap');
-  if (nicknamesString != null) {
-    return Map<String, String>.from(json.decode(nicknamesString));
-  }
-  return {}; // Devuelve un mapa vacío si no hay nada almacenado
-}
-
-Future<void> saveControlValue(bool control) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('ControlValue', control);
-}
-
-Future<bool> loadControlValue() async {
-  final prefs = await SharedPreferences.getInstance();
-  bool? controlValue = prefs.getBool('ControlValue');
-  if (controlValue != null) {
-    return controlValue;
-  } else {
-    return false;
-  }
-}
-
-Future<void> saveSetupMqtt(bool setup) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('alreadySetup', setup);
-}
-
-Future<bool> loadSetupMqtt() async {
-  final prefs = await SharedPreferences.getInstance();
-  bool? setup = prefs.getBool('alreadySetup');
-  if (setup != null) {
-    return setup;
-  } else {
-    return false;
-  }
-}
-
-void sendOwner() async {
-  try {
-    String userEmail =
-        FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-    await FirebaseFirestore.instance.collection(deviceName).doc(userEmail).set({
-      'owner': userEmail,
-    });
-  } catch (e, s) {
-    print('Error al enviar owner a firebase $e $s');
-  }
-}
-
-String generateRandomNumbers(int length) {
-  Random random = Random();
-  String result = '';
-
-  for (int i = 0; i < length; i++) {
-    result += random.nextInt(10).toString();
-  }
-
-  return result;
-}
-
-void setupMqtt() async {
-  alreadySetup = true;
-  saveSetupMqtt(alreadySetup);
-  String deviceId = 'calden_IOT/${generateRandomNumbers(32)}';
-  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
-  String username = '022000_IOT';
-  String password = '022000_IOT';
-
-  // Cargar el certificado CA
-  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
-  SecurityContext context = SecurityContext(withTrustedRoots: false);
-  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-
-  mqttClient = MqttServerClient.withPort(hostname, deviceId, 8883);
-
-  mqttClient!.secure = true;
-
-  mqttClient!.logging(on: true);
-  mqttClient!.onDisconnected = mqttonDisconnected;
-
-  // Configuración de las credenciales
-  mqttClient!.setProtocolV311();
-  mqttconnect(username, password);
-}
-
-void mqttonDisconnected() {
-  mqttConected = false;
-  print('Desconectado');
-}
-
-Future<void> mqttconnect(String u, String p) async {
-  try {
-    await mqttClient!.connect(u, p);
-    mqttConected = true;
-  } catch (e) {
-    print('Error de conexión: $e');
-  }
-}
-
-void sendMessagemqtt(String deviceName, String message) {
-  print('Estado del mqtt: $mqttConected');
-  final regex = RegExp(r'Calefactor(\d+)');
-  final match = regex.firstMatch(deviceName);
-  final serialNum = match!.group(1);
-  String topic = '022000_IOT/$serialNum';
-  if (mqttConected) {
-    final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-    builder.addString(message);
-
-    mqttClient!.publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 }
 
@@ -637,7 +529,163 @@ Future<List<String>> cargarLista() async {
   return prefs.getStringList('dispositivos_conectados') ?? [];
 }
 
+String generateRandomNumbers(int length) {
+  Random random = Random();
+  String result = '';
+
+  for (int i = 0; i < length; i++) {
+    result += random.nextInt(10).toString();
+  }
+
+  return result;
+}
+
+void sendOwner() async {
+  try {
+    String userEmail =
+        FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+    await FirebaseFirestore.instance.collection(deviceName).doc(userEmail).set({
+      'owner': userEmail,
+    });
+  } catch (e, s) {
+    print('Error al enviar owner a firebase $e $s');
+  }
+}
+
+Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
+  final prefs = await SharedPreferences.getInstance();
+  String nicknamesString = json.encode(nicknamesMap);
+  await prefs.setString('nicknamesMap', nicknamesString);
+}
+
+Future<Map<String, String>> loadNicknamesMap() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? nicknamesString = prefs.getString('nicknamesMap');
+  if (nicknamesString != null) {
+    return Map<String, String>.from(json.decode(nicknamesString));
+  }
+  return {}; // Devuelve un mapa vacío si no hay nada almacenado
+}
+
+Future<bool> readStatusValue() async {
+  try {
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection(deviceName)
+        .doc('info')
+        .get();
+    if (documentSnapshot.exists) {
+      Map<String, dynamic> data =
+          documentSnapshot.data() as Map<String, dynamic>;
+      return data['estado'];
+    } else {
+      print("Documento no encontrado");
+      return false;
+    }
+  } catch (e) {
+    print("Error al leer de Firestore: $e");
+    return false;
+  }
+}
+
+Future<void> openQRScanner(BuildContext context) async {
+  try {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      var qrResult = await navigatorKey.currentState
+          ?.push(MaterialPageRoute(builder: (context) => const QRScanPage()));
+      if (qrResult != null) {
+        var wifiData = parseWifiQR(qrResult);
+        wifiName = wifiData['SSID']!;
+        wifiPassword = wifiData['password']!;
+        sendWifitoBle();
+      }
+    });
+  } catch (e) {
+    print("Error during navigation: $e");
+  }
+}
+
+Map<String, String> parseWifiQR(String qrContent) {
+  print(qrContent);
+  final ssidMatch = RegExp(r'S:([^;]+)').firstMatch(qrContent);
+  final passwordMatch = RegExp(r'P:([^;]+)').firstMatch(qrContent);
+
+  final ssid = ssidMatch?.group(1) ?? '';
+  final password = passwordMatch?.group(1) ?? '';
+  return {"SSID": ssid, "password": password};
+}
+
 // CLASES //
+
+//*-BLE-*//caracteristicas y servicios
+
+class MyDevice {
+  static final MyDevice _singleton = MyDevice._internal();
+
+  factory MyDevice() {
+    return _singleton;
+  }
+
+  MyDevice._internal();
+
+  late BluetoothDevice device;
+  late BluetoothCharacteristic infoUuid;
+
+  late BluetoothCharacteristic toolsUuid;
+  late BluetoothCharacteristic credsUuid;
+  late BluetoothCharacteristic varsUuid;
+  late BluetoothCharacteristic workUuid;
+  late BluetoothCharacteristic lightUuid;
+
+  Future<bool> setup(BluetoothDevice connectedDevice) async {
+    try {
+      device = connectedDevice;
+
+      List<BluetoothService> services =
+          await device.discoverServices(timeout: 3);
+      print('Los servicios: $services');
+
+      BluetoothService infoService = services.firstWhere(
+          (s) => s.uuid == Guid('6a3253b4-48bc-4e97-bacd-325a1d142038'));
+      infoUuid = infoService.characteristics.firstWhere(
+          (c) => c.uuid == Guid('fc5c01f9-18de-4a75-848b-d99a198da9be'));
+
+      List<int> listita = await infoUuid.read();
+      String str = utf8.decode(listita);
+      var partes = str.split('_');
+      deviceType = partes[0];
+
+      if (deviceType == '022000' || deviceType == '027000') {
+        BluetoothService espService = services.firstWhere(
+            (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
+
+        toolsUuid = espService.characteristics.firstWhere(
+            (c) => c.uuid == Guid('3565a918-f830-4fa1-b743-18d618fc5269'));
+        credsUuid = espService.characteristics.firstWhere(
+            (c) => c.uuid == Guid('14a84bb7-7c7c-466c-a3bd-adf2f843df97'));
+        varsUuid = espService.characteristics.firstWhere(
+            (c) => c.uuid == Guid('52a2f121-a8e3-468c-a5de-45dca9a2a207'));
+      } else {
+        BluetoothService service = services.firstWhere(
+            (s) => s.uuid == Guid('dd249079-0ce8-4d11-8aa9-53de4040aec6'));
+        workUuid = service.characteristics.firstWhere(
+            (c) => c.uuid == Guid('6869fe94-c4a2-422a-ac41-b2a7a82803e9'));
+        lightUuid = service.characteristics.firstWhere(
+            (c) => c.uuid == Guid('12d3c6a1-f86e-4d5b-89b5-22dc3f5c831f'));
+
+        BluetoothService espService = services.firstWhere(
+            (s) => s.uuid == Guid('33e3a05a-c397-4bed-81b0-30deb11495c7'));
+        toolsUuid = espService.characteristics.firstWhere(
+            (c) => c.uuid == Guid('89925840-3d11-4676-bf9b-62961456b570'));
+      }
+
+      return Future.value(true);
+    } catch (e, stackTrace) {
+      print('Lcdtmbe $e $stackTrace');
+
+      return Future.value(false);
+    }
+  }
+}
 
 //*-QRPAGE-*//solo scanQR
 
@@ -829,51 +877,7 @@ class QRScanPageState extends State<QRScanPage>
   }
 }
 
-//*-BLE-*//caracteristicas y servicios
-
-class MyDevice {
-  static final MyDevice _singleton = MyDevice._internal();
-
-  factory MyDevice() {
-    return _singleton;
-  }
-
-  MyDevice._internal();
-
-  late BluetoothDevice device;
-  late BluetoothCharacteristic toolsUuid;
-  late BluetoothCharacteristic credsUuid;
-  late BluetoothCharacteristic varsUuid;
-  late BluetoothCharacteristic espServicesUuid;
-
-  Future<bool> setup(BluetoothDevice connectedDevice) async {
-    try {
-      device = connectedDevice;
-
-      List<BluetoothService> services =
-          await device.discoverServices(timeout: 3);
-      print('Los servicios: $services');
-
-      BluetoothService espService = services.firstWhere(
-          (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
-
-      toolsUuid = espService.characteristics.firstWhere(
-          (c) => c.uuid == Guid('3565a918-f830-4fa1-b743-18d618fc5269'));
-      credsUuid = espService.characteristics.firstWhere(
-          (c) => c.uuid == Guid('14a84bb7-7c7c-466c-a3bd-adf2f843df97'));
-      varsUuid = espService.characteristics.firstWhere(
-          (c) => c.uuid == Guid('52a2f121-a8e3-468c-a5de-45dca9a2a207'));
-
-      return Future.value(true);
-    } catch (e, stackTrace) {
-      print('Lcdtmbe $e $stackTrace');
-
-      return Future.value(false);
-    }
-  }
-}
-
-//*-Drawer-*//Menú lateral con dispositivos
+//*-DRAWER-*// Menu lateral
 
 class MyDrawer extends StatefulWidget {
   final String userMail;
@@ -886,13 +890,13 @@ class MyDrawer extends StatefulWidget {
 class MyDrawerState extends State<MyDrawer> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  void toggleState(String deviceName, bool newState) async {
+  void toggleState(String deviceName, bool newState, String equipo) async {
     // Función para cambiar el estado
     await _firestore
         .collection(deviceName)
         .doc('info')
         .update({'estado': newState});
-    sendMessagemqtt(deviceName, newState ? '1' : '0');
+    sendMessagemqtt(deviceName, newState ? '1' : '0', equipo);
   }
 
   @override
@@ -950,79 +954,141 @@ class MyDrawerState extends State<MyDrawer> {
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.done &&
                         snapshot.hasData) {
-                      bool estado = snapshot.data!['estado'];
-                      return ListTile(
-                        leading: SizedBox(
-                          width: 20,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Colors.white,
-                                size: 20,
+                      String equipo = snapshot.data!['tipo'];
+                      if (equipo == '022000' || equipo == '027000') {
+                        bool estado = snapshot.data!['estado'];
+
+                        return ListTile(
+                          leading: SizedBox(
+                            width: 20,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  print('Eliminando de la lista');
+                                  setState(() {
+                                    previusConnections.removeAt(index - 1);
+                                  });
+                                  guardarLista(previusConnections);
+                                },
                               ),
-                              onPressed: () {
-                                print('Eliminando de la lista');
-                                setState(() {
-                                  previusConnections.removeAt(index - 1);
-                                });
-                                guardarLista(previusConnections);
-                              },
                             ),
                           ),
-                        ),
-                        title: Text(nicknamesMap[deviceName] ?? deviceName,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-                        subtitle: estado
-                            ? const Text('Encendido',
-                                style: TextStyle(
-                                    color: Colors.green, fontSize: 15))
-                            : const Text('Apagado',
-                                style:
-                                    TextStyle(color: Colors.red, fontSize: 15)),
-                        trailing: FutureBuilder<DocumentSnapshot>(
-                          future: _firestore
-                              .collection(deviceName)
-                              .doc(widget.userMail)
-                              .get(),
-                          builder: (context, ownerSnapshot) {
-                            if (ownerSnapshot.connectionState ==
-                                ConnectionState.done) {
-                              if (ownerSnapshot.data != null &&
-                                  ownerSnapshot.data!.exists) {
-                                // Si el documento existe, mostrar el Switch
-                                return Switch(
-                                  activeColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
-                                  activeTrackColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  inactiveThumbColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  inactiveTrackColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
-                                  value: estado,
-                                  onChanged: (newValue) {
-                                    toggleState(deviceName, newValue);
-                                    setState(() {
-                                      estado = newValue;
-                                    });
-                                  },
-                                );
+                          title: Text(nicknamesMap[deviceName] ?? deviceName,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                          subtitle: estado
+                              ? Row(
+                                  children: [
+                                    const Text('Encendido',
+                                        style: TextStyle(
+                                            color: Colors.green, fontSize: 15)),
+                                    equipo == '022000'
+                                        ? Icon(Icons.flash_on_rounded,
+                                            size: 15, color: Colors.amber[800])
+                                        : Icon(Icons.local_fire_department,
+                                            size: 15, color: Colors.amber[800])
+                                  ],
+                                )
+                              : const Text('Apagado',
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 15)),
+                          trailing: FutureBuilder<DocumentSnapshot>(
+                            future: _firestore
+                                .collection(deviceName)
+                                .doc(widget.userMail)
+                                .get(),
+                            builder: (context, ownerSnapshot) {
+                              if (ownerSnapshot.connectionState ==
+                                  ConnectionState.done) {
+                                if (ownerSnapshot.data != null &&
+                                    ownerSnapshot.data!.exists) {
+                                  // Si el documento existe, mostrar el Switch
+                                  return Switch(
+                                    activeColor: const Color.fromARGB(
+                                        255, 189, 189, 189),
+                                    activeTrackColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    inactiveThumbColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    inactiveTrackColor: const Color.fromARGB(
+                                        255, 189, 189, 189),
+                                    value: estado,
+                                    onChanged: (newValue) {
+                                      toggleState(deviceName, newValue, equipo);
+                                      setState(() {
+                                        estado = newValue;
+                                      });
+                                    },
+                                  );
+                                } else {
+                                  // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
+                                  return const SizedBox(height: 0, width: 0);
+                                }
                               } else {
-                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
-                                return const SizedBox(height: 0, width: 0);
+                                // Manejo de otros estados de conexión
+                                return const CircularProgressIndicator(
+                                  color: Colors.white,
+                                );
                               }
-                            } else {
-                              // Manejo de otros estados de conexión
-                              return const CircularProgressIndicator(
-                                color: Colors.white,
-                              );
-                            }
-                          },
-                        ),
-                      );
+                            },
+                          ),
+                        );
+                      } else {
+                        int ppmCO = snapshot.data!['ppmCO'] ?? 0;
+                        int ppmCH4 = snapshot.data!['ppmCH4'] ?? 0;
+                        bool alert = snapshot.data!['alert'];
+                        return ListTile(
+                          title: Text(nicknamesMap[deviceName] ?? deviceName,
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 15)),
+                          subtitle: Text.rich(
+                            TextSpan(children: [
+                              const TextSpan(
+                                text: 'PPMCO: ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '$ppmCO         ',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const TextSpan(
+                                text: 'PPMCH4: ',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '$ppmCH4',
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ]),
+                          ),
+                          trailing: alert
+                              ? const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.red,
+                                )
+                              : null,
+                        );
+                      }
                     }
                     return ListTile(
                         title: Text(nicknamesMap[deviceName] ?? deviceName,
@@ -1040,532 +1106,4 @@ class MyDrawerState extends State<MyDrawer> {
             ),
     );
   }
-}
-
-class DeviceDrawer extends StatefulWidget {
-  final bool night;
-  const DeviceDrawer({super.key, required this.night});
-
-  @override
-  DeviceDrawerState createState() => DeviceDrawerState();
-}
-
-class DeviceDrawerState extends State<DeviceDrawer> {
-  final TextEditingController costController = TextEditingController();
-  late bool loading;
-  bool buttonPressed = false;
-  double result = 0.0;
-  DateTime? fechaSeleccionada;
-  late bool nightState;
-
-  @override
-  void initState() {
-    super.initState();
-    cargarFechaGuardada();
-    nightState = widget.night;
-    print('NightMode status: $nightState');
-  }
-
-  Future<void> guardarFecha() async {
-    DateTime now = DateTime.now();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('year', now.year);
-    await prefs.setInt('month', now.month);
-    await prefs.setInt('day', now.day);
-    setState(() {
-      fechaSeleccionada = now;
-    });
-  }
-
-  Future<void> cargarFechaGuardada() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? year = prefs.getInt('year');
-    int? month = prefs.getInt('month');
-    int? day = prefs.getInt('day');
-    if (year != null && month != null && day != null) {
-      setState(() {
-        fechaSeleccionada = DateTime(year, month, day);
-      });
-    }
-  }
-
-  void makeCompute() async {
-    if (costController.text.isNotEmpty) {
-      setState(() {
-        buttonPressed = true;
-        loading = true;
-      });
-      print('Estoy haciendo calculaciones misticas');
-      List<int> list = await myDevice.varsUuid.read();
-      var parts = utf8.decode(list).split(':');
-
-      result = double.parse(parts[2]) * 2 * double.parse(costController.text);
-
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() {
-        loading = false;
-      });
-    } else {
-      showToast('Primero debes ingresar un valor kW/h');
-    }
-  }
-
-  Future<void> _sendWhatsAppMessage(String phoneNumber, String message) async {
-    var whatsappUrl =
-        "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
-    Uri uri = Uri.parse(whatsappUrl);
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      showToast('No se pudo abrir WhatsApp');
-    }
-  }
-
-  void _launchEmail(String mail, String asunto, String cuerpo) async {
-    final Uri emailLaunchUri = Uri(
-      scheme: 'mailto',
-      path: mail,
-      query: encodeQueryParameters(
-          <String, String>{'subject': asunto, 'body': cuerpo}),
-    );
-
-    if (await canLaunchUrl(emailLaunchUri)) {
-      await launchUrl(emailLaunchUri);
-    } else {
-      showToast('No se pudo abrir el correo electrónico');
-    }
-  }
-
-  String encodeQueryParameters(Map<String, String> params) {
-    return params.entries
-        .map((e) =>
-            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
-        .join('&');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Drawer(
-        backgroundColor: const Color.fromARGB(255, 37, 34, 35),
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 100),
-                    SizedBox(
-                        width: 200,
-                        child: TextField(
-                          keyboardType: TextInputType.number,
-                          controller: costController,
-                          style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
-                          cursorColor: const Color.fromARGB(255, 189, 189, 189),
-                          decoration: const InputDecoration(
-                            labelText: 'Ingresa valor KW/h',
-                            labelStyle: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255)),
-                            enabledBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
-                            ),
-                            focusedBorder: UnderlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
-                            ),
-                          ),
-                        )),
-                    const SizedBox(height: 10),
-                    if (buttonPressed) ...[
-                      Visibility(
-                          visible: loading,
-                          child: const CircularProgressIndicator(
-                              color: Color.fromARGB(255, 255, 255, 255))),
-                      Visibility(
-                          visible: !loading,
-                          child: Text('\$$result',
-                              style: const TextStyle(
-                                  fontSize: 50, color: Colors.white))),
-                    ],
-                    const SizedBox(height: 10),
-                    ElevatedButton(
-                        style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
-                            foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
-                        onPressed: makeCompute,
-                        child: const Text('Hacer calculo')),
-                    ElevatedButton(
-                        style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
-                            foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
-                        onPressed: () {
-                          guardarFecha();
-                          String data = '022000_IOT[8](0)';
-                          myDevice.toolsUuid.write(data.codeUnits);
-                        },
-                        child: const Text('Reiniciar mes')),
-                    fechaSeleccionada != null
-                        ? Text(
-                            'Ultimo reinicio: ${fechaSeleccionada!.day}/${fechaSeleccionada!.month}/${fechaSeleccionada!.year}',
-                            style: const TextStyle(
-                                fontSize: 10, color: Colors.white))
-                        : const Text(''),
-                    const SizedBox(height: 20),
-                    const Text('Modo actual: ',
-                        style: TextStyle(fontSize: 20, color: Colors.white)),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          nightState = !nightState;
-                          print('Estado: $nightState');
-                          int fun = nightState ? 1 : 0;
-                          String data = '022000_IOT[7]($fun)';
-                          print(data);
-                          myDevice.toolsUuid.write(data.codeUnits);
-                        });
-                      },
-                      icon: nightState
-                          ? const Icon(Icons.nightlight,
-                              color: Colors.white, size: 40)
-                          : const Icon(Icons.wb_sunny,
-                              color: Colors.white, size: 40),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                        style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
-                            foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
-                        onPressed: () {
-                          showDialog<void>(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 37, 34, 35),
-                                title: const Text(
-                                  '¿Dejar de ser administrador del calefactor?',
-                                  style: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
-                                ),
-                                content: const Text(
-                                  'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
-                                  style: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(
-                                                    255, 255, 255, 255))),
-                                    child: const Text('Cancelar'),
-                                    onPressed: () {
-                                      Navigator.of(dialogContext).pop();
-                                    },
-                                  ),
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(
-                                                    255, 255, 255, 255))),
-                                    child: const Text('Aceptar'),
-                                    onPressed: () async {
-                                      try {
-                                        String mailData = '022000_IOT[6](NA)';
-                                        myDevice.toolsUuid
-                                            .write(mailData.codeUnits);
-                                        String userEmail = FirebaseAuth
-                                                .instance.currentUser?.email ??
-                                            'usuario_desconocido';
-                                        FirebaseFirestore.instance
-                                            .collection(deviceName)
-                                            .doc(userEmail)
-                                            .delete();
-                                        myDevice.device.disconnect();
-                                        Navigator.of(dialogContext).pop();
-                                      } catch (e, s) {
-                                        print(
-                                            'Error al borrar owner $e Trace: $s');
-                                        showToast(
-                                            'Error al borrar el administrador.');
-                                      }
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        child: const Text('Dejar de ser administrador')),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: ElevatedButton(
-                    style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 189, 189, 189)),
-                        foregroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 255, 255, 255))),
-                    onPressed: () {
-                      showDialog(
-                          barrierDismissible: true,
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 37, 34, 35),
-                                content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text('Contacto comercial:',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                              onPressed: () => _sendWhatsAppMessage(
-                                                  '5491162234181',
-                                                  '¡Hola! Tengo una duda comercial sobre los calefactores smart: \n'),
-                                              icon: const Icon(
-                                                Icons.phone,
-                                                color: Colors.white,
-                                                size: 20,
-                                              )),
-                                          // const SizedBox(width: 5),
-                                          const Text('+54 9 11 6223-4181',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20))
-                                        ],
-                                      ),
-                                      SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () => _launchEmail(
-                                                    'ceat@ibsanitarios.com.ar',
-                                                    'Consulta comercial calefactores smart',
-                                                    '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
-                                                icon: const Icon(
-                                                  Icons.mail,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              // const SizedBox(width: 5),
-                                              const Text(
-                                                  'ceat@ibsanitarios.com.ar',
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 20))
-                                            ],
-                                          )),
-                                      const SizedBox(height: 20),
-                                      const Text('Consulta técnica:',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                      SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            IconButton(
-                                              onPressed: () => _launchEmail(
-                                                  'pablo@intelligentgas.com.ar',
-                                                  'Consulta ref. $deviceName',
-                                                  '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo: \n'),
-                                              icon: const Icon(
-                                                Icons.mail,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            // const SizedBox(width: 5),
-                                            const Text(
-                                              'pablo@intelligentgas.com.ar',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20),
-                                              overflow: TextOverflow.ellipsis,
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(height: 20),
-                                      const Text('Customer service:',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                              onPressed: () => _sendWhatsAppMessage(
-                                                  '5491162232619',
-                                                  '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
-                                              icon: const Icon(
-                                                Icons.phone,
-                                                color: Colors.white,
-                                                size: 20,
-                                              )),
-                                          // const SizedBox(width: 5),
-                                          const Text('+54 9 11 6223-2619',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20))
-                                        ],
-                                      ),
-                                      SingleChildScrollView(
-                                          scrollDirection: Axis.horizontal,
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () => _launchEmail(
-                                                    'service@calefactorescalden.com.ar',
-                                                    'Consulta 022000eIOT',
-                                                    'Tengo una consulta referida a mi equipo $deviceName: \n'),
-                                                icon: const Icon(
-                                                  Icons.mail,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              // const SizedBox(width: 5),
-                                              const Text(
-                                                'service@calefactorescalden.com.ar',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 20),
-                                                overflow: TextOverflow.ellipsis,
-                                              )
-                                            ],
-                                          )),
-                                    ]));
-                          });
-                    },
-                    child: const Text('CONTACTANOS'))),
-          ],
-        ));
-  }
-}
-
-//BACKGROUND //
-
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    String userEmail = inputData?['userEmail'];
-    String deviceName = inputData?['deviceName'];
-
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-
-    // Leer datos de Firestore
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc(userEmail)
-        .get();
-
-    if (snapshot.exists) {
-      print('Desgloso datos');
-      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-      GeoPoint storedLocation = data['ubicacion']; // La ubicación almacenada
-      int distanceOn =
-          data['distanciaOn']; // El umbral de distancia para encendido
-      int distanceOff =
-          data['distanciaOff']; // El umbral de distancia para apagado
-
-      print('Distancia guardada $storedLocation');
-
-      Position currentPosition1 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      print(currentPosition1);
-
-      double distance1 = Geolocator.distanceBetween(
-        currentPosition1.latitude,
-        currentPosition1.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      print(distance1);
-
-      await Future.delayed(const Duration(minutes: 2));
-
-      Position currentPosition2 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      print(currentPosition1);
-
-      double distance2 = Geolocator.distanceBetween(
-        currentPosition2.latitude,
-        currentPosition2.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      print(distance2);
-
-      if (distance2.round() <= distanceOn && distance1 > distance2) {
-        print('Usuario cerca, encendiendo');
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-        await documentRef.set({'estado': true}, SetOptions(merge: true));
-        //En un futuro acá agrego las notificaciones unu
-      } else if (distance2.round() >= distanceOff && distance1 < distance2) {
-        print('Usuario lejos, apagando');
-        //Estas re lejos apago el calefactor
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-        await documentRef.set({'estado': false}, SetOptions(merge: true));
-      }
-    }
-
-    return Future.value(true);
-  });
-}
-
-void scheduleBackgroundTask(String userEmail, String deviceName) {
-  Workmanager().registerPeriodicTask(
-    'ControldeDistancia', // ID único para la tarea
-    "checkLocationTask", // Nombre de la tarea
-    inputData: {
-      'userEmail': userEmail,
-      'deviceName': deviceName,
-    },
-    frequency:
-        const Duration(minutes: 15), // Ajusta la frecuencia según sea necesario
-  );
-}
-
-void cancelPeriodicTask() {
-  Workmanager().cancelByUniqueName('ControldeDistancia');
 }

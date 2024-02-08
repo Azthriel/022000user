@@ -2,8 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:project_022000iot_user/master.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'master.dart';
 
 class AskLoginPage extends StatefulWidget {
   const AskLoginPage({super.key});

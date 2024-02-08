@@ -5,11 +5,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:project_022000iot_user/device.dart';
+import 'package:project_022000iot_user/calefactores/device_calefactor.dart';
 import 'package:project_022000iot_user/login.dart';
+import 'package:project_022000iot_user/master.dart';
 import 'package:project_022000iot_user/scan.dart';
 import 'package:workmanager/workmanager.dart';
-import 'master.dart';
+import 'calefactores/master_calefactor.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
