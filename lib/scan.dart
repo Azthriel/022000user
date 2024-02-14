@@ -6,6 +6,7 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:project_022000iot_user/5773/master_detector.dart';
 import 'package:project_022000iot_user/master.dart';
 import 'calefactores/master_calefactor.dart';
 
@@ -63,7 +64,7 @@ class ScanPageState extends State<ScanPage> {
       toastFlag = false;
       try {
         await FlutterBluePlus.startScan(
-            withKeywords: ['Calefactor'],
+            withKeywords: ['Eléctrico', 'Gas', 'Detector'],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
             continuousUpdates: true);
@@ -328,52 +329,67 @@ class LoadState extends State<LoadingPage> {
     try {
       await myDevice.device.requestMtu(255);
       toolsValues = await myDevice.toolsUuid.read();
-      credsValues = await myDevice.credsUuid.read();
-      varsValues = await myDevice.varsUuid.read();
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc('info');
-      await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
-      String userEmail =
-          FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
-      var parts = utf8.decode(toolsValues).split(':');
-      if (parts[3] == 'NA') {
-        deviceOwner = true;
-        String mailData = '022000_IOT[6]($userEmail)';
-        myDevice.toolsUuid.write(mailData.codeUnits);
-        distOffValue = await readDistanceOffValue();
-        distOnValue = await readDistanceOnValue();
-        isTaskScheduled = await loadControlValue();
-        sendOwner();
-      } else if (parts[3] == userEmail) {
-        deviceOwner = true;
-        distOffValue = await readDistanceOffValue();
-        distOnValue = await readDistanceOnValue();
-        isTaskScheduled = await loadControlValue();
-        sendOwner();
-      } else {
-        deviceOwner = false;
-      }
+      print('Valores tools: $toolsValues');
+      print('Valores info: $infoValues');
       if (!previusConnections.contains(deviceName)) {
         previusConnections.add(deviceName);
         guardarLista(previusConnections);
       }
-      var parts2 = utf8.decode(varsValues).split(':');
-      print(parts2);
-      turnOn = parts2[1] == '1';
-      trueStatus = parts2[3] == '1';
-      nightMode = parts2[4] == '1';
-      print('Estado: $turnOn');
+      DocumentReference documentRef =
+          FirebaseFirestore.instance.collection(deviceName).doc('info');
       await documentRef.set({'tipo': deviceType}, SetOptions(merge: true));
-      var parts3 = utf8.decode(credsValues).split(':');
-      final regex = RegExp(r'\((\d+)\)');
-      final match = regex.firstMatch(parts3[2]);
-      int users = int.parse(match!.group(1).toString());
-      print('Hay $users conectados');
 
-      userConnected = users > 1;
-      lastUser = users;
-      print('Valores tools: $toolsValues');
-      print('Valores creds: $credsValues');
+      //Si es un calefactor
+      if (deviceType == '022000' || deviceType == '027000') {
+        varsValues = await myDevice.varsUuid.read();
+        var parts2 = utf8.decode(varsValues).split(':');
+        print(parts2);
+        turnOn = parts2[1] == '1';
+        trueStatus = parts2[3] == '1';
+        nightMode = parts2[4] == '1';
+        print('Estado: $turnOn');
+
+        await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
+        var parts3 = utf8.decode(toolsValues).split(':');
+        final regex = RegExp(r'\((\d+)\)');
+        final match = regex.firstMatch(parts3[2]);
+        int users = int.parse(match!.group(1).toString());
+        print('Hay $users conectados');
+        userConnected = users > 1;
+        lastUser = users;
+
+        String userEmail =
+            FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+        var parts = utf8.decode(infoValues).split(':');
+        if (parts[4] == 'NA') {
+          deviceOwner = true;
+          String mailData = '022000_IOT[6]($userEmail)';
+          myDevice.toolsUuid.write(mailData.codeUnits);
+          distOffValue = await readDistanceOffValue();
+          distOnValue = await readDistanceOnValue();
+          isTaskScheduled = await loadControlValue();
+          sendOwner();
+        } else if (parts[4] == userEmail) {
+          deviceOwner = true;
+          distOffValue = await readDistanceOffValue();
+          distOnValue = await readDistanceOnValue();
+          isTaskScheduled = await loadControlValue();
+          sendOwner();
+        } else {
+          deviceOwner = false;
+        }
+      } else {
+        //Si soy un detector
+        workValues = await myDevice.workUuid.read();
+        print('Valores work: $workValues');
+
+        ppmCO = workValues[5] + workValues[6] << 8;
+        ppmCH4 = workValues[7] + workValues[8] << 8;
+
+        sendValuePPMCO(ppmCO);
+        sendValuePPMCH4(ppmCH4);
+      }
+
       return Future.value(true);
     } catch (e, stackTrace) {
       print('Error en la precarga $e $stackTrace');

@@ -16,8 +16,6 @@ import 'package:workmanager/workmanager.dart';
 // VARIABLES //
 
 bool alreadySubOta = false;
-List<int> toolsValues = [];
-List<int> credsValues = [];
 List<int> varsValues = [];
 bool alreadySubTools = false;
 double distOnValue = 0.0;

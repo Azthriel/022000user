@@ -53,10 +53,15 @@ class MyAppState extends State<MyApp> {
       navigatorKey: navigatorKey,
       title: '022000 USER App',
       theme: ThemeData(
+        primaryColor: const Color.fromARGB(255, 37, 34, 35),
+        primaryColorLight: const Color.fromARGB(255, 80, 80, 83),
         textSelectionTheme: const TextSelectionThemeData(
           selectionColor: Color.fromARGB(255, 189, 189, 189),
           selectionHandleColor: Color.fromARGB(255, 189, 189, 189),
         ),
+        bottomSheetTheme: const BottomSheetThemeData(
+            surfaceTintColor: Colors.transparent,
+            backgroundColor: Colors.transparent),
         colorScheme: ColorScheme.fromSeed(
             seedColor: const Color.fromARGB(255, 37, 34, 35)),
         useMaterial3: true,

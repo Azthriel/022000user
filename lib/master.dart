@@ -21,6 +21,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+List<int> infoValues = [];
+List<int> toolsValues = [];
 String myDeviceid = '';
 String deviceName = '';
 bool bluetoothOn = false;
@@ -646,36 +648,40 @@ class MyDevice {
 
       BluetoothService infoService = services.firstWhere(
           (s) => s.uuid == Guid('6a3253b4-48bc-4e97-bacd-325a1d142038'));
-      infoUuid = infoService.characteristics.firstWhere(
-          (c) => c.uuid == Guid('fc5c01f9-18de-4a75-848b-d99a198da9be'));
+      infoUuid = infoService.characteristics.firstWhere((c) =>
+          c.uuid ==
+          Guid(
+              'fc5c01f9-18de-4a75-848b-d99a198da9be')); //ProductType:SerialNumber:SoftVer:HardVer:Owner
+      toolsUuid = infoService.characteristics.firstWhere((c) =>
+          c.uuid ==
+          Guid(
+              '3565a918-f830-4fa1-b743-18d618fc5269')); //WifiStatus:WifiSSID/WifiError:BleStatus(users)
 
-      List<int> listita = await infoUuid.read();
-      String str = utf8.decode(listita);
-      var partes = str.split('_');
-      deviceType = partes[0];
+      infoValues = await infoUuid.read();
+      String str = utf8.decode(infoValues);
+      var partes = str.split(':');
+      var fun = partes[0].split('_');
+      deviceType = fun[0];
+      print('Device: $deviceType');
 
       if (deviceType == '022000' || deviceType == '027000') {
         BluetoothService espService = services.firstWhere(
             (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
 
-        toolsUuid = espService.characteristics.firstWhere(
-            (c) => c.uuid == Guid('3565a918-f830-4fa1-b743-18d618fc5269'));
-        credsUuid = espService.characteristics.firstWhere(
-            (c) => c.uuid == Guid('14a84bb7-7c7c-466c-a3bd-adf2f843df97'));
-        varsUuid = espService.characteristics.firstWhere(
-            (c) => c.uuid == Guid('52a2f121-a8e3-468c-a5de-45dca9a2a207'));
+        varsUuid = espService.characteristics.firstWhere((c) =>
+            c.uuid ==
+            Guid(
+                '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //WorkingTemp:WorkingStatus:EnergyTimer:HeaterOn:NightMode
       } else {
         BluetoothService service = services.firstWhere(
             (s) => s.uuid == Guid('dd249079-0ce8-4d11-8aa9-53de4040aec6'));
-        workUuid = service.characteristics.firstWhere(
-            (c) => c.uuid == Guid('6869fe94-c4a2-422a-ac41-b2a7a82803e9'));
-        lightUuid = service.characteristics.firstWhere(
-            (c) => c.uuid == Guid('12d3c6a1-f86e-4d5b-89b5-22dc3f5c831f'));
 
-        BluetoothService espService = services.firstWhere(
-            (s) => s.uuid == Guid('33e3a05a-c397-4bed-81b0-30deb11495c7'));
-        toolsUuid = espService.characteristics.firstWhere(
-            (c) => c.uuid == Guid('89925840-3d11-4676-bf9b-62961456b570'));
+        workUuid = service.characteristics.firstWhere((c) =>
+            c.uuid ==
+            Guid(
+                '6869fe94-c4a2-422a-ac41-b2a7a82803e9')); //Array de datos (ppm,etc)
+        lightUuid = service.characteristics.firstWhere((c) =>
+            c.uuid == Guid('12d3c6a1-f86e-4d5b-89b5-22dc3f5c831f')); //No leo
       }
 
       return Future.value(true);
@@ -911,7 +917,7 @@ class MyDrawerState extends State<MyDrawer> {
                     padding: EdgeInsets.all(20),
                     child: Center(
                       child: Text(
-                        'Aún no se ha conectado a ningún calefactor',
+                        'Aún no se ha conectado a ningún equipo',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
