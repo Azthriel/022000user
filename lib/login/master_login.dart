@@ -68,7 +68,7 @@ class FieldWidget extends StatefulWidget {
 }
 
 class FieldState extends State<FieldWidget> {
-  bool _obscureText = false;
+  bool _obscureText = true;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +80,7 @@ class FieldState extends State<FieldWidget> {
       child: TextFormField(
         controller: widget.controlador,
         cursorColor: const Color.fromARGB(255, 255, 255, 255),
-        obscureText: _obscureText,
+        obscureText: widget.pass ? _obscureText : false,
         decoration: InputDecoration(
             focusColor: const Color.fromARGB(255, 189, 189, 189),
             hoverColor: const Color.fromARGB(255, 189, 189, 189),
@@ -168,7 +168,6 @@ class ShowUpAnimationState extends State<ShowUpAnimation>
 }
 
 // TEXT //
-
 class TextUtil extends StatelessWidget {
   final String text;
   final Color? color;

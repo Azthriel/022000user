@@ -58,7 +58,7 @@ bool mqttConected5773 = false;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24020802';
+String appVersionNumber = '24021500';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 
 //!------------------------------VERSION NUMBER---------------------------------------
@@ -80,7 +80,9 @@ void showToast(String message) {
 Future<void> sendWifitoBle() async {
   MyDevice myDevice = MyDevice();
   String value = '$wifiName#$wifiPassword';
-  String dataToSend = '${command(deviceType)}[3]($value)';
+  String deviceCommand = command(deviceType);
+  print(deviceCommand);
+  String dataToSend = '$deviceCommand[1]($value)';
   print(dataToSend);
   try {
     await myDevice.toolsUuid.write(dataToSend.codeUnits);
@@ -94,13 +96,14 @@ Future<void> sendWifitoBle() async {
 }
 
 String command(String device) {
+  print('Entro $device');
   switch (device) {
     case '022000':
       return '022000_IOT';
     case '027000':
       return '027000_IOT';
-    case '5773':
-      return '57_IOT';
+    case '015773':
+      return '015773_IOT';
     default:
       return '';
   }
@@ -633,7 +636,6 @@ class MyDevice {
   late BluetoothCharacteristic infoUuid;
 
   late BluetoothCharacteristic toolsUuid;
-  late BluetoothCharacteristic credsUuid;
   late BluetoothCharacteristic varsUuid;
   late BluetoothCharacteristic workUuid;
   late BluetoothCharacteristic lightUuid;
@@ -655,7 +657,7 @@ class MyDevice {
       toolsUuid = infoService.characteristics.firstWhere((c) =>
           c.uuid ==
           Guid(
-              '3565a918-f830-4fa1-b743-18d618fc5269')); //WifiStatus:WifiSSID/WifiError:BleStatus(users)
+              '89925840-3d11-4676-bf9b-62961456b570')); //WifiStatus:WifiSSID/WifiError:BleStatus(users)
 
       infoValues = await infoUuid.read();
       String str = utf8.decode(infoValues);
@@ -895,6 +897,9 @@ class MyDrawer extends StatefulWidget {
 
 class MyDrawerState extends State<MyDrawer> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  int fun = 0;
+  int fun1 = 0;
+  bool fun2 = false;
 
   void toggleState(String deviceName, bool newState, String equipo) async {
     // Función para cambiar el estado
@@ -1051,35 +1056,81 @@ class MyDrawerState extends State<MyDrawer> {
                         int ppmCO = snapshot.data!['ppmCO'] ?? 0;
                         int ppmCH4 = snapshot.data!['ppmCH4'] ?? 0;
                         bool alert = snapshot.data!['alert'];
+                        FirebaseFirestore.instance
+                            .collection(deviceName)
+                            .doc('info')
+                            .snapshots()
+                            .listen((event) {
+                          if (event.data()!['ppmCO'] != fun) {
+                            setState(() {
+                              ppmCO = event.data()!['ppmCO'];
+                            });
+                            fun = ppmCO;
+                          }
+                          if (event.data()!['ppmCH4'] != fun1) {
+                            setState(() {
+                              ppmCH4 = event.data()!['ppmCH4'];
+                            });
+                            fun1 = ppmCH4;
+                          }
+                          if (event.data()!['alert'] != fun2) {
+                            setState(() {
+                              alert = event.data()!['alert'];
+                            });
+                            fun2 = alert;
+                          }
+                        });
                         return ListTile(
+                          leading: SizedBox(
+                            width: 20,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  print('Eliminando de la lista');
+                                  setState(() {
+                                    previusConnections.removeAt(index - 1);
+                                  });
+                                  guardarLista(previusConnections);
+                                },
+                              ),
+                            ),
+                          ),
                           title: Text(nicknamesMap[deviceName] ?? deviceName,
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 15)),
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
                           subtitle: Text.rich(
                             TextSpan(children: [
                               const TextSpan(
-                                text: 'PPMCO: ',
+                                text: 'PPM CO: ',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
                                 ),
                               ),
                               TextSpan(
-                                text: '$ppmCO         ',
+                                text: '$ppmCO\n',
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold),
                               ),
                               const TextSpan(
-                                text: 'PPMCH4: ',
+                                text: 'CH4 LIE: ',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
                                 ),
                               ),
                               TextSpan(
-                                text: '$ppmCH4',
+                                text: '${(ppmCH4 / 500).round()}',
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,

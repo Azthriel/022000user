@@ -98,10 +98,10 @@ class ControlPageState extends State<ControlPage> {
 
   void subscribeToWifiStatus() async {
     print('Se subscribio a wifi');
-    await myDevice.credsUuid.setNotifyValue(true);
+    await myDevice.toolsUuid.setNotifyValue(true);
 
     final wifiSub =
-        myDevice.credsUuid.onValueReceived.listen((List<int> status) {
+        myDevice.toolsUuid.onValueReceived.listen((List<int> status) {
       updateWifiValues(status);
     });
 
@@ -128,13 +128,13 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void sendTemperature(int temp) {
-    String data = '${command(deviceType)}[1]($temp)';
+    String data = '${command(deviceType)}[7]($temp)';
     myDevice.toolsUuid.write(data.codeUnits);
   }
 
   void turnDeviceOn(bool on) async {
     int fun = on ? 1 : 0;
-    String data = '${command(deviceType)}[2]($fun)';
+    String data = '${command(deviceType)}[6]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     try {
       DocumentReference documentRef =
@@ -869,7 +869,7 @@ class ControlPageState extends State<ControlPage> {
                                   nightMode = !nightMode;
                                   print('Estado: $nightMode');
                                   int fun = nightMode ? 1 : 0;
-                                  String data = '022000_IOT[7]($fun)';
+                                  String data = '022000_IOT[9]($fun)';
                                   print(data);
                                   myDevice.toolsUuid.write(data.codeUnits);
                                 });

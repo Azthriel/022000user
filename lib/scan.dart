@@ -32,9 +32,9 @@ class ScanPageState extends State<ScanPage> {
     startLocationMonitoring();
 
     loadList();
-    setupMqtt5773();
-    setupMqtt022000();
-    setupMqtt027000();
+    // setupMqtt5773();
+    // setupMqtt022000();
+    // setupMqtt027000();
 
     loadNicknamesMap().then((loadedMap) {
       setState(() {
@@ -64,7 +64,7 @@ class ScanPageState extends State<ScanPage> {
       toastFlag = false;
       try {
         await FlutterBluePlus.startScan(
-            withKeywords: ['Eléctrico', 'Gas', 'Detector'],
+            withKeywords: ['Eléctrico', 'Gas', 'Detector', 'Calefactor'],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
             continuousUpdates: true);
@@ -317,7 +317,11 @@ class LoadState extends State<LoadingPage> {
     precharge().then((precharge) {
       if (precharge == true) {
         showToast('Dispositivo conectado exitosamente');
-        navigatorKey.currentState?.pushReplacementNamed('/device');
+        if(deviceType == '022000' || deviceType == '027000'){
+          navigatorKey.currentState?.pushReplacementNamed('/calefactor');
+        }else{
+          navigatorKey.currentState?.pushReplacementNamed('/detector');
+        }
       } else {
         showToast('Error en el dispositivo, intente nuevamente');
         myDevice.device.disconnect();
@@ -327,6 +331,7 @@ class LoadState extends State<LoadingPage> {
 
   Future<bool> precharge() async {
     try {
+      print('Estoy precargando');
       await myDevice.device.requestMtu(255);
       toolsValues = await myDevice.toolsUuid.read();
       print('Valores tools: $toolsValues');
@@ -363,7 +368,7 @@ class LoadState extends State<LoadingPage> {
         var parts = utf8.decode(infoValues).split(':');
         if (parts[4] == 'NA') {
           deviceOwner = true;
-          String mailData = '022000_IOT[6]($userEmail)';
+          String mailData = '022000_IOT[5]($userEmail)';
           myDevice.toolsUuid.write(mailData.codeUnits);
           distOffValue = await readDistanceOffValue();
           distOnValue = await readDistanceOnValue();
@@ -383,11 +388,9 @@ class LoadState extends State<LoadingPage> {
         workValues = await myDevice.workUuid.read();
         print('Valores work: $workValues');
 
-        ppmCO = workValues[5] + workValues[6] << 8;
-        ppmCH4 = workValues[7] + workValues[8] << 8;
+        ppmCO = workValues[5] + (workValues[6] << 8);
+        ppmCH4 = workValues[7] + (workValues[8] << 8);
 
-        sendValuePPMCO(ppmCO);
-        sendValuePPMCH4(ppmCH4);
       }
 
       return Future.value(true);

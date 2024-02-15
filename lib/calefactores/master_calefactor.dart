@@ -269,7 +269,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                 Color.fromARGB(255, 255, 255, 255))),
                         onPressed: () {
                           guardarFecha();
-                          String data = '022000_IOT[8](0)';
+                          String data = '022000_IOT[10](0)';
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
                         child: const Text('Reiniciar mes')),
@@ -288,7 +288,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                           nightState = !nightState;
                           print('Estado: $nightState');
                           int fun = nightState ? 1 : 0;
-                          String data = '022000_IOT[7]($fun)';
+                          String data = '022000_IOT[9]($fun)';
                           print(data);
                           myDevice.toolsUuid.write(data.codeUnits);
                         });
@@ -347,7 +347,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                     child: const Text('Aceptar'),
                                     onPressed: () async {
                                       try {
-                                        String mailData = '022000_IOT[6](NA)';
+                                        String mailData = '022000_IOT[5](NA)';
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
                                         String userEmail = FirebaseAuth

@@ -5,8 +5,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:project_022000iot_user/5773/device_detector.dart';
 import 'package:project_022000iot_user/calefactores/device_calefactor.dart';
-import 'package:project_022000iot_user/login.dart';
+import 'package:project_022000iot_user/login/login.dart';
 import 'package:project_022000iot_user/master.dart';
 import 'package:project_022000iot_user/scan.dart';
 import 'package:workmanager/workmanager.dart';
@@ -72,7 +73,8 @@ class MyAppState extends State<MyApp> {
         '/login': (context) => const LoginPage(),
         '/scan': (context) => const ScanPage(),
         '/loading': (context) => const LoadingPage(),
-        '/device': (context) => const ControlPage()
+        '/calefactor': (context) => const ControlPage(),
+        '/detector': (context) => const DetectorPage(),
       },
     );
   }
