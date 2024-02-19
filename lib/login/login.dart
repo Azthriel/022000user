@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,10 +19,10 @@ class AskLoginPageState extends State<AskLoginPage> {
     super.initState();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
-        print('Usuario no está logueado');
+        printLog('Usuario no está logueado');
         navigatorKey.currentState?.pushReplacementNamed('/login');
       } else {
-        print('Usuario logueado');
+        printLog('Usuario logueado');
         navigatorKey.currentState?.pushReplacementNamed('/scan');
       }
     });
@@ -65,13 +65,13 @@ class LoginPageState extends State<LoginPage> {
     showPrivacyDialogIfNeeded();
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
-        print('Usuario no está logueado');
+        printLog('Usuario no está logueado');
         if (alreadyLog) {
           navigatorKey.currentState?.pushReplacementNamed('/login');
           alreadyLog = false;
         }
       } else {
-        print('Usuario logueado');
+        printLog('Usuario logueado');
         if (!alreadyLog) {
           navigatorKey.currentState?.pushReplacementNamed('/scan');
           alreadyLog = true;
@@ -89,10 +89,10 @@ class LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
-        print('La contraseña es demasiado débil.');
+        printLog('La contraseña es demasiado débil.');
         showToast('La contraseña es demasiado débil.');
       } else if (e.code == 'email-already-in-use') {
-        print('Ya existe una cuenta con este correo electrónico.');
+        printLog('Ya existe una cuenta con este correo electrónico.');
         showToast('Ya existe una cuenta con este correo electrónico.');
       }
     } catch (e) {
@@ -101,7 +101,7 @@ class LoginPageState extends State<LoginPage> {
   }
 
   void iniciarSesion() async {
-    print('Intento iniciar');
+    printLog('Intento iniciar');
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: mailController.text,
@@ -109,22 +109,22 @@ class LoginPageState extends State<LoginPage> {
       );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found') {
-        print('No se encontró ningún usuario con ese correo electrónico.');
+        printLog('No se encontró ningún usuario con ese correo electrónico.');
         showToast('No se encontró ningún usuario con ese correo electrónico.');
       } else if (e.code == 'wrong-password') {
-        print('Contraseña incorrecta para ese usuario.');
+        printLog('Contraseña incorrecta para ese usuario.');
         showToast('Contraseña incorrecta para ese usuario.');
         setState(() {
           wrongPass += 1;
         });
       } else if (e.code == 'invalid-credential') {
-        print('Credenciales incorrectas.');
+        printLog('Credenciales incorrectas.');
         showToast('Credenciales incorrectas.');
         setState(() {
           wrongPass += 1;
         });
       }
-      print(e);
+      printLog('$e');
     }
   }
 
@@ -133,12 +133,12 @@ class LoginPageState extends State<LoginPage> {
 
     try {
       await auth.sendPasswordResetEmail(email: mailController.text);
-      print('Correo de restablecimiento enviado.');
+      printLog('Correo de restablecimiento enviado.');
       showToast('Correo de restablecimiento enviado.');
     } on FirebaseAuthException catch (e) {
       showToast('Correo electronico no encontrado.');
       // Manejar los errores aquí (por ejemplo, correo electrónico no encontrado)
-      print('Error: ${e.message}');
+      printLog('Error: ${e.message}');
     }
   }
 
@@ -149,10 +149,10 @@ class LoginPageState extends State<LoginPage> {
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri);
       } else {
-        print('No se pudo abrir la URL: $url');
+        printLog('No se pudo abrir la URL: $url');
       }
     } catch (e, s) {
-      print('Error url $e Stacktrace: $s');
+      printLog('Error url $e Stacktrace: $s');
     }
   }
 
@@ -220,18 +220,16 @@ class LoginPageState extends State<LoginPage> {
                                         pass: true,
                                         controlador: passwordController,
                                       ),
-                                      if (wrongPass >= 3) ...[
-                                        SizedBox(
-                                            width: double.infinity,
-                                            height: 50,
-                                            child: TextButton(
-                                                onPressed: () =>
-                                                    restablecerContrasena(),
-                                                child: const TextUtil(
-                                                  text:
-                                                      '¿Olvidaste tu contraseña?',
-                                                ))),
-                                      ],
+                                      SizedBox(
+                                          width: double.infinity,
+                                          height: 50,
+                                          child: TextButton(
+                                              onPressed: () =>
+                                                  restablecerContrasena(),
+                                              child: const TextUtil(
+                                                text:
+                                                    '¿Olvidaste tu contraseña?',
+                                              ))),
                                       const SizedBox(
                                         height: 20,
                                       ),

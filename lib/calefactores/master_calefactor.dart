@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -46,11 +44,11 @@ Future<double> readDistanceOnValue() async {
       return data['distanciaOn']?.toDouble() ??
           3000.0; // Retorna 100.0 si no se encuentra el campo
     } else {
-      print("Documento no encontrado");
+      printLog("Documento no encontrado");
       return 3000.0;
     }
   } catch (e) {
-    print("Error al leer de Firestore: $e");
+    printLog("Error al leer de Firestore: $e");
     return 3000.0;
   }
 }
@@ -70,11 +68,11 @@ Future<double> readDistanceOffValue() async {
       return data['distanciaOff']?.toDouble() ??
           100.0; // Retorna 100.0 si no se encuentra el campo
     } else {
-      print("Documento no encontrado");
+      printLog("Documento no encontrado");
       return 100.0;
     }
   } catch (e) {
-    print("Error al leer de Firestore: $e");
+    printLog("Error al leer de Firestore: $e");
     return 100.0;
   }
 }
@@ -125,7 +123,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
     super.initState();
     cargarFechaGuardada();
     nightState = widget.night;
-    print('NightMode status: $nightState');
+    printLog('NightMode status: $nightState');
   }
 
   Future<void> guardarFecha() async {
@@ -157,7 +155,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
         buttonPressed = true;
         loading = true;
       });
-      print('Estoy haciendo calculaciones misticas');
+      printLog('Estoy haciendo calculaciones misticas');
       List<int> list = await myDevice.varsUuid.read();
       var parts = utf8.decode(list).split(':');
 
@@ -286,10 +284,10 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       onPressed: () {
                         setState(() {
                           nightState = !nightState;
-                          print('Estado: $nightState');
+                          printLog('Estado: $nightState');
                           int fun = nightState ? 1 : 0;
                           String data = '022000_IOT[9]($fun)';
-                          print(data);
+                          printLog(data);
                           myDevice.toolsUuid.write(data.codeUnits);
                         });
                       },
@@ -360,7 +358,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
-                                        print(
+                                        printLog(
                                             'Error al borrar owner $e Trace: $s');
                                         showToast(
                                             'Error al borrar el administrador.');
@@ -409,7 +407,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                           IconButton(
                                               onPressed: () => _sendWhatsAppMessage(
                                                   '5491162234181',
-                                                  '¡Hola! Tengo una duda comercial sobre los calefactores smart: \n'),
+                                                  '¡Hola! Tengo una duda comercial sobre los productos Biocalden smart: \n'),
                                               icon: const Icon(
                                                 Icons.phone,
                                                 color: Colors.white,
@@ -463,7 +461,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                               onPressed: () => _launchEmail(
                                                   'pablo@intelligentgas.com.ar',
                                                   'Consulta ref. $deviceName',
-                                                  '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo: \n'),
+                                                  '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: $deviceType\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                                               icon: const Icon(
                                                 Icons.mail,
                                                 color: Colors.white,
@@ -559,7 +557,7 @@ void callbackDispatcher() {
         .get();
 
     if (snapshot.exists) {
-      print('Desgloso datos');
+      printLog('Desgloso datos');
       Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
       GeoPoint storedLocation = data['ubicacion']; // La ubicación almacenada
       int distanceOn =
@@ -567,11 +565,11 @@ void callbackDispatcher() {
       int distanceOff =
           data['distanciaOff']; // El umbral de distancia para apagado
 
-      print('Distancia guardada $storedLocation');
+      printLog('Distancia guardada $storedLocation');
 
       Position currentPosition1 = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      print(currentPosition1);
+      printLog('$currentPosition1');
 
       double distance1 = Geolocator.distanceBetween(
         currentPosition1.latitude,
@@ -579,13 +577,13 @@ void callbackDispatcher() {
         storedLocation.latitude,
         storedLocation.longitude,
       );
-      print(distance1);
+      printLog('$distance1');
 
       await Future.delayed(const Duration(minutes: 2));
 
       Position currentPosition2 = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
-      print(currentPosition1);
+      printLog('$currentPosition1');
 
       double distance2 = Geolocator.distanceBetween(
         currentPosition2.latitude,
@@ -593,16 +591,16 @@ void callbackDispatcher() {
         storedLocation.latitude,
         storedLocation.longitude,
       );
-      print(distance2);
+      printLog('$distance2');
 
       if (distance2.round() <= distanceOn && distance1 > distance2) {
-        print('Usuario cerca, encendiendo');
+        printLog('Usuario cerca, encendiendo');
         DocumentReference documentRef =
             FirebaseFirestore.instance.collection(deviceName).doc('info');
         await documentRef.set({'estado': true}, SetOptions(merge: true));
         //En un futuro acá agrego las notificaciones unu
       } else if (distance2.round() >= distanceOff && distance1 < distance2) {
-        print('Usuario lejos, apagando');
+        printLog('Usuario lejos, apagando');
         //Estas re lejos apago el calefactor
         DocumentReference documentRef =
             FirebaseFirestore.instance.collection(deviceName).doc('info');

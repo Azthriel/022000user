@@ -1,7 +1,6 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,7 +27,7 @@ Future<void> main() async {
       await file.writeAsString(errorReport);
       sendReportError(file.path);
     } else {
-      print('Failed to get external storage directory');
+      printLog('Failed to get external storage directory');
     }
   };
   runApp(const MyApp());
@@ -44,8 +43,10 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    print('Empezamos');
+    loadValues();
+    loadFCM();
+    listenFCM();
+    printLog('Empezamos');
   }
 
   @override
@@ -111,6 +112,8 @@ class PermissionHandlerState extends State<PermissionHandler> {
       await Permission.location.request();
     }
     permissionStatus3 = await Permission.location.status;
+
+    requestPermissionFCM();
 
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&

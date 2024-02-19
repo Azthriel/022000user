@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print, use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:convert';
@@ -30,8 +30,8 @@ class ControlPageState extends State<ControlPage> {
     nickname = nicknamesMap[deviceName] ?? deviceName;
     tempValue = double.parse(parts2[0]);
 
-    print('Valor temp: $tempValue');
-    print('¿Encendido? $turnOn');
+    printLog('Valor temp: $tempValue');
+    printLog('¿Encendido? $turnOn');
     updateWifiValues(toolsValues);
     subscribeToWifiStatus();
     subscribeTrueStatus();
@@ -40,12 +40,12 @@ class ControlPageState extends State<ControlPage> {
   void updateWifiValues(List<int> data) {
     var fun = utf8.decode(data); //Wifi status | wifi ssid | ble status(users)
     fun = fun.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-    print(fun);
+    printLog(fun);
     var parts = fun.split(':');
     if (parts[0] == 'WCS_CONNECTED') {
       nameOfWifi = parts[1];
       isWifiConnected = true;
-      print('sis $isWifiConnected');
+      printLog('sis $isWifiConnected');
       setState(() {
         textState = 'CONECTADO';
         statusColor = Colors.green;
@@ -56,7 +56,7 @@ class ControlPageState extends State<ControlPage> {
       });
     } else if (parts[0] == 'WCS_DISCONNECTED') {
       isWifiConnected = false;
-      print('non $isWifiConnected');
+      printLog('non $isWifiConnected');
 
       setState(() {
         textState = 'DESCONECTADO';
@@ -89,7 +89,7 @@ class ControlPageState extends State<ControlPage> {
     final regex = RegExp(r'\((\d+)\)');
     final match = regex.firstMatch(parts[2]);
     int users = int.parse(match!.group(1).toString());
-    print('Hay $users conectados');
+    printLog('Hay $users conectados');
     userConnected = users > 1 && lastUser != 1;
     lastUser = users;
 
@@ -97,7 +97,7 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void subscribeToWifiStatus() async {
-    print('Se subscribio a wifi');
+    printLog('Se subscribio a wifi');
     await myDevice.toolsUuid.setNotifyValue(true);
 
     final wifiSub =
@@ -109,7 +109,7 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void subscribeTrueStatus() async {
-    print('Me subscribo a vars');
+    printLog('Me subscribo a vars');
     await myDevice.varsUuid.setNotifyValue(true);
 
     final trueStatusSub =
@@ -142,7 +142,7 @@ class ControlPageState extends State<ControlPage> {
       await documentRef.set({'estado': on}, SetOptions(merge: true));
       sendMessagemqtt(deviceName, on ? '1' : '0', deviceType);
     } catch (e, s) {
-      print('Error al enviar valor a firebase $e $s');
+      printLog('Error al enviar valor a firebase $e $s');
     }
   }
 
@@ -155,7 +155,7 @@ class ControlPageState extends State<ControlPage> {
       await documentRef
           .set({'distanciaOff': distOffValue.round()}, SetOptions(merge: true));
     } catch (e, s) {
-      print('Error al enviar valor a firebase $e $s');
+      printLog('Error al enviar valor a firebase $e $s');
     }
   }
 
@@ -168,7 +168,7 @@ class ControlPageState extends State<ControlPage> {
       await documentRef
           .set({'distanciaOn': distOnValue.round()}, SetOptions(merge: true));
     } catch (e, s) {
-      print('Error al enviar valor a firebase $e $s');
+      printLog('Error al enviar valor a firebase $e $s');
     }
   }
 
@@ -236,7 +236,7 @@ class ControlPageState extends State<ControlPage> {
                   nickname = newNickname;
                   nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
                   saveNicknamesMap(nicknamesMap);
-                  print(nicknamesMap);
+                  printLog('$nicknamesMap');
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
               },
@@ -268,7 +268,7 @@ class ControlPageState extends State<ControlPage> {
         scheduleBackgroundTask(userEmail, deviceName);
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
-        print('Error al setear la ubicación $e');
+        printLog('Error al setear la ubicación $e');
       }
     } else {
       // Cancelar la tarea.
@@ -354,7 +354,7 @@ class ControlPageState extends State<ControlPage> {
             },
           );
           Future.delayed(const Duration(seconds: 2), () async {
-            print('aca estoy');
+            printLog('aca estoy');
             await myDevice.device.disconnect();
             navigatorKey.currentState?.pop();
             navigatorKey.currentState?.pushReplacementNamed('/scan');
@@ -702,7 +702,7 @@ class ControlPageState extends State<ControlPage> {
                                   });
                                 },
                                 onChangeEnd: (value) {
-                                  print(value);
+                                  printLog('$value');
                                   sendTemperature(value.round());
                                 },
                                 min: 10,
@@ -795,7 +795,7 @@ class ControlPageState extends State<ControlPage> {
                                     });
                                   },
                                   onChangeEnd: (value) {
-                                    print('Valor enviado: ${value.round()}');
+                                    printLog('Valor enviado: ${value.round()}');
                                     sendValueOffToFirestore();
                                   },
                                   min: 100,
@@ -850,7 +850,7 @@ class ControlPageState extends State<ControlPage> {
                                     });
                                   },
                                   onChangeEnd: (value) {
-                                    print('Valor enviado: ${value.round()}');
+                                    printLog('Valor enviado: ${value.round()}');
                                     sendValueOnToFirestore();
                                   },
                                   min: 3000,
@@ -867,10 +867,10 @@ class ControlPageState extends State<ControlPage> {
                               onPressed: () {
                                 setState(() {
                                   nightMode = !nightMode;
-                                  print('Estado: $nightMode');
+                                  printLog('Estado: $nightMode');
                                   int fun = nightMode ? 1 : 0;
                                   String data = '022000_IOT[9]($fun)';
-                                  print(data);
+                                  printLog(data);
                                   myDevice.toolsUuid.write(data.codeUnits);
                                 });
                               },

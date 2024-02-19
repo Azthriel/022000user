@@ -1,7 +1,7 @@
 name: project_022000iot_user
-description: "A new Flutter project."
+description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.0.1+7
+version: 1.0.1+8
 
 environment:
   sdk: '>=3.2.2 <4.0.0'
@@ -26,6 +26,8 @@ dependencies:
   workmanager: ^0.5.2
   mqtt_client: ^10.0.1
   flutter_email_sender: ^6.0.2
+  http: ^1.2.0
+  firebase_messaging: ^14.7.15
 
 
 dev_dependencies:

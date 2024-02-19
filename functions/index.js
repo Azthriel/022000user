@@ -1,19 +1,63 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
+admin.initializeApp();
 
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
+exports.sendDetectorAlert = functions.firestore
+    .document("/{collectionId}/info")
+    .onUpdate((change, context) => {
+      const newValue = change.after.data();
+      const oldValue = change.before.data();
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+      if (context.params.collectionId.startsWith("Detector")) {
+        if (newValue.alert === true && oldValue.alert === false) {
+          const alertMessage = `Alerta en ${context.params.collectionId}`;
 
-exports.helloWorld = onRequest((request, response) => {
-  logger.info("Hello logs!", {structuredData: true});
-  response.send("Hello from Firebase!");
-});
+          // Recuperamos los tokens del documento
+          const tokens = newValue.Tokens || [];
+
+          // Verificamos si hay tokens para enviar la notificación
+          if (tokens.length > 0) {
+            // Preparamos la carga útil de la notificación para cada token
+            const mes = tokens.map((token) => ({
+              token: token,
+              notification: {
+                title: "¡ALERTA DETECTADA!",
+                body: alertMessage,
+              },
+              android: {
+                notification: {
+                  sound: "default",
+                },
+              },
+              apns: {
+                payload: {
+                  aps: {
+                    sound: "default",
+                  },
+                },
+              },
+              data: {
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                status: "done",
+              },
+            }));
+            return Promise.all(mes.map((message) => admin.messaging()
+                .send(message)))
+                .then((responses) => {
+                  console.log("Successfully sent all messages:", responses);
+                  return responses;
+                })
+                .catch((error) => {
+                  console.log("Error sending messages:", error);
+                  throw new functions.https.HttpsError("unknown", error, error);
+                });
+          } else {
+            console.log("No tokens available for notification.");
+            return null;
+          }
+        }
+      } else {
+        console.log("Not a detector");
+        return null;
+      }
+    });

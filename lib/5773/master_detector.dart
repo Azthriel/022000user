@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+
 
 import 'package:flutter/material.dart';
 import 'package:project_022000iot_user/master.dart';
@@ -14,6 +14,8 @@ int ppmCH4 = 0;
 bool alert = false;
 
 // FUNCIONES //
+
+
 
 // CLASES //
 
@@ -31,7 +33,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
       final data = [value];
       myDevice.lightUuid.write(data, withoutResponse: true);
     } catch (e, stackTrace) {
-      print('Error al mandar el valor del brillo $e $stackTrace');
+      printLog('Error al mandar el valor del brillo $e $stackTrace');
       // handleManualError(e, stackTrace);
     }
   }
@@ -100,164 +102,157 @@ class DrawerDetectorState extends State<DrawerDetector> {
             height: 30,
           ),
           ElevatedButton(
-                  style: const ButtonStyle(
-                      backgroundColor: MaterialStatePropertyAll(
-                          Color.fromARGB(255, 189, 189, 189)),
-                      foregroundColor: MaterialStatePropertyAll(
-                          Color.fromARGB(255, 255, 255, 255))),
-                  onPressed: () {
-                    showDialog(
-                        barrierDismissible: true,
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 37, 34, 35),
-                              content: Column(
-                                  mainAxisSize: MainAxisSize.min,
+              style: const ButtonStyle(
+                  backgroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 189, 189, 189)),
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 255, 255, 255))),
+              onPressed: () {
+                showDialog(
+                    barrierDismissible: true,
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                          backgroundColor:
+                              const Color.fromARGB(255, 37, 34, 35),
+                          content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('Contacto comercial:',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Text('Contacto comercial:',
+                                    IconButton(
+                                        onPressed: () => _sendWhatsAppMessage(
+                                            '5491162234181',
+                                            '¡Hola! Tengo una duda comercial sobre los productos Biocalden smart: \n'),
+                                        icon: const Icon(
+                                          Icons.phone,
+                                          color: Colors.white,
+                                          size: 20,
+                                        )),
+                                    // const SizedBox(width: 5),
+                                    const Text('+54 9 11 6223-4181',
                                         style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold)),
-                                    Row(
+                                            color: Colors.white, fontSize: 20))
+                                  ],
+                                ),
+                                SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
                                         IconButton(
-                                            onPressed: () => _sendWhatsAppMessage(
-                                                '5491162234181',
-                                                '¡Hola! Tengo una duda comercial sobre los calefactores smart: \n'),
-                                            icon: const Icon(
-                                              Icons.phone,
-                                              color: Colors.white,
-                                              size: 20,
-                                            )),
-                                        // const SizedBox(width: 5),
-                                        const Text('+54 9 11 6223-4181',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20))
-                                      ],
-                                    ),
-                                    SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            IconButton(
-                                              onPressed: () => _launchEmail(
-                                                  'ceat@ibsanitarios.com.ar',
-                                                  'Consulta comercial calefactores smart',
-                                                  '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
-                                              icon: const Icon(
-                                                Icons.mail,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            // const SizedBox(width: 5),
-                                            const Text(
-                                                'ceat@ibsanitarios.com.ar',
-                                                style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 20))
-                                          ],
-                                        )),
-                                    const SizedBox(height: 20),
-                                    const Text('Consulta técnica:',
-                                        style: TextStyle(
+                                          onPressed: () => _launchEmail(
+                                              'ceat@ibsanitarios.com.ar',
+                                              'Consulta comercial acerca de la linea Biocalden smart',
+                                              '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                                          icon: const Icon(
+                                            Icons.mail,
                                             color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold)),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          IconButton(
-                                            onPressed: () => _launchEmail(
-                                                'pablo@intelligentgas.com.ar',
-                                                'Consulta ref. $deviceName',
-                                                '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo: \n'),
-                                            icon: const Icon(
-                                              Icons.mail,
-                                              color: Colors.white,
-                                              size: 20,
-                                            ),
+                                            size: 20,
                                           ),
-                                          // const SizedBox(width: 5),
-                                          const Text(
-                                            'pablo@intelligentgas.com.ar',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20),
-                                            overflow: TextOverflow.ellipsis,
-                                          )
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    const Text('Customer service:',
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold)),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        IconButton(
-                                            onPressed: () => _sendWhatsAppMessage(
-                                                '5491162232619',
-                                                '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
-                                            icon: const Icon(
-                                              Icons.phone,
-                                              color: Colors.white,
-                                              size: 20,
-                                            )),
+                                        ),
                                         // const SizedBox(width: 5),
-                                        const Text('+54 9 11 6223-2619',
+                                        const Text('ceat@ibsanitarios.com.ar',
                                             style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 20))
                                       ],
-                                    ),
-                                    SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            IconButton(
-                                              onPressed: () => _launchEmail(
-                                                  'service@calefactorescalden.com.ar',
-                                                  'Consulta 022000eIOT',
-                                                  'Tengo una consulta referida a mi equipo $deviceName: \n'),
-                                              icon: const Icon(
-                                                Icons.mail,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                            ),
-                                            // const SizedBox(width: 5),
-                                            const Text(
-                                              'service@calefactorescalden.com.ar',
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 20),
-                                              overflow: TextOverflow.ellipsis,
-                                            )
-                                          ],
+                                    )),
+                                const SizedBox(height: 20),
+                                const Text('Consulta técnica:',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      IconButton(
+                                        onPressed: () => _launchEmail(
+                                            'pablo@intelligentgas.com.ar',
+                                            'Consulta ref. $deviceName',
+                                            '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: $deviceType\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                                        icon: const Icon(
+                                          Icons.mail,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                      // const SizedBox(width: 5),
+                                      const Text(
+                                        'pablo@intelligentgas.com.ar',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 20),
+                                        overflow: TextOverflow.ellipsis,
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+                                const Text('Customer service:',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold)),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    IconButton(
+                                        onPressed: () => _sendWhatsAppMessage(
+                                            '5491162232619',
+                                            '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
+                                        icon: const Icon(
+                                          Icons.phone,
+                                          color: Colors.white,
+                                          size: 20,
                                         )),
-                                  ]));
-                        });
-                  },
-                  child: const Text('CONTACTANOS'))
+                                    // const SizedBox(width: 5),
+                                    const Text('+54 9 11 6223-2619',
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 20))
+                                  ],
+                                ),
+                                SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () => _launchEmail(
+                                              'service@calefactorescalden.com.ar',
+                                              'Consulta 022000eIOT',
+                                              'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                                          icon: const Icon(
+                                            Icons.mail,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        // const SizedBox(width: 5),
+                                        const Text(
+                                          'service@calefactorescalden.com.ar',
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 20),
+                                          overflow: TextOverflow.ellipsis,
+                                        )
+                                      ],
+                                    )),
+                              ]));
+                    });
+              },
+              child: const Text('CONTACTANOS'))
         ],
       ),
     );

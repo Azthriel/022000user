@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -31,23 +29,23 @@ class DetectorPageState extends State<DetectorPage> {
   }
 
   void listenAlert() {
-    print('hago listen');
+    printLog('hago listen');
     FirebaseFirestore.instance
         .collection(deviceName)
         .doc('info')
         .snapshots()
         .listen((event) {
-      print('Prueba firestore ${event.data()}');
-      print(event.data()!['alert']);
+      printLog('Prueba firestore ${event.data()}');
+      printLog(event.data()!['alert']);
 
       if (event.data()!['alert'] == true) {
-        print('realsito');
+        printLog('realsito');
         setState(() {
           _textToShow = 'PELIGRO';
           alert = true;
         });
       } else {
-        print('falsito');
+        printLog('falsito');
         setState(() {
           _textToShow = 'AIRE PURO';
           alert = false;
@@ -59,12 +57,12 @@ class DetectorPageState extends State<DetectorPage> {
   void updateWifiValues(List<int> data) {
     var fun = utf8.decode(data); //Wifi status | wifi ssid | ble status(users)
     fun = fun.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-    print(fun);
+    printLog(fun);
     var parts = fun.split(':');
     if (parts[0] == 'WCS_CONNECTED') {
       nameOfWifi = parts[1];
       isWifiConnected = true;
-      print('sis $isWifiConnected');
+      printLog('sis $isWifiConnected');
       setState(() {
         textState = 'CONECTADO';
         statusColor = Colors.green;
@@ -75,7 +73,7 @@ class DetectorPageState extends State<DetectorPage> {
       });
     } else if (parts[0] == 'WCS_DISCONNECTED') {
       isWifiConnected = false;
-      print('non $isWifiConnected');
+      printLog('non $isWifiConnected');
 
       setState(() {
         textState = 'DESCONECTADO';
@@ -109,7 +107,7 @@ class DetectorPageState extends State<DetectorPage> {
   }
 
   void subscribeToWifiStatus() async {
-    print('Se subscribio a wifi');
+    printLog('Se subscribio a wifi');
     await myDevice.toolsUuid.setNotifyValue(true);
 
     final wifiSub =
@@ -125,14 +123,14 @@ class DetectorPageState extends State<DetectorPage> {
 
     final workSub =
         myDevice.workUuid.onValueReceived.listen((List<int> status) {
-      print('Cositas: $status');
+      printLog('Cositas: $status');
       setState(() {
         ppmCO = status[5] + (status[6] << 8);
         ppmCH4 = status[7] + (status[8] << 8);
-        print('Parte baja CO: ${status[9]} // Parte alta CO: ${status[10]}');
-        print('PPMCO: $ppmCO');
-        print('Parte baja CH4: ${status[11]} // Parte alta CH4: ${status[12]}');
-        print('PPMCH4: $ppmCH4');
+        printLog('Parte baja CO: ${status[9]} // Parte alta CO: ${status[10]}');
+        printLog('PPMCO: $ppmCO');
+        printLog('Parte baja CH4: ${status[11]} // Parte alta CH4: ${status[12]}');
+        printLog('PPMCH4: $ppmCH4');
       });
     });
 
@@ -191,7 +189,7 @@ class DetectorPageState extends State<DetectorPage> {
                   nickname = newNickname;
                   nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
                   saveNicknamesMap(nicknamesMap);
-                  print(nicknamesMap);
+                  printLog('$nicknamesMap');
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
               },
@@ -230,7 +228,7 @@ class DetectorPageState extends State<DetectorPage> {
           },
         );
         Future.delayed(const Duration(seconds: 2), () async {
-          print('aca estoy');
+          printLog('aca estoy');
           await myDevice.device.disconnect();
           navigatorKey.currentState?.pop();
           navigatorKey.currentState?.pushReplacementNamed('/scan');
@@ -485,7 +483,7 @@ class DetectorPageState extends State<DetectorPage> {
                       ),
                     ),
                     Text(
-                      '${(ppmCH4/500).round()}',
+                      '${(ppmCH4 / 500).round()}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Color.fromARGB(255, 255, 255, 255),

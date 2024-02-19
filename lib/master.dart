@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -7,6 +5,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -55,10 +54,13 @@ MqttServerClient? mqttClient027000;
 bool mqttConected022000 = false;
 bool mqttConected027000 = false;
 bool mqttConected5773 = false;
+String softwareVersion = '';
+String hardwareVersion = '';
+String actualToken = '';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24021500';
+String appVersionNumber = '24021900';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 
 //!------------------------------VERSION NUMBER---------------------------------------
@@ -66,7 +68,7 @@ String appVersionNumber = '24021500';
 // FUNCIONES //
 
 void showToast(String message) {
-  print('Toast: $message');
+  printLog('Toast: $message');
   Fluttertoast.showToast(
       msg: message,
       toastLength: Toast.LENGTH_SHORT,
@@ -77,18 +79,23 @@ void showToast(String message) {
       fontSize: 16.0);
 }
 
+void printLog (String text){
+  // ignore: avoid_print
+  print(text);
+}
+
 Future<void> sendWifitoBle() async {
   MyDevice myDevice = MyDevice();
   String value = '$wifiName#$wifiPassword';
   String deviceCommand = command(deviceType);
-  print(deviceCommand);
+  printLog(deviceCommand);
   String dataToSend = '$deviceCommand[1]($value)';
-  print(dataToSend);
+  printLog(dataToSend);
   try {
     await myDevice.toolsUuid.write(dataToSend.codeUnits);
-    print('Se mando el wifi ANASHE');
+    printLog('Se mando el wifi ANASHE');
   } catch (e) {
-    print('Error al conectarse a Wifi $e');
+    printLog('Error al conectarse a Wifi $e');
   }
   atemp = true;
   wifiName = '';
@@ -96,7 +103,7 @@ Future<void> sendWifitoBle() async {
 }
 
 String command(String device) {
-  print('Entro $device');
+  printLog('Entro $device');
   switch (device) {
     case '022000':
       return '022000_IOT';
@@ -107,6 +114,11 @@ String command(String device) {
     default:
       return '';
   }
+}
+
+void loadValues() async {
+  actualToken = await loadOldToken();
+  previusConnections = await cargarLista();
 }
 
 void setupMqtt5773() async {
@@ -188,11 +200,11 @@ void mqttonDisconnected() {
   mqttConected5773 = false;
   mqttConected022000 = false;
   mqttConected027000 = false;
-  print('Desconectado de mqtt');
+  printLog('Desconectado de mqtt');
 }
 
 void sendMessagemqtt(String deviceName, String message, String device) {
-  print(
+  printLog(
       'Conexiones: 57 $mqttConected5773 :: 022000 $mqttConected022000 :: 027000 $mqttConected027000');
   late RegExpMatch? match;
   if (device == '022000' || device == '027000') {
@@ -238,9 +250,9 @@ void sendReportError(String filePath) async {
 
   try {
     await FlutterEmailSender.send(email);
-    print('Correo enviado');
+    printLog('Correo enviado');
   } catch (error) {
-    print('Error al enviar el correo: $error');
+    printLog('Error al enviar el correo: $error');
   }
 }
 
@@ -553,7 +565,7 @@ void sendOwner() async {
       'owner': userEmail,
     });
   } catch (e, s) {
-    print('Error al enviar owner a firebase $e $s');
+    printLog('Error al enviar owner a firebase $e $s');
   }
 }
 
@@ -572,6 +584,35 @@ Future<Map<String, String>> loadNicknamesMap() async {
   return {}; // Devuelve un mapa vacío si no hay nada almacenado
 }
 
+Future<void> saveDetectorsList(List<String> lista) async {
+  final prefs = await SharedPreferences.getInstance();
+  String detList = json.encode(lista);
+  await prefs.setString('detectoresLista', detList);
+}
+
+Future<List<String>> loadDetectorsList() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? detList = prefs.getString('detectoresLista');
+  if (detList != null) {
+    return json.decode(detList);
+  }
+  return []; // Devuelve una lista vacío si no hay nada almacenado
+}
+
+Future<void> saveOldToken(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('token', token);
+}
+
+Future<String> loadOldToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  if (token != null) {
+    return token;
+  }
+  return '';
+}
+
 Future<bool> readStatusValue() async {
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
@@ -583,11 +624,11 @@ Future<bool> readStatusValue() async {
           documentSnapshot.data() as Map<String, dynamic>;
       return data['estado'];
     } else {
-      print("Documento no encontrado");
+      printLog("Documento no encontrado");
       return false;
     }
   } catch (e) {
-    print("Error al leer de Firestore: $e");
+    printLog("Error al leer de Firestore: $e");
     return false;
   }
 }
@@ -605,18 +646,85 @@ Future<void> openQRScanner(BuildContext context) async {
       }
     });
   } catch (e) {
-    print("Error during navigation: $e");
+    printLog("Error during navigation: $e");
   }
 }
 
 Map<String, String> parseWifiQR(String qrContent) {
-  print(qrContent);
+  printLog(qrContent);
   final ssidMatch = RegExp(r'S:([^;]+)').firstMatch(qrContent);
   final passwordMatch = RegExp(r'P:([^;]+)').firstMatch(qrContent);
 
   final ssid = ssidMatch?.group(1) ?? '';
   final password = passwordMatch?.group(1) ?? '';
   return {"SSID": ssid, "password": password};
+}
+
+void setupToken() async {
+  String? token = await FirebaseMessaging.instance.getToken();
+  if (token != null) {
+    saveTokenToDatabase(token);
+  }
+
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    saveTokenToDatabase(newToken);
+  });
+}
+
+void saveTokenToDatabase(String token) async {
+  removeTokenFromDatabase(actualToken);
+  actualToken = token;
+  saveOldToken(token);
+  DocumentReference documentRef =
+      FirebaseFirestore.instance.collection(deviceName).doc('info');
+  await documentRef.set({
+    'Tokens': FieldValue.arrayUnion([token])
+  }, SetOptions(merge: true));
+}
+
+void removeTokenFromDatabase(String token) async {
+  DocumentReference documentRef =
+      FirebaseFirestore.instance.collection(deviceName).doc('info');
+  await documentRef.update({
+    'Tokens': FieldValue.arrayRemove([token])
+  });
+}
+
+void requestPermissionFCM() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+    provisional: false,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    printLog('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    printLog('User granted provisional permission');
+  } else {
+    printLog('User declined or has not accepted permission');
+  }
+}
+
+void loadFCM() async {
+  FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+    if (message != null) {
+      printLog('Initial mensage: $message');
+    }
+  });
+}
+
+void listenFCM() {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    printLog('Llego esta notif: $message');
+  });
+
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    printLog('Llego esta notif y abrí: $message');
+  });
 }
 
 // CLASES //
@@ -646,7 +754,7 @@ class MyDevice {
 
       List<BluetoothService> services =
           await device.discoverServices(timeout: 3);
-      print('Los servicios: $services');
+      printLog('Los servicios: $services');
 
       BluetoothService infoService = services.firstWhere(
           (s) => s.uuid == Guid('6a3253b4-48bc-4e97-bacd-325a1d142038'));
@@ -664,7 +772,9 @@ class MyDevice {
       var partes = str.split(':');
       var fun = partes[0].split('_');
       deviceType = fun[0];
-      print('Device: $deviceType');
+      softwareVersion = partes[2];
+      hardwareVersion = partes[3];
+      printLog('Device: $deviceType');
 
       if (deviceType == '022000' || deviceType == '027000') {
         BluetoothService espService = services.firstWhere(
@@ -688,7 +798,7 @@ class MyDevice {
 
       return Future.value(true);
     } catch (e, stackTrace) {
-      print('Lcdtmbe $e $stackTrace');
+      printLog('Lcdtmbe $e $stackTrace');
 
       return Future.value(false);
     }
@@ -870,7 +980,7 @@ class QRScanPageState extends State<QRScanPage>
             navigatorKey.currentState!.pop(scanData.code);
           }
         } catch (e, stackTrace) {
-          print("Error: $e $stackTrace");
+          printLog("Error: $e $stackTrace");
           showToast('Error al leer QR');
         }
       });
@@ -981,7 +1091,7 @@ class MyDrawerState extends State<MyDrawer> {
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  print('Eliminando de la lista');
+                                  printLog('Eliminando de la lista');
                                   setState(() {
                                     previusConnections.removeAt(index - 1);
                                   });
@@ -1055,7 +1165,7 @@ class MyDrawerState extends State<MyDrawer> {
                       } else {
                         int ppmCO = snapshot.data!['ppmCO'] ?? 0;
                         int ppmCH4 = snapshot.data!['ppmCH4'] ?? 0;
-                        bool alert = snapshot.data!['alert'];
+                        bool alert = snapshot.data!['alert'] ?? false;
                         FirebaseFirestore.instance
                             .collection(deviceName)
                             .doc('info')
@@ -1092,11 +1202,12 @@ class MyDrawerState extends State<MyDrawer> {
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  print('Eliminando de la lista');
+                                  printLog('Eliminando de la lista');
                                   setState(() {
                                     previusConnections.removeAt(index - 1);
                                   });
                                   guardarLista(previusConnections);
+                                  removeTokenFromDatabase(actualToken);
                                 },
                               ),
                             ),

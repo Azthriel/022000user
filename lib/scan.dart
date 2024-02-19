@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_print
-
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_refresh/easy_refresh.dart';
@@ -31,7 +29,6 @@ class ScanPageState extends State<ScanPage> {
     startBluetoothMonitoring();
     startLocationMonitoring();
 
-    loadList();
     // setupMqtt5773();
     // setupMqtt022000();
     // setupMqtt027000();
@@ -54,13 +51,11 @@ class ScanPageState extends State<ScanPage> {
     super.dispose();
   }
 
-  void loadList() async {
-    previusConnections = await cargarLista();
-  }
+
 
   void scan() async {
     if (bluetoothOn) {
-      print('Entre a escanear');
+      printLog('Entre a escanear');
       toastFlag = false;
       try {
         await FlutterBluePlus.startScan(
@@ -82,7 +77,7 @@ class ScanPageState extends State<ScanPage> {
           }
         });
       } catch (e, stackTrace) {
-        print('Error al escanear $e $stackTrace');
+        printLog('Error al escanear $e $stackTrace');
         showToast('Error al escanear, intentelo nuevamente');
       }
     }
@@ -94,12 +89,12 @@ class ScanPageState extends State<ScanPage> {
       deviceName = device.platformName;
       myDeviceid = device.remoteId.toString();
 
-      print('Teoricamente estoy conectado');
+      printLog('Teoricamente estoy conectado');
 
       MyDevice myDevice = MyDevice();
 
       device.connectionState.listen((BluetoothConnectionState state) {
-        print('Estado de conexión: $state');
+        printLog('Estado de conexión: $state');
         switch (state) {
           case BluetoothConnectionState.disconnected:
             {
@@ -110,7 +105,7 @@ class ScanPageState extends State<ScanPage> {
               nameOfWifi = '';
               connectionFlag = false;
               alreadySubOta = false;
-              print('Razon: ${myDevice.device.disconnectReason?.description}');
+              printLog('Razon: ${myDevice.device.disconnectReason?.description}');
               navigatorKey.currentState?.pushReplacementNamed('/scan');
               break;
             }
@@ -120,18 +115,18 @@ class ScanPageState extends State<ScanPage> {
                 connectionFlag = true;
                 FlutterBluePlus.stopScan();
                 myDevice.setup(device).then((valor) {
-                  print('RETORNASHE $valor');
+                  printLog('RETORNASHE $valor');
                   if (valor) {
                     navigatorKey.currentState?.pushReplacementNamed('/loading');
                   } else {
                     connectionFlag = false;
-                    print('Fallo en el setup');
+                    printLog('Fallo en el setup');
                     showToast('Error en el dispositivo, intente nuevamente');
                     myDevice.device.disconnect();
                   }
                 });
               } else {
-                print('Las chistosadas se apoderan del mundo');
+                printLog('Las chistosadas se apoderan del mundo');
               }
               break;
             }
@@ -141,10 +136,10 @@ class ScanPageState extends State<ScanPage> {
       });
     } catch (e, stackTrace) {
       if (e is FlutterBluePlusException && e.code == 133) {
-        print('Error específico de Android con código 133: $e');
+        printLog('Error específico de Android con código 133: $e');
         showToast('Error de conexión, intentelo nuevamente');
       } else {
-        print('Error al conectar: $e $stackTrace');
+        printLog('Error al conectar: $e $stackTrace');
         showToast('Error al conectar, intentelo nuevamente');
         // handleManualError(e, stackTrace);
       }
@@ -313,13 +308,13 @@ class LoadState extends State<LoadingPage> {
   @override
   void initState() {
     super.initState();
-    print('HOSTIAAAAAAAAAAAAAAAAAAAAAAAA');
+    printLog('HOSTIAAAAAAAAAAAAAAAAAAAAAAAA');
     precharge().then((precharge) {
       if (precharge == true) {
         showToast('Dispositivo conectado exitosamente');
-        if(deviceType == '022000' || deviceType == '027000'){
+        if (deviceType == '022000' || deviceType == '027000') {
           navigatorKey.currentState?.pushReplacementNamed('/calefactor');
-        }else{
+        } else {
           navigatorKey.currentState?.pushReplacementNamed('/detector');
         }
       } else {
@@ -331,11 +326,11 @@ class LoadState extends State<LoadingPage> {
 
   Future<bool> precharge() async {
     try {
-      print('Estoy precargando');
+      printLog('Estoy precargando');
       await myDevice.device.requestMtu(255);
       toolsValues = await myDevice.toolsUuid.read();
-      print('Valores tools: $toolsValues');
-      print('Valores info: $infoValues');
+      printLog('Valores tools: $toolsValues');
+      printLog('Valores info: $infoValues');
       if (!previusConnections.contains(deviceName)) {
         previusConnections.add(deviceName);
         guardarLista(previusConnections);
@@ -348,18 +343,18 @@ class LoadState extends State<LoadingPage> {
       if (deviceType == '022000' || deviceType == '027000') {
         varsValues = await myDevice.varsUuid.read();
         var parts2 = utf8.decode(varsValues).split(':');
-        print(parts2);
+        printLog('$parts2');
         turnOn = parts2[1] == '1';
         trueStatus = parts2[3] == '1';
         nightMode = parts2[4] == '1';
-        print('Estado: $turnOn');
+        printLog('Estado: $turnOn');
 
         await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
         var parts3 = utf8.decode(toolsValues).split(':');
         final regex = RegExp(r'\((\d+)\)');
         final match = regex.firstMatch(parts3[2]);
         int users = int.parse(match!.group(1).toString());
-        print('Hay $users conectados');
+        printLog('Hay $users conectados');
         userConnected = users > 1;
         lastUser = users;
 
@@ -386,16 +381,16 @@ class LoadState extends State<LoadingPage> {
       } else {
         //Si soy un detector
         workValues = await myDevice.workUuid.read();
-        print('Valores work: $workValues');
+        printLog('Valores work: $workValues');
 
         ppmCO = workValues[5] + (workValues[6] << 8);
         ppmCH4 = workValues[7] + (workValues[8] << 8);
-
+        setupToken();
       }
 
       return Future.value(true);
     } catch (e, stackTrace) {
-      print('Error en la precarga $e $stackTrace');
+      printLog('Error en la precarga $e $stackTrace');
       showToast('Error en la precarga');
       // handleManualError(e, stackTrace);
       return Future.value(false);
