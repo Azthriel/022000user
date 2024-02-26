@@ -10,16 +10,14 @@ exports.sendDetectorAlert = functions.firestore
 
       if (context.params.collectionId.startsWith("Detector")) {
         if (newValue.alert === true && oldValue.alert === false) {
-          const alertMessage = `Alerta en ${context.params.collectionId}`;
-
           // Recuperamos los tokens del documento
-          const tokens = newValue.Tokens || [];
+          let tokens = newValue.Tokens || [];
 
-          // Verificamos si hay tokens para enviar la notificación
-          if (tokens.length > 0) {
-            // Preparamos la carga útil de la notificación para cada token
-            const mes = tokens.map((token) => ({
-              token: token,
+          tokens = tokens.map((token) => {
+            const parts = token.split("/-/");
+            const alertMessage = `Alerta en ${parts[1]}`;
+            return {
+              token: parts[0],
               notification: {
                 title: "¡ALERTA DETECTADA!",
                 body: alertMessage,
@@ -40,8 +38,13 @@ exports.sendDetectorAlert = functions.firestore
                 click_action: "FLUTTER_NOTIFICATION_CLICK",
                 status: "done",
               },
-            }));
-            return Promise.all(mes.map((message) => admin.messaging()
+            };
+          });
+
+          // Verificamos si hay tokens para enviar la notificación
+          if (tokens.length > 0) {
+            // Enviamos la notificación para cada token
+            return Promise.all(tokens.map((message) => admin.messaging()
                 .send(message)))
                 .then((responses) => {
                   console.log("Successfully sent all messages:", responses);
@@ -49,7 +52,7 @@ exports.sendDetectorAlert = functions.firestore
                 })
                 .catch((error) => {
                   console.log("Error sending messages:", error);
-                  throw new functions.https.HttpsError("unknown", error, error);
+                  throw new functions.https.HttpsError("unkwn", error.message);
                 });
           } else {
             console.log("No tokens available for notification.");

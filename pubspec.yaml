@@ -57,3 +57,5 @@ flutter:
   assets:
     - assets/Corte_laser_negro.png
     - assets/cert/emqxsl-ca.crt
+    - assets/IntelligentGasFlyerCL.png
+    - assets/IntelligentGasFlyerSL.png

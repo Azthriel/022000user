@@ -75,13 +75,13 @@ void showToast(String message) {
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      textColor: const Color.fromARGB(255, 37, 34, 35),
+      textColor: const Color.fromARGB(255, 0, 0, 0),
       fontSize: 16.0);
 }
 
-void printLog (String text){
+void printLog(var text) {
   // ignore: avoid_print
-  print(text);
+  print('PrintData: $text');
 }
 
 Future<void> sendWifitoBle() async {
@@ -662,18 +662,22 @@ Map<String, String> parseWifiQR(String qrContent) {
 
 void setupToken() async {
   String? token = await FirebaseMessaging.instance.getToken();
+  String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
+
   if (token != null) {
-    saveTokenToDatabase(token);
+    removeTokenFromDatabase(actualToken);
+    actualToken = tokenToSend;
+    saveTokenToDatabase(tokenToSend);
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-    saveTokenToDatabase(newToken);
+    String? newtokenToSend =
+        '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
+    saveTokenToDatabase(newtokenToSend);
   });
 }
 
 void saveTokenToDatabase(String token) async {
-  removeTokenFromDatabase(actualToken);
-  actualToken = token;
   saveOldToken(token);
   DocumentReference documentRef =
       FirebaseFirestore.instance.collection(deviceName).doc('info');
@@ -683,11 +687,16 @@ void saveTokenToDatabase(String token) async {
 }
 
 void removeTokenFromDatabase(String token) async {
-  DocumentReference documentRef =
-      FirebaseFirestore.instance.collection(deviceName).doc('info');
-  await documentRef.update({
-    'Tokens': FieldValue.arrayRemove([token])
-  });
+  printLog('Borrando esto: $token');
+  try {
+    DocumentReference documentRef =
+        FirebaseFirestore.instance.collection(deviceName).doc('info');
+    await documentRef.update({
+      'Tokens': FieldValue.arrayRemove([token])
+    });
+  } catch (e, s) {
+    printLog('Error al borrar token $e $s');
+  }
 }
 
 void requestPermissionFCM() async {
@@ -707,24 +716,6 @@ void requestPermissionFCM() async {
   } else {
     printLog('User declined or has not accepted permission');
   }
-}
-
-void loadFCM() async {
-  FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-    if (message != null) {
-      printLog('Initial mensage: $message');
-    }
-  });
-}
-
-void listenFCM() {
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    printLog('Llego esta notif: $message');
-  });
-
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    printLog('Llego esta notif y abrí: $message');
-  });
 }
 
 // CLASES //
@@ -1073,10 +1064,9 @@ class MyDrawerState extends State<MyDrawer> {
                 return FutureBuilder<DocumentSnapshot>(
                   future: _firestore.collection(deviceName).doc('info').get(),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done &&
-                        snapshot.hasData) {
+                    if (snapshot.hasData) {
                       String equipo = snapshot.data!['tipo'];
-                      if (equipo == '022000' || equipo == '027000') {
+                      if (equipo == '022000' || equipo == '027000') {//TODO: Agregar radiador
                         bool estado = snapshot.data!['estado'];
 
                         return ListTile(
@@ -1241,7 +1231,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 ),
                               ),
                               TextSpan(
-                                text: '${(ppmCH4 / 500).round()}',
+                                text: '${(ppmCH4 / 500).round()}%',
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,
@@ -1259,15 +1249,14 @@ class MyDrawerState extends State<MyDrawer> {
                       }
                     }
                     return ListTile(
-                        title: Text(nicknamesMap[deviceName] ?? deviceName,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 15)),
-                        subtitle: const Text('Cargando...',
-                            style:
-                                TextStyle(color: Colors.white, fontSize: 15)),
-                        trailing: const CircularProgressIndicator(
-                          color: Colors.white,
-                        ));
+                      title: Text(nicknamesMap[deviceName] ?? deviceName,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 15)),
+                      subtitle: const Text(
+                        'Cargando...',
+                        style: TextStyle(color: Colors.white, fontSize: 15),
+                      ),
+                    );
                   },
                 );
               },

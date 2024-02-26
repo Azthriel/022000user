@@ -93,7 +93,7 @@ Future<bool> loadControlValue() async {
 }
 
 void gamerMode(int fun) {
-  String data = '022000_IOT[10]($fun)';
+  String data = '022000_IOT[10]($fun)';//TODO: Cambiar comando
   myDevice.toolsUuid.write(data.codeUnits);
 }
 
@@ -116,7 +116,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
   double result = 0.0;
   DateTime? fechaSeleccionada;
   late bool nightState;
-  String measure = deviceType == '022000' ? 'KW/h' : 'M³/h';
+  String measure = 'KW/h';
 
   @override
   void initState() {
@@ -206,7 +206,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
+    return Drawer(//TODO: Cambiar colores
         backgroundColor: const Color.fromARGB(255, 37, 34, 35),
         child: Column(
           children: [
@@ -267,7 +267,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                 Color.fromARGB(255, 255, 255, 255))),
                         onPressed: () {
                           guardarFecha();
-                          String data = '022000_IOT[10](0)';
+                          String data = '022000_IOT[10](0)'; //TODO: Cambiar comando
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
                         child: const Text('Reiniciar mes')),
@@ -286,7 +286,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                           nightState = !nightState;
                           printLog('Estado: $nightState');
                           int fun = nightState ? 1 : 0;
-                          String data = '022000_IOT[9]($fun)';
+                          String data = '022000_IOT[9]($fun)';//TODO: Cambiar comando
                           printLog(data);
                           myDevice.toolsUuid.write(data.codeUnits);
                         });

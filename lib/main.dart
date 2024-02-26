@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -30,6 +31,32 @@ Future<void> main() async {
       printLog('Failed to get external storage directory');
     }
   };
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        String displayMessage =
+            message.notification?.body.toString() ?? 'Un detector mando una alerta';
+
+        return AlertDialog(
+            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+            title: const Text(
+              '¡ALERTA EN DETECTOR!',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color.fromARGB(255, 255, 0, 0), fontWeight: FontWeight.bold),
+            ),
+            content: Text(
+              displayMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+            ));
+      },
+    );
+    printLog('Llegó esta notif: $message');
+  });
+
   runApp(const MyApp());
 }
 
@@ -44,8 +71,6 @@ class MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     loadValues();
-    loadFCM();
-    listenFCM();
     printLog('Empezamos');
   }
 

@@ -25,6 +25,7 @@ class DetectorPageState extends State<DetectorPage> {
     nickname = nicknamesMap[deviceName] ?? deviceName;
     _subscribeToWorkCharacteristic();
     subscribeToWifiStatus();
+    updateWifiValues(toolsValues);
     listenAlert();
   }
 
@@ -129,7 +130,8 @@ class DetectorPageState extends State<DetectorPage> {
         ppmCH4 = status[7] + (status[8] << 8);
         printLog('Parte baja CO: ${status[9]} // Parte alta CO: ${status[10]}');
         printLog('PPMCO: $ppmCO');
-        printLog('Parte baja CH4: ${status[11]} // Parte alta CH4: ${status[12]}');
+        printLog(
+            'Parte baja CH4: ${status[11]} // Parte alta CH4: ${status[12]}');
         printLog('PPMCH4: $ppmCH4');
       });
     });
@@ -146,33 +148,33 @@ class DetectorPageState extends State<DetectorPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color.fromARGB(255, 230, 254, 255),
           title: const Text(
             'Editar identificación del dispositivo',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
           ),
           content: TextField(
-            style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-            cursorColor: const Color.fromARGB(255, 189, 189, 189),
+            style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+            cursorColor: const Color.fromARGB(255, 255, 255, 255),
             controller: nicknameController,
             decoration: const InputDecoration(
               hintText: "Introduce tu nueva identificación del dispositivo",
-              hintStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              hintStyle: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
               enabledBorder: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: Color.fromARGB(255, 189, 189, 189)),
+                borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
               ),
               focusedBorder: UnderlineInputBorder(
-                borderSide:
-                    BorderSide(color: Color.fromARGB(255, 189, 189, 189)),
+                borderSide: BorderSide(color: Color.fromARGB(255, 0, 0, 0)),
               ),
             ),
           ),
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                foregroundColor: MaterialStatePropertyAll(
+                  Color.fromARGB(255, 29, 163, 169),
+                ),
+              ),
               child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -180,8 +182,10 @@ class DetectorPageState extends State<DetectorPage> {
             ),
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                foregroundColor: MaterialStatePropertyAll(
+                  Color.fromARGB(255, 29, 163, 169),
+                ),
+              ),
               child: const Text('Guardar'),
               onPressed: () {
                 setState(() {
@@ -189,6 +193,7 @@ class DetectorPageState extends State<DetectorPage> {
                   nickname = newNickname;
                   nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
                   saveNicknamesMap(nicknamesMap);
+                  setupToken();
                   printLog('$nicknamesMap');
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -210,17 +215,16 @@ class DetectorPageState extends State<DetectorPage> {
           barrierDismissible: false,
           builder: (context) {
             return AlertDialog(
-              backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+              backgroundColor: const Color.fromARGB(255, 230, 254, 255),
               content: Row(
                 children: [
                   const CircularProgressIndicator(
-                      color: Color.fromARGB(255, 255, 255, 255)),
+                      color: Color.fromARGB(255, 29, 163, 169)),
                   Container(
                       margin: const EdgeInsets.only(left: 15),
                       child: const Text(
                         "Desconectando...",
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255)),
+                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                       )),
                 ],
               ),
@@ -237,10 +241,10 @@ class DetectorPageState extends State<DetectorPage> {
         return; // Retorna según la lógica de tu app
       },
       child: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+        backgroundColor: const Color.fromARGB(255, 1, 18, 28),
         appBar: AppBar(
             backgroundColor: Colors.transparent,
-            foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+            foregroundColor: const Color.fromARGB(255, 29, 163, 169),
             title: GestureDetector(
               onTap: () async {
                 await _showEditNicknameDialog(context);
@@ -260,12 +264,13 @@ class DetectorPageState extends State<DetectorPage> {
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+                        backgroundColor:
+                            const Color.fromARGB(255, 230, 254, 255),
                         title: Row(children: [
                           const Text.rich(TextSpan(
                               text: 'Estado de conexión: ',
                               style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
+                                color: Color.fromARGB(255, 0, 0, 0),
                                 fontSize: 14,
                               ))),
                           Text.rich(TextSpan(
@@ -280,49 +285,62 @@ class DetectorPageState extends State<DetectorPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (werror) ...[
-                                Text.rich(TextSpan(
+                                Text.rich(
+                                  TextSpan(
                                     text: 'Error: $errorMessage',
                                     style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
+                                      fontSize: 10,
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                    ),
+                                  ),
+                                ),
                                 const SizedBox(height: 10),
                                 Text.rich(
                                   TextSpan(
-                                      text: 'Sintax: $errorSintax',
-                                      style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255))),
+                                    text: 'Sintax: $errorSintax',
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                    ),
+                                  ),
                                 ),
                               ],
                               const SizedBox(height: 10),
                               Row(children: [
-                                const Text.rich(TextSpan(
+                                const Text.rich(
+                                  TextSpan(
                                     text: 'Red actual: ',
                                     style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
-                                Text.rich(TextSpan(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                    ),
+                                  ),
+                                ),
+                                Text.rich(
+                                  TextSpan(
                                     text: nameOfWifi,
                                     style: const TextStyle(
-                                        fontSize: 20,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
+                                      fontSize: 20,
+                                      color: Color.fromARGB(255, 29, 163, 169),
+                                    ),
+                                  ),
+                                ),
                               ]),
                               const SizedBox(height: 10),
-                              const Text.rich(TextSpan(
+                              const Text.rich(
+                                TextSpan(
                                   text: 'Ingrese los datos de WiFi',
                                   style: TextStyle(
                                       fontSize: 20,
-                                      color: Color.fromARGB(255, 255, 255, 255),
-                                      fontWeight: FontWeight.bold))),
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
                               IconButton(
                                 icon: const Icon(Icons.qr_code),
                                 iconSize: 50,
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                                color: const Color.fromARGB(255, 29, 163, 169),
                                 onPressed: () async {
                                   PermissionStatus permissionStatusC =
                                       await Permission.camera.request();
@@ -338,23 +356,20 @@ class DetectorPageState extends State<DetectorPage> {
                               ),
                               TextField(
                                 style: const TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255)),
+                                    color: Color.fromARGB(255, 0, 0, 0)),
                                 cursorColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                    const Color.fromARGB(255, 29, 163, 169),
                                 decoration: const InputDecoration(
                                   hintText: 'Nombre de la red',
                                   hintStyle: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
+                                      color: Color.fromARGB(255, 0, 0, 0)),
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 189, 189, 189)),
+                                        color: Color.fromARGB(255, 0, 0, 0)),
                                   ),
                                   focusedBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 189, 189, 189)),
+                                        color: Color.fromARGB(255, 0, 0, 0)),
                                   ),
                                 ),
                                 onChanged: (value) {
@@ -363,23 +378,21 @@ class DetectorPageState extends State<DetectorPage> {
                               ),
                               TextField(
                                 style: const TextStyle(
-                                    color: Color.fromARGB(255, 255, 255, 255)),
+                                    color: Color.fromARGB(255, 0, 0, 0)),
                                 cursorColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                    const Color.fromARGB(255, 29, 163, 169),
                                 decoration: const InputDecoration(
                                   hintText: 'Contraseña',
                                   hintStyle: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
+                                    color: Color.fromARGB(255, 0, 0, 0),
+                                  ),
                                   enabledBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 189, 189, 189)),
+                                        color: Color.fromARGB(255, 0, 0, 0)),
                                   ),
                                   focusedBorder: UnderlineInputBorder(
                                     borderSide: BorderSide(
-                                        color:
-                                            Color.fromARGB(255, 189, 189, 189)),
+                                        color: Color.fromARGB(255, 0, 0, 0)),
                                   ),
                                 ),
                                 obscureText: true,
@@ -393,8 +406,10 @@ class DetectorPageState extends State<DetectorPage> {
                         actions: [
                           TextButton(
                             style: const ButtonStyle(
-                                foregroundColor: MaterialStatePropertyAll(
-                                    Color.fromARGB(255, 255, 255, 255))),
+                              foregroundColor: MaterialStatePropertyAll(
+                                Color.fromARGB(255, 29, 163, 169),
+                              ),
+                            ),
                             child: const Text('Aceptar'),
                             onPressed: () {
                               sendWifitoBle();
@@ -410,195 +425,198 @@ class DetectorPageState extends State<DetectorPage> {
             ]),
         drawer: const DrawerDetector(),
         body: Center(
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 50,
-              ),
-              Container(
-                  height: 100,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: alert
-                        ? Colors.red
-                        : Theme.of(context).primaryColorLight,
-                    borderRadius: BorderRadius.circular(20),
-                    border: const Border(
-                      bottom: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                      right: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                      left: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                      top: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      _textToShow,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: alert ? Colors.white : Colors.green,
-                          fontSize: 60),
-                    ),
-                  )),
-              const SizedBox(
-                height: 50,
-              ),
-              Container(
-                height: 200,
-                width: 200,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: const Border(
-                    bottom: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    right: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    left: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    top: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'GAS',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const Text(
-                      'Atmósfera Explosiva',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 15,
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                    height: 100,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: alert
+                          ? Colors.red
+                          : const Color.fromARGB(255, 0, 75, 81),
+                      borderRadius: BorderRadius.circular(20),
+                      border: const Border(
+                        bottom: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199),
+                            width: 5),
+                        right: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199),
+                            width: 5),
+                        left: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199),
+                            width: 5),
+                        top: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199),
+                            width: 5),
                       ),
                     ),
-                    Text(
-                      '${(ppmCH4 / 500).round()}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 50,
+                    child: Center(
+                      child: Text(
+                        _textToShow,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: alert ? Colors.white : Colors.green,
+                            fontSize: 60),
                       ),
-                    ),
-                    const Text(
-                      'LIE',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 30,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Container(
-                height: 200,
-                width: 200,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: const Border(
-                    bottom: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    right: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    left: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                    top: BorderSide(
-                        color: Color.fromARGB(255, 255, 255, 255), width: 5),
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'CO',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold),
-                    ),
-                    const Text(
-                      'Monóxido de carbono',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 15,
-                      ),
-                    ),
-                    Text(
-                      '$ppmCO',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 50,
-                      ),
-                    ),
-                    const Text(
-                      'PPM',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
-                        fontSize: 30,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(
-                height: 50,
-              ),
-              Container(
+                    )),
+                const SizedBox(
                   height: 50,
-                  width: double.infinity,
+                ),
+                Container(
+                  height: 200,
+                  width: 200,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
+                    color: const Color.fromARGB(255, 0, 75, 81),
                     borderRadius: BorderRadius.circular(20),
                     border: const Border(
                       bottom: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
                       right: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
                       left: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
                       top: BorderSide(
-                          color: Color.fromARGB(255, 255, 255, 255), width: 5),
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
                     ),
                   ),
-                  child: Row(
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Text(
-                        'Estado: ',
+                        'GAS',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const Text(
+                        'Atmósfera Explosiva',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        '${(ppmCH4 / 500).round()}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 50,
+                        ),
+                      ),
+                      const Text(
+                        'LIE',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color.fromARGB(255, 255, 255, 255),
                           fontSize: 30,
                         ),
                       ),
-                      Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Container(
+                  height: 200,
+                  width: 200,
+                  decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 0, 75, 81),
+                    borderRadius: BorderRadius.circular(20),
+                    border: const Border(
+                      bottom: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      right: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      left: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      top: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'CO',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 30,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const Text(
+                        'Monóxido de carbono',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 15,
+                        ),
+                      ),
+                      Text(
+                        '$ppmCO',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 50,
+                        ),
+                      ),
+                      const Text(
+                        'PPM',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontSize: 30,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(
+                  height: 50,
+                ),
+                Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                    color: const Color.fromARGB(255, 0, 75, 81),
+                    borderRadius: BorderRadius.circular(20),
+                    border: const Border(
+                      bottom: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      right: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      left: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      top: BorderSide(
+                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                    ),
+                  ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Estado: ',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                              color: online ? Colors.green : Colors.red,
-                              fontSize: 30,
-                              fontWeight: FontWeight.bold))
-                    ],
-                  )),
-            ],
+                            color: Color.fromARGB(255, 255, 255, 255),
+                            fontSize: 30,
+                          ),
+                        ),
+                        Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: online ? Colors.green : Colors.red,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold))
+                      ],
+                    )),
+              ],
+            ),
           ),
         ),
       ),

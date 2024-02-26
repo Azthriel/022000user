@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:project_022000iot_user/master.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,8 +12,6 @@ int ppmCH4 = 0;
 bool alert = false;
 
 // FUNCIONES //
-
-
 
 // CLASES //
 
@@ -75,10 +71,15 @@ class DrawerDetectorState extends State<DrawerDetector> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+      backgroundColor: const Color.fromARGB(255, 1, 18, 28),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          SizedBox(
+            height: 50,
+            // width: double.infinity,
+            child: Image.asset('assets/IntelligentGasFlyerCL.png'),
+          ),
           Icon(
             Icons.lightbulb,
             size: 200,
@@ -102,11 +103,17 @@ class DrawerDetectorState extends State<DrawerDetector> {
             height: 30,
           ),
           ElevatedButton(
-              style: const ButtonStyle(
-                  backgroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 189, 189, 189)),
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(
+                    const Color.fromARGB(255, 29, 163, 169)),
+                foregroundColor: MaterialStateProperty.all<Color>(
+                    const Color.fromARGB(255, 255, 255, 255)),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                  ),
+                ),
+              ),
               onPressed: () {
                 showDialog(
                     barrierDismissible: true,
@@ -114,14 +121,14 @@ class DrawerDetectorState extends State<DrawerDetector> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                           backgroundColor:
-                              const Color.fromARGB(255, 37, 34, 35),
+                              const Color.fromARGB(255, 230, 254, 255),
                           content: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text('Contacto comercial:',
                                     style: TextStyle(
-                                        color: Colors.white,
+                                        color: Color.fromARGB(255, 0, 0, 0),
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold)),
                                 Row(
@@ -133,13 +140,15 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                             '¡Hola! Tengo una duda comercial sobre los productos Biocalden smart: \n'),
                                         icon: const Icon(
                                           Icons.phone,
-                                          color: Colors.white,
+                                          color:
+                                              Color.fromARGB(255, 29, 163, 169),
                                           size: 20,
                                         )),
                                     // const SizedBox(width: 5),
                                     const Text('+54 9 11 6223-4181',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 20))
+                                            color: Color.fromARGB(255, 0, 0, 0),
+                                            fontSize: 20))
                                   ],
                                 ),
                                 SingleChildScrollView(
@@ -155,21 +164,22 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                               '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                                           icon: const Icon(
                                             Icons.mail,
-                                            color: Colors.white,
+                                            color: Color.fromARGB(
+                                                255, 29, 163, 169),
                                             size: 20,
                                           ),
                                         ),
                                         // const SizedBox(width: 5),
                                         const Text('ceat@ibsanitarios.com.ar',
                                             style: TextStyle(
-                                                color: Colors.white,
+                                                color: Color.fromARGB(255, 0, 0, 0),
                                                 fontSize: 20))
                                       ],
                                     )),
                                 const SizedBox(height: 20),
                                 const Text('Consulta técnica:',
                                     style: TextStyle(
-                                        color: Colors.white,
+                                        color: Color.fromARGB(255, 0, 0, 0),
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold)),
                                 SingleChildScrollView(
@@ -184,7 +194,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                             '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: $deviceType\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                                         icon: const Icon(
                                           Icons.mail,
-                                          color: Colors.white,
+                                          color:
+                                              Color.fromARGB(255, 29, 163, 169),
                                           size: 20,
                                         ),
                                       ),
@@ -192,7 +203,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                       const Text(
                                         'pablo@intelligentgas.com.ar',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 20),
+                                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20),
                                         overflow: TextOverflow.ellipsis,
                                       )
                                     ],
@@ -201,7 +212,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                 const SizedBox(height: 20),
                                 const Text('Customer service:',
                                     style: TextStyle(
-                                        color: Colors.white,
+                                        color: Color.fromARGB(255, 0, 0, 0),
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold)),
                                 Row(
@@ -213,13 +224,14 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                             '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
                                         icon: const Icon(
                                           Icons.phone,
-                                          color: Colors.white,
+                                          color:
+                                              Color.fromARGB(255, 29, 163, 169),
                                           size: 20,
                                         )),
                                     // const SizedBox(width: 5),
                                     const Text('+54 9 11 6223-2619',
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 20))
+                                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20))
                                   ],
                                 ),
                                 SingleChildScrollView(
@@ -235,7 +247,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                               'Tengo una consulta referida a mi equipo $deviceName: \n'),
                                           icon: const Icon(
                                             Icons.mail,
-                                            color: Colors.white,
+                                            color: Color.fromARGB(
+                                                255, 29, 163, 169),
                                             size: 20,
                                           ),
                                         ),
@@ -243,7 +256,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                         const Text(
                                           'service@calefactorescalden.com.ar',
                                           style: TextStyle(
-                                              color: Colors.white,
+                                              color: Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 20),
                                           overflow: TextOverflow.ellipsis,
                                         )
@@ -264,12 +277,12 @@ class DrawerDetectorState extends State<DrawerDetector> {
       height: 30,
       child: SliderTheme(
         data: SliderTheme.of(context).copyWith(
-          activeTrackColor: const Color.fromARGB(255, 189, 189, 189),
+          activeTrackColor: const Color.fromARGB(255, 29, 163, 169),
           inactiveTrackColor: const Color.fromARGB(255, 255, 255, 255),
           trackHeight: 30.0,
-          thumbColor: const Color.fromARGB(255, 255, 255, 255),
+          thumbColor: const Color.fromARGB(255, 29, 163, 169),
           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0.0),
-          overlayColor: const Color.fromARGB(255, 255, 255, 255).withAlpha(32),
+          overlayColor: const Color.fromARGB(255, 29, 163, 169).withAlpha(32),
           overlayShape: const RoundSliderOverlayShape(overlayRadius: 0.0),
         ),
         child: Slider(
