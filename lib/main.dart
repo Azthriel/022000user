@@ -5,11 +5,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:project_022000iot_user/5773/device_detector.dart';
-import 'package:project_022000iot_user/calefactores/device_calefactor.dart';
-import 'package:project_022000iot_user/login/login.dart';
-import 'package:project_022000iot_user/master.dart';
-import 'package:project_022000iot_user/scan.dart';
+import 'package:biocalden_smart_life/5773/device_detector.dart';
+import 'package:biocalden_smart_life/calefactores/device_calefactor.dart';
+import 'package:biocalden_smart_life/login/login.dart';
+import 'package:biocalden_smart_life/master.dart';
+import 'package:biocalden_smart_life/scan.dart';
+import 'package:biocalden_smart_life/calefactores/device_silema.dart';
 import 'package:workmanager/workmanager.dart';
 import 'calefactores/master_calefactor.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -37,15 +38,17 @@ Future<void> main() async {
       context: navigatorKey.currentContext!,
       barrierDismissible: true,
       builder: (BuildContext context) {
-        String displayMessage =
-            message.notification?.body.toString() ?? 'Un detector mando una alerta';
+        String displayMessage = message.notification?.body.toString() ??
+            'Un detector mando una alerta';
 
         return AlertDialog(
             backgroundColor: const Color.fromARGB(255, 230, 254, 255),
             title: const Text(
               '¡ALERTA EN DETECTOR!',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Color.fromARGB(255, 255, 0, 0), fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Color.fromARGB(255, 255, 0, 0),
+                  fontWeight: FontWeight.bold),
             ),
             content: Text(
               displayMessage,
@@ -78,19 +81,19 @@ class MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
-      title: '022000 USER App',
+      title: 'Biocalden Smart Life',
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 37, 34, 35),
-        primaryColorLight: const Color.fromARGB(255, 80, 80, 83),
+        primaryColor: const Color.fromARGB(255, 30, 36, 43),
+        primaryColorLight: const Color.fromARGB(255, 178, 181, 174),
         textSelectionTheme: const TextSelectionThemeData(
-          selectionColor: Color.fromARGB(255, 189, 189, 189),
-          selectionHandleColor: Color.fromARGB(255, 189, 189, 189),
+          selectionColor: Color.fromARGB(255, 178, 181, 174),
+          selectionHandleColor: Color.fromARGB(255, 178, 181, 174),
         ),
         bottomSheetTheme: const BottomSheetThemeData(
             surfaceTintColor: Colors.transparent,
             backgroundColor: Colors.transparent),
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 37, 34, 35)),
+            seedColor: const Color.fromARGB(255, 30, 36, 43)),
         useMaterial3: true,
       ),
       initialRoute: '/perm',
@@ -101,6 +104,7 @@ class MyAppState extends State<MyApp> {
         '/loading': (context) => const LoadingPage(),
         '/calefactor': (context) => const ControlPage(),
         '/detector': (context) => const DetectorPage(),
+        '/radiador': (context) => const RadiadorPage(),
       },
     );
   }

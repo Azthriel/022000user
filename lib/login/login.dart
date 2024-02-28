@@ -1,9 +1,7 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:project_022000iot_user/master.dart';
-import 'package:project_022000iot_user/login/master_login.dart';
+import 'package:biocalden_smart_life/master.dart';
+import 'package:biocalden_smart_life/login/master_login.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AskLoginPage extends StatefulWidget {
@@ -160,199 +158,205 @@ class LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     return Scaffold(
-        bottomSheet: ClipPath(
-          clipper: CustomBottomClip(),
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                isLogin = true;
-              });
-            },
-            child: AnimatedContainer(
-              /// Duration
-              duration: const Duration(milliseconds: 400),
+      resizeToAvoidBottomInset: false,
+      bottomSheet: ClipPath(
+        clipper: CustomBottomClip(),
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              isLogin = true;
+            });
+          },
+          child: AnimatedContainer(
+            /// Duration
+            duration: const Duration(milliseconds: 400),
 
-              /// Curve
-              curve: Curves.decelerate,
-              // color: Theme.of(context).primaryColor,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
+            /// Curve
+            curve: Curves.decelerate,
+            // color: Theme.of(context).primaryColor,
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor,
+            ),
 
-              /// changing the height of bottom sheet with animation using animatedContainer
-              height: isLogin ? height * 0.8 : height * 0.1,
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 50),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ///AnimatedContainer to handle animation of size of the container basically height only
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    height: isLogin ? 100 : 50,
-                    alignment: Alignment.bottomCenter,
-                    child: const TextUtil(
-                      text: "Iniciar sesión",
-                      size: 30,
-                    ),
+            /// changing the height of bottom sheet with animation using animatedContainer
+            height: isLogin ? height * 0.8 : height * 0.1,
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 50),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ///AnimatedContainer to handle animation of size of the container basically height only
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 400),
+                  height: isLogin ? 100 : 50,
+                  alignment: Alignment.bottomCenter,
+                  child: const TextUtil(
+                    text: "Iniciar sesión",
+                    size: 30,
                   ),
-                  Expanded(
-                    /// Using Custom Animated ShowUpAnimated  to handle slide animation of textfield
-                    child: isLogin
-                        ? ShowUpAnimation(
-                            delay: 200,
-                            child: Padding(
-                                padding: const EdgeInsets.only(top: 50),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      /// Custom FieldWidget
-                                      FieldWidget(
-                                        title: "Email",
-                                        icon: Icons.mail,
-                                        pass: false,
-                                        controlador: mailController,
-                                      ),
-                                      FieldWidget(
-                                        title: "Contraseña",
-                                        icon: Icons.key,
-                                        pass: true,
-                                        controlador: passwordController,
-                                      ),
-                                      SizedBox(
-                                          width: double.infinity,
-                                          height: 50,
-                                          child: TextButton(
-                                              onPressed: () =>
-                                                  restablecerContrasena(),
-                                              child: const TextUtil(
-                                                text:
-                                                    '¿Olvidaste tu contraseña?',
-                                              ))),
-                                      const SizedBox(
-                                        height: 20,
-                                      ),
-                                      SizedBox(
+                ),
+                Expanded(
+                  /// Using Custom Animated ShowUpAnimated  to handle slide animation of textfield
+                  child: isLogin
+                      ? ShowUpAnimation(
+                          delay: 200,
+                          child: Padding(
+                              padding: const EdgeInsets.only(top: 50),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    /// Custom FieldWidget
+                                    FieldWidget(
+                                      title: "Email",
+                                      icon: Icons.mail,
+                                      pass: false,
+                                      controlador: mailController,
+                                    ),
+                                    FieldWidget(
+                                      title: "Contraseña",
+                                      icon: Icons.key,
+                                      pass: true,
+                                      controlador: passwordController,
+                                    ),
+                                    SizedBox(
                                         width: double.infinity,
                                         height: 50,
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Theme.of(context)
-                                                  .primaryColorLight,
-                                            ),
-                                            onPressed: () {
-                                              iniciarSesion();
-                                            },
+                                        child: TextButton(
+                                            onPressed: () =>
+                                                restablecerContrasena(),
                                             child: const TextUtil(
-                                              text: 'Ingresar',
-                                            )),
-                                      ),
-                                      const SizedBox(
-                                        height: 30,
-                                      ),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        height: 200,
-                                        child: IconButton(
-                                            onPressed: _launchURL,
-                                            icon: Image.asset(
-                                                'assets/Corte_laser_negro.png')),
-                                      )
-                                    ],
-                                  ),
-                                )),
-                          )
-                        : const SizedBox(),
-                  )
-                ],
-              ),
+                                              text: '¿Olvidaste tu contraseña?',
+                                            ))),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Theme.of(context)
+                                                .primaryColorLight,
+                                          ),
+                                          onPressed: () {
+                                            iniciarSesion();
+                                          },
+                                          child: const TextUtil(
+                                            text: 'Ingresar',
+                                          )),
+                                    ),
+                                    const SizedBox(
+                                      height: 30,
+                                    ),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 200,
+                                      child: IconButton(
+                                          onPressed: _launchURL,
+                                          icon: Image.asset(
+                                              'assets/Biocalden/Corte_laser_negro.png')),
+                                    ),
+                                    Align(
+                                        alignment: Alignment.bottomCenter,
+                                        child: Text(
+                                          'Versión $appVersionNumber',
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 156, 157, 152),
+                                              fontSize: 12),
+                                        )),
+                                  ],
+                                ),
+                              )),
+                        )
+                      : const SizedBox(),
+                )
+              ],
             ),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              ClipPath(
-                ///Custom Clipper
-                clipper: CustomUpClip(),
+      ),
+      body: Column(
+        children: [
+          ClipPath(
+            ///Custom Clipper
+            clipper: CustomUpClip(),
 
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  height: height * 0.3,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              height: height * 0.3,
+              width: double.infinity,
+              decoration:
+                  BoxDecoration(color: Theme.of(context).primaryColorLight),
+              alignment: Alignment.center,
+              child: InkWell(
+
+                  /// Using Ink well to change the  isLogin value
+                  onTap: () {
+                    setState(() {
+                      isLogin = false;
+                    });
+                  },
+                  child: const TextUtil(
+                    text: "Registrar",
+                    size: 30,
+                  )),
+            ),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// Custom FieldWidget
+                FieldWidget(
+                  title: "Email",
+                  icon: Icons.mail,
+                  pass: false,
+                  controlador: newUserController,
+                ),
+                FieldWidget(
+                  title: "Contraseña",
+                  icon: Icons.key,
+                  pass: true,
+                  controlador: registerpasswordController,
+                ),
+                FieldWidget(
+                  title: "Confirmar Contraseña",
+                  icon: Icons.key,
+                  pass: true,
+                  controlador: confirmpasswordController,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                SizedBox(
                   width: double.infinity,
-                  decoration:
-                      BoxDecoration(color: Theme.of(context).primaryColorLight),
-                  alignment: Alignment.center,
-                  child: InkWell(
-
-                      /// Using Ink well to change the  isLogin value
-                      onTap: () {
-                        setState(() {
-                          isLogin = false;
-                        });
+                  height: 50,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColorLight),
+                      onPressed: () {
+                        if (registerpasswordController.text ==
+                            confirmpasswordController.text) {
+                          registrarUsuario();
+                        } else {
+                          showToast('Las contraseñas deben ser idénticas...');
+                        }
                       },
                       child: const TextUtil(
-                        text: "Registrar",
-                        size: 30,
+                        text: 'Registrarse',
                       )),
-                ),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    /// Custom FieldWidget
-                    FieldWidget(
-                      title: "Email",
-                      icon: Icons.mail,
-                      pass: false,
-                      controlador: newUserController,
-                    ),
-                    FieldWidget(
-                      title: "Contraseña",
-                      icon: Icons.key,
-                      pass: true,
-                      controlador: registerpasswordController,
-                    ),
-                    FieldWidget(
-                      title: "Confirmar Contraseña",
-                      icon: Icons.key,
-                      pass: true,
-                      controlador: confirmpasswordController,
-                    ),
-                    const SizedBox(
-                      height: 20,
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).primaryColorLight),
-                          onPressed: () {
-                            if (registerpasswordController.text ==
-                                confirmpasswordController.text) {
-                              registrarUsuario();
-                            } else {
-                              showToast(
-                                  'Las contraseñas deben ser idénticas...');
-                            }
-                          },
-                          child: const TextUtil(
-                            text: 'Registrarse',
-                          )),
-                    )
-                  ],
-                ),
-              )
-            ],
-          ),
-        ));
+                )
+              ],
+            ),
+          )
+        ],
+      ),
+    );
   }
 }

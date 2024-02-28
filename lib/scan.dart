@@ -4,8 +4,8 @@ import 'package:easy_refresh/easy_refresh.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:project_022000iot_user/5773/master_detector.dart';
-import 'package:project_022000iot_user/master.dart';
+import 'package:biocalden_smart_life/5773/master_detector.dart';
+import 'package:biocalden_smart_life/master.dart';
 import 'calefactores/master_calefactor.dart';
 
 class ScanPage extends StatefulWidget {
@@ -51,15 +51,19 @@ class ScanPageState extends State<ScanPage> {
     super.dispose();
   }
 
-
-
   void scan() async {
     if (bluetoothOn) {
       printLog('Entre a escanear');
       toastFlag = false;
       try {
         await FlutterBluePlus.startScan(
-            withKeywords: ['Eléctrico', 'Gas', 'Detector', 'Calefactor'],
+            withKeywords: [
+              'Eléctrico',
+              'Gas',
+              'Detector',
+              'Calefactor',
+              'Radiador'
+            ],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
             continuousUpdates: true);
@@ -105,7 +109,8 @@ class ScanPageState extends State<ScanPage> {
               nameOfWifi = '';
               connectionFlag = false;
               alreadySubOta = false;
-              printLog('Razon: ${myDevice.device.disconnectReason?.description}');
+              printLog(
+                  'Razon: ${myDevice.device.disconnectReason?.description}');
               navigatorKey.currentState?.pushReplacementNamed('/scan');
               break;
             }
@@ -150,20 +155,20 @@ class ScanPageState extends State<ScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+        foregroundColor: const Color.fromARGB(255, 156, 157, 152),
         title: TextField(
           focusNode: searchFocusNode,
           controller: searchController,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          style: const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
           decoration: const InputDecoration(
             icon: Icon(Icons.search),
-            iconColor: Color.fromARGB(255, 255, 255, 255),
+            iconColor: Color.fromARGB(255, 178, 181, 174),
             hintText: "Filtrar por nombre",
-            hintStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            hintStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
             border: InputBorder.none,
           ),
           onChanged: (value) {
@@ -184,17 +189,17 @@ class ScanPageState extends State<ScanPage> {
                   barrierDismissible: true,
                   builder: (BuildContext dialogContext) {
                     return AlertDialog(
-                      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+                      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
                       title: const Text(
                         '¿Estas seguro que quieres cerrar sesión?',
                         style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255)),
+                            color: Color.fromARGB(255, 178, 181, 174)),
                       ),
                       actions: <Widget>[
                         TextButton(
                           style: const ButtonStyle(
                               foregroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 255, 255, 255))),
+                                  Color.fromARGB(255, 178, 181, 174))),
                           child: const Text('Cerrar sesión'),
                           onPressed: () async {
                             auth.signOut();
@@ -207,7 +212,10 @@ class ScanPageState extends State<ScanPage> {
                   },
                 );
               },
-              icon: const Icon(Icons.exit_to_app))
+              icon: const Icon(
+                Icons.exit_to_app,
+                color: Color.fromARGB(255, 156, 157, 152),
+              ))
         ],
       ),
       drawer: MyDrawer(
@@ -223,8 +231,8 @@ class ScanPageState extends State<ScanPage> {
           processingText: 'Reescaneando dispositivos',
           processedText: 'Reescaneo completo',
           showMessage: false,
-          textStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
-          iconTheme: IconThemeData(color: Color.fromARGB(255, 255, 255, 255)),
+          textStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+          iconTheme: IconThemeData(color: Color.fromARGB(255, 156, 157, 152)),
         ),
         onRefresh: () async {
           await Future.delayed(const Duration(seconds: 2));
@@ -248,7 +256,7 @@ class ScanPageState extends State<ScanPage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 255, 255, 255),
+                            color: Color.fromARGB(255, 178, 181, 174),
                           ),
                         ),
                       ),
@@ -267,11 +275,45 @@ class ScanPageState extends State<ScanPage> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 255, 255, 255),
+                          color: Color.fromARGB(255, 178, 181, 174),
                         ),
                       ),
                       const SizedBox(width: 10),
-                      const Icon(Icons.bluetooth, color: Colors.white)
+                      const Icon(Icons.bluetooth,
+                          color: Color.fromARGB(255, 178, 181, 174)),
+                      // const SizedBox(width: double.infinity),
+                      if (filteredDevices[index]
+                          .platformName
+                          .contains('Detector')) ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: Image.asset('assets/IntelligentGas/G.png'),
+                          ),
+                        ),
+                      ] else if (filteredDevices[index]
+                          .platformName
+                          .contains('Radiador')) ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: Image.asset('assets/Silema/WB_logo.png'),
+                          ),
+                        ),
+                      ] else ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: Image.asset('assets/Biocalden/B_negra.png'),
+                          ),
+                        )
+                      ],
                     ]),
                     subtitle: Text(
                       nicknamesMap[filteredDevices[index].platformName] != null
@@ -279,7 +321,7 @@ class ScanPageState extends State<ScanPage> {
                           : filteredDevices[index].remoteId.toString(),
                       style: const TextStyle(
                         fontSize: 18,
-                        color: Color.fromARGB(255, 189, 189, 189),
+                        color: Color.fromARGB(255, 156, 157, 152),
                       ),
                     ),
                     onTap: () {
@@ -314,6 +356,8 @@ class LoadState extends State<LoadingPage> {
         showToast('Dispositivo conectado exitosamente');
         if (deviceType == '022000' || deviceType == '027000') {
           navigatorKey.currentState?.pushReplacementNamed('/calefactor');
+        } else if (deviceType == '041220') {
+          navigatorKey.currentState?.pushReplacementNamed('/radiador');
         } else {
           navigatorKey.currentState?.pushReplacementNamed('/detector');
         }
@@ -340,7 +384,9 @@ class LoadState extends State<LoadingPage> {
       await documentRef.set({'tipo': deviceType}, SetOptions(merge: true));
 
       //Si es un calefactor
-      if (deviceType == '022000' || deviceType == '027000') {
+      if (deviceType == '022000' ||
+          deviceType == '027000' ||
+          deviceType == '041220') {
         varsValues = await myDevice.varsUuid.read();
         var parts2 = utf8.decode(varsValues).split(':');
         printLog('$parts2');
@@ -363,7 +409,8 @@ class LoadState extends State<LoadingPage> {
         var parts = utf8.decode(infoValues).split(':');
         if (parts[4] == 'NA') {
           deviceOwner = true;
-          String mailData = '022000_IOT[5]($userEmail)';
+          printLog('Mando owner');
+          String mailData = '${command(deviceType)}[5]($userEmail)';
           myDevice.toolsUuid.write(mailData.codeUnits);
           distOffValue = await readDistanceOffValue();
           distOnValue = await readDistanceOnValue();
@@ -401,7 +448,7 @@ class LoadState extends State<LoadingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
       body: Center(
           child: Stack(
         children: <Widget>[
@@ -409,14 +456,14 @@ class LoadState extends State<LoadingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                color: Color.fromARGB(255, 255, 255, 255),
+                color: Color.fromARGB(255, 178, 181, 174),
               ),
               SizedBox(height: 20),
               Align(
                   alignment: Alignment.center,
                   child: Text(
                     'Cargando...',
-                    style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                    style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
                   )),
             ],
           ),
@@ -428,7 +475,9 @@ class LoadState extends State<LoadingPage> {
                   alignment: Alignment.bottomCenter,
                   child: Text(
                     'Versión $appVersionNumber',
-                    style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                    style: const TextStyle(
+                        color: Color.fromARGB(255, 156, 157, 152),
+                        fontSize: 12),
                   )),
               const SizedBox(height: 20),
             ],

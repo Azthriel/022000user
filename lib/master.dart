@@ -44,6 +44,7 @@ int wrongPass = 0;
 final FirebaseAuth auth = FirebaseAuth.instance;
 Timer? locationTimer;
 Timer? bluetoothTimer;
+late bool nightMode;
 int lastUser = 0;
 List<String> previusConnections = [];
 Map<String, String> nicknamesMap = {};
@@ -51,16 +52,18 @@ String deviceType = '';
 MqttServerClient? mqttClient5773;
 MqttServerClient? mqttClient022000;
 MqttServerClient? mqttClient027000;
+MqttServerClient? mqttClient041220;
 bool mqttConected022000 = false;
 bool mqttConected027000 = false;
 bool mqttConected5773 = false;
+bool mqttConected041220 = false;
 String softwareVersion = '';
 String hardwareVersion = '';
 String actualToken = '';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24021900';
+String appVersionNumber = '24022600';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 
 //!------------------------------VERSION NUMBER---------------------------------------
@@ -111,6 +114,8 @@ String command(String device) {
       return '027000_IOT';
     case '015773':
       return '015773_IOT';
+    case '041220':
+      return '041220_IOT';
     default:
       return '';
   }
@@ -196,19 +201,48 @@ void setupMqtt027000() async {
   mqttConected027000 = true;
 }
 
+void setupMqtt041220() async {
+  String deviceId = 'calden_IOT041220/${generateRandomNumbers(32)}';
+  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
+  String username = '041220_IOT';
+  String password = '041220_IOT';
+
+  // Cargar el certificado CA
+  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
+  SecurityContext context = SecurityContext(withTrustedRoots: false);
+  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
+
+  mqttClient041220 = MqttServerClient.withPort(hostname, deviceId, 8883);
+
+  mqttClient041220!.secure = true;
+
+  mqttClient041220!.logging(on: true);
+  mqttClient041220!.onDisconnected = mqttonDisconnected;
+
+  // Configuración de las credenciales
+  mqttClient041220!.setProtocolV311();
+  mqttClient041220!.keepAlivePeriod = 3;
+  await mqttClient041220!.connect(username, password);
+  mqttConected041220 = true;
+}
+
 void mqttonDisconnected() {
   mqttConected5773 = false;
   mqttConected022000 = false;
   mqttConected027000 = false;
+  mqttConected041220 = false;
   printLog('Desconectado de mqtt');
 }
 
 void sendMessagemqtt(String deviceName, String message, String device) {
   printLog(
-      'Conexiones: 57 $mqttConected5773 :: 022000 $mqttConected022000 :: 027000 $mqttConected027000');
+      'Conexiones: 57 $mqttConected5773 :: 022000 $mqttConected022000 :: 027000 $mqttConected027000 :: 041220 $mqttConected041220');
   late RegExpMatch? match;
   if (device == '022000' || device == '027000') {
     final regex = RegExp(r'Calefactor(\d+)');
+    match = regex.firstMatch(deviceName);
+  } else if (device == '041220') {
+    final regex = RegExp(r'Radiador(\d+)');
     match = regex.firstMatch(deviceName);
   } else {
     final regex = RegExp(r'Detector(\d+)');
@@ -229,6 +263,9 @@ void sendMessagemqtt(String deviceName, String message, String device) {
   } else if (device == '5773' && mqttConected5773) {
     mqttClient5773!
         .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  } else if (device == '041220' && mqttConected041220) {
+    mqttClient041220!
+        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
   }
 }
 
@@ -243,7 +280,7 @@ void sendReportError(String filePath) async {
   final Email email = Email(
     body: '¡Hola! Te envio el reporte de error que surgió en mi app',
     subject: 'Reporte de error $deviceName',
-    recipients: ['ingenieria@intelligentgas.com.ar'],
+    recipients: ['trillogonzalolaboral@gmail.com'],
     attachmentPaths: [filePath],
     isHTML: false,
   );
@@ -767,7 +804,9 @@ class MyDevice {
       hardwareVersion = partes[3];
       printLog('Device: $deviceType');
 
-      if (deviceType == '022000' || deviceType == '027000') {
+      if (deviceType == '022000' ||
+          deviceType == '027000' ||
+          deviceType == '041220') {
         BluetoothService espService = services.firstWhere(
             (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
 
@@ -850,7 +889,7 @@ class QRScanPageState extends State<QRScanPage>
                 child: const Center(
                   child: Text('Escanea el QR',
                       style:
-                          TextStyle(color: Color.fromARGB(255, 189, 189, 189))),
+                          TextStyle(color: Color.fromARGB(255, 178, 181, 174))),
                 )),
           ),
           // Abajo
@@ -897,7 +936,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 4,
-                    color: const Color.fromARGB(255, 189, 189, 189),
+                    color: const Color.fromARGB(255, 30, 36, 43),
                   ),
                 ),
                 Positioned(
@@ -906,7 +945,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 3,
-                    color: const Color.fromARGB(255, 1, 18, 28),
+                    color: const Color.fromARGB(255, 178, 181, 174),
                   ),
                 ),
                 Positioned(
@@ -915,7 +954,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 3,
-                    color: const Color.fromARGB(255, 1, 18, 28),
+                    color: const Color.fromARGB(255, 178, 181, 174),
                   ),
                 ),
                 Positioned(
@@ -924,7 +963,7 @@ class QRScanPageState extends State<QRScanPage>
                   left: 0,
                   child: Container(
                     width: 3,
-                    color: const Color.fromARGB(255, 1, 18, 28),
+                    color: const Color.fromARGB(255, 178, 181, 174),
                   ),
                 ),
                 Positioned(
@@ -933,7 +972,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     width: 3,
-                    color: const Color.fromARGB(255, 1, 18, 28),
+                    color: const Color.fromARGB(255, 178, 181, 174),
                   ),
                 ),
               ],
@@ -1014,7 +1053,7 @@ class MyDrawerState extends State<MyDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
       child: previusConnections.isEmpty
           ? ListView(
               children: const [
@@ -1028,7 +1067,7 @@ class MyDrawerState extends State<MyDrawer> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 255, 255, 255),
+                          color: Color.fromARGB(255, 178, 181, 174),
                         ),
                       ),
                     ),
@@ -1051,12 +1090,14 @@ class MyDrawerState extends State<MyDrawer> {
                             Text(
                               'Mis equipos\nregistrados:',
                               style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
+                                color: Color.fromARGB(255, 178, 181, 174),
                                 fontSize: 24,
                               ),
                             ),
                             SizedBox(width: 80),
-                            Icon(Icons.wifi, color: Colors.white)
+                            Icon(Icons.wifi,
+                                color: Color.fromARGB(
+                                    255, 178, 181, 174)) //(255, 156, 157, 152)
                           ]));
                 }
 
@@ -1066,9 +1107,8 @@ class MyDrawerState extends State<MyDrawer> {
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       String equipo = snapshot.data!['tipo'];
-                      if (equipo == '022000' || equipo == '027000') {//TODO: Agregar radiador
+                      if (equipo == '022000' || equipo == '027000') {
                         bool estado = snapshot.data!['estado'];
-
                         return ListTile(
                           leading: SizedBox(
                             width: 20,
@@ -1077,7 +1117,7 @@ class MyDrawerState extends State<MyDrawer> {
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 156, 157, 152),
                                   size: 20,
                                 ),
                                 onPressed: () {
@@ -1092,7 +1132,7 @@ class MyDrawerState extends State<MyDrawer> {
                           ),
                           title: Text(nicknamesMap[deviceName] ?? deviceName,
                               style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 178, 181, 174),
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold)),
                           subtitle: estado
@@ -1106,6 +1146,80 @@ class MyDrawerState extends State<MyDrawer> {
                                             size: 15, color: Colors.amber[800])
                                         : Icon(Icons.local_fire_department,
                                             size: 15, color: Colors.amber[800])
+                                  ],
+                                )
+                              : const Text('Apagado',
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 15)),
+                          trailing: FutureBuilder<DocumentSnapshot>(
+                            future: _firestore
+                                .collection(deviceName)
+                                .doc(widget.userMail)
+                                .get(),
+                            builder: (context, ownerSnapshot) {
+                              if (ownerSnapshot.data != null &&
+                                  ownerSnapshot.data!.exists) {
+                                // Si el documento existe, mostrar el Switch
+                                return Switch(
+                                  activeColor:
+                                      const Color.fromARGB(255, 156, 157, 152),
+                                  activeTrackColor:
+                                      const Color.fromARGB(255, 178, 181, 174),
+                                  inactiveThumbColor:
+                                      const Color.fromARGB(255, 178, 181, 174),
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 156, 157, 152),
+                                  value: estado,
+                                  onChanged: (newValue) {
+                                    toggleState(deviceName, newValue, equipo);
+                                    setState(() {
+                                      estado = newValue;
+                                    });
+                                  },
+                                );
+                              } else {
+                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
+                                return const SizedBox(height: 0, width: 0);
+                              }
+                            },
+                          ),
+                        );
+                      } else if (equipo == '041220') {
+                        bool estado = snapshot.data!['estado'];
+                        return ListTile(
+                          leading: SizedBox(
+                            width: 20,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  printLog('Eliminando de la lista');
+                                  setState(() {
+                                    previusConnections.removeAt(index - 1);
+                                  });
+                                  guardarLista(previusConnections);
+                                },
+                              ),
+                            ),
+                          ),
+                          title: Text(nicknamesMap[deviceName] ?? deviceName,
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold)),
+                          subtitle: estado
+                              ? Row(
+                                  children: [
+                                    const Text('Encendido',
+                                        style: TextStyle(
+                                            color: Colors.green, fontSize: 15)),
+                                    Icon(Icons.flash_on_rounded,
+                                        size: 15, color: Colors.amber[800])
                                   ],
                                 )
                               : const Text('Apagado',
@@ -1188,7 +1302,7 @@ class MyDrawerState extends State<MyDrawer> {
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 156, 157, 152),
                                   size: 20,
                                 ),
                                 onPressed: () {
@@ -1204,7 +1318,7 @@ class MyDrawerState extends State<MyDrawer> {
                           ),
                           title: Text(nicknamesMap[deviceName] ?? deviceName,
                               style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 178, 181, 174),
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold)),
                           subtitle: Text.rich(
@@ -1212,28 +1326,28 @@ class MyDrawerState extends State<MyDrawer> {
                               const TextSpan(
                                 text: 'PPM CO: ',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 156, 157, 152),
                                   fontSize: 15,
                                 ),
                               ),
                               TextSpan(
                                 text: '$ppmCO\n',
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Color.fromARGB(255, 156, 157, 152),
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold),
                               ),
                               const TextSpan(
                                 text: 'CH4 LIE: ',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Color.fromARGB(255, 156, 157, 152),
                                   fontSize: 15,
                                 ),
                               ),
                               TextSpan(
                                 text: '${(ppmCH4 / 500).round()}%',
                                 style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Color.fromARGB(255, 156, 157, 152),
                                     fontSize: 15,
                                     fontWeight: FontWeight.bold),
                               ),

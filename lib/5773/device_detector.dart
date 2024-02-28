@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:project_022000iot_user/5773/master_detector.dart';
-import 'package:project_022000iot_user/master.dart';
+import 'package:biocalden_smart_life/5773/master_detector.dart';
+import 'package:biocalden_smart_life/master.dart';
 
 class DetectorPage extends StatefulWidget {
   const DetectorPage({super.key});
@@ -430,7 +430,7 @@ class DetectorPageState extends State<DetectorPage> {
               children: [
                 Container(
                     height: 100,
-                    width: double.infinity,
+                    width: 350,
                     decoration: BoxDecoration(
                       color: alert
                           ? Colors.red

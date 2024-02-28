@@ -7,18 +7,18 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:project_022000iot_user/master.dart';
-import 'master_silema.dart';
+import 'package:biocalden_smart_life/master.dart';
+import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
 
 //CONTROL TAB // On Off y set temperatura
 
-class ControlPage extends StatefulWidget {
-  const ControlPage({super.key});
+class RadiadorPage extends StatefulWidget {
+  const RadiadorPage({super.key});
   @override
-  ControlPageState createState() => ControlPageState();
+  RadiadorPageState createState() => RadiadorPageState();
 }
 
-class ControlPageState extends State<ControlPage> {
+class RadiadorPageState extends State<RadiadorPage> {
   var parts2 = utf8.decode(varsValues).split(':');
   late double tempValue;
   late String nickname;
@@ -27,6 +27,7 @@ class ControlPageState extends State<ControlPage> {
   @override
   void initState() {
     super.initState();
+    printLog(parts2);
     nickname = nicknamesMap[deviceName] ?? deviceName;
     tempValue = double.parse(parts2[0]);
 
@@ -128,13 +129,13 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void sendTemperature(int temp) {
-    String data = '${command(deviceType)}[7]($temp)';//TODO: Cambiar comando
+    String data = '${command(deviceType)}[7]($temp)';
     myDevice.toolsUuid.write(data.codeUnits);
   }
 
   void turnDeviceOn(bool on) async {
     int fun = on ? 1 : 0;
-    String data = '${command(deviceType)}[6]($fun)';//TODO: Cambiar comando
+    String data = '${command(deviceType)}[6]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     try {
       DocumentReference documentRef =
@@ -188,23 +189,23 @@ class ControlPageState extends State<ControlPage> {
     TextEditingController nicknameController =
         TextEditingController(text: nickname);
 
-    return showDialog<void>(//TODO: Cambiar colores
+    return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           title: const Text(
             'Editar identificación del dispositivo',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
           ),
           content: TextField(
-            style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
             cursorColor: const Color.fromARGB(255, 189, 189, 189),
             controller: nicknameController,
             decoration: const InputDecoration(
               hintText: "Introduce tu nueva identificación del dispositivo",
-              hintStyle: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              hintStyle: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
               enabledBorder: UnderlineInputBorder(
                 borderSide:
                     BorderSide(color: Color.fromARGB(255, 189, 189, 189)),
@@ -218,8 +219,8 @@ class ControlPageState extends State<ControlPage> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor:
+                      MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
               child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -227,8 +228,8 @@ class ControlPageState extends State<ControlPage> {
             ),
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor:
+                      MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
               child: const Text('Guardar'),
               onPressed: () {
                 setState(() {
@@ -280,24 +281,24 @@ class ControlPageState extends State<ControlPage> {
   Future<bool> verifyPermission() async {
     var permissionStatus4 = await Permission.locationAlways.status;
     if (!permissionStatus4.isGranted) {
-      await showDialog<void>(//TODO: Cambiar colores
+      await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
             title: const Text(
               'Habilita la ubicación todo el tiempo',
-              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
             ),
             content: const Text(
                 'Calefactor Smart utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+                style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(
                     foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 255, 255, 255))),
+                        Color.fromARGB(255, 0, 0, 0))),
                 child: const Text('Habilitar'),
                 onPressed: () async {
                   var permissionStatus4 =
@@ -328,7 +329,7 @@ class ControlPageState extends State<ControlPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(//TODO: Cambiar colores
+    return PopScope(
         canPop: false,
         onPopInvoked: (didPop) {
           showDialog(
@@ -336,17 +337,16 @@ class ControlPageState extends State<ControlPage> {
             barrierDismissible: false,
             builder: (context) {
               return AlertDialog(
-                backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
                 content: Row(
                   children: [
                     const CircularProgressIndicator(
-                        color: Color.fromARGB(255, 255, 255, 255)),
+                        color: Color.fromARGB(255, 0, 0, 0)),
                     Container(
                         margin: const EdgeInsets.only(left: 15),
                         child: const Text(
                           "Desconectando...",
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
+                          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
                         )),
                   ],
                 ),
@@ -363,10 +363,10 @@ class ControlPageState extends State<ControlPage> {
           return; // Retorna según la lógica de tu app
         },
         child: Scaffold(
-            backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
             appBar: AppBar(
                 backgroundColor: Colors.transparent,
-                foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                foregroundColor: const Color.fromARGB(255, 0, 0, 0),
                 title: GestureDetector(
                   onTap: () async {
                     await _showEditNicknameDialog(context);
@@ -389,14 +389,14 @@ class ControlPageState extends State<ControlPage> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
-                                      backgroundColor:
-                                          const Color.fromARGB(255, 37, 34, 35),
+                                      backgroundColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
                                       title: Row(children: [
                                         const Text.rich(TextSpan(
                                             text: 'Estado de conexión: ',
                                             style: TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 255, 255, 255),
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 14,
                                             ))),
                                         Text.rich(TextSpan(
@@ -415,8 +415,8 @@ class ControlPageState extends State<ControlPage> {
                                                   text: 'Error: $errorMessage',
                                                   style: const TextStyle(
                                                       fontSize: 10,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0)))),
                                               const SizedBox(height: 10),
                                               Text.rich(
                                                 TextSpan(
@@ -425,10 +425,7 @@ class ControlPageState extends State<ControlPage> {
                                                     style: const TextStyle(
                                                         fontSize: 10,
                                                         color: Color.fromARGB(
-                                                            255,
-                                                            255,
-                                                            255,
-                                                            255))),
+                                                            255, 0, 0, 0))),
                                               ),
                                             ],
                                             const SizedBox(height: 10),
@@ -439,14 +436,14 @@ class ControlPageState extends State<ControlPage> {
                                                       fontSize: 20,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0)))),
                                               Text.rich(TextSpan(
                                                   text: nameOfWifi,
                                                   style: const TextStyle(
                                                       fontSize: 20,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0)))),
                                             ]),
                                             const SizedBox(height: 10),
                                             const Text.rich(TextSpan(
@@ -455,14 +452,14 @@ class ControlPageState extends State<ControlPage> {
                                                 style: TextStyle(
                                                     fontSize: 20,
                                                     color: Color.fromARGB(
-                                                        255, 255, 255, 255),
+                                                        255, 0, 0, 0),
                                                     fontWeight:
                                                         FontWeight.bold))),
                                             IconButton(
                                               icon: const Icon(Icons.qr_code),
                                               iconSize: 50,
                                               color: const Color.fromARGB(
-                                                  255, 255, 255, 255),
+                                                  255, 0, 0, 0),
                                               onPressed: () async {
                                                 PermissionStatus
                                                     permissionStatusC =
@@ -486,14 +483,14 @@ class ControlPageState extends State<ControlPage> {
                                             TextField(
                                               style: const TextStyle(
                                                   color: Color.fromARGB(
-                                                      255, 255, 255, 255)),
+                                                      255, 0, 0, 0)),
                                               cursorColor: const Color.fromARGB(
                                                   255, 189, 189, 189),
                                               decoration: const InputDecoration(
                                                 hintText: 'Nombre de la red',
                                                 hintStyle: TextStyle(
                                                     color: Color.fromARGB(
-                                                        255, 255, 255, 255)),
+                                                        255, 0, 0, 0)),
                                                 enabledBorder:
                                                     UnderlineInputBorder(
                                                   borderSide: BorderSide(
@@ -514,14 +511,14 @@ class ControlPageState extends State<ControlPage> {
                                             TextField(
                                               style: const TextStyle(
                                                   color: Color.fromARGB(
-                                                      255, 255, 255, 255)),
+                                                      255, 0, 0, 0)),
                                               cursorColor: const Color.fromARGB(
                                                   255, 189, 189, 189),
                                               decoration: const InputDecoration(
                                                 hintText: 'Contraseña',
                                                 hintStyle: TextStyle(
                                                     color: Color.fromARGB(
-                                                        255, 255, 255, 255)),
+                                                        255, 0, 0, 0)),
                                                 enabledBorder:
                                                     UnderlineInputBorder(
                                                   borderSide: BorderSide(
@@ -549,7 +546,7 @@ class ControlPageState extends State<ControlPage> {
                                               foregroundColor:
                                                   MaterialStatePropertyAll(
                                                       Color.fromARGB(
-                                                          255, 255, 255, 255))),
+                                                          255, 0, 0, 0))),
                                           child: const Text('Aceptar'),
                                           onPressed: () {
                                             sendWifitoBle();
@@ -567,7 +564,7 @@ class ControlPageState extends State<ControlPage> {
             drawer: userConnected
                 ? null
                 : deviceOwner
-                    ? DeviceDrawer(
+                    ? SilemaDrawer(
                         night: nightMode,
                       )
                     : null,
@@ -586,17 +583,17 @@ class ControlPageState extends State<ControlPage> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 28,
-                                    color: Color.fromARGB(255, 255, 255, 255))),
+                                    color: Color.fromARGB(255, 0, 0, 0))),
                             Text('Espere a que se desconecte para poder usarla',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 28,
-                                    color: Color.fromARGB(255, 255, 255, 255))),
+                                    color: Color.fromARGB(255, 0, 0, 0))),
                             SizedBox(
                               height: 20,
                             ),
                             CircularProgressIndicator(
-                              color: Color.fromARGB(255, 255, 255, 255),
+                              color: Color.fromARGB(255, 0, 0, 0),
                             ),
                           ],
                         ),
@@ -610,8 +607,7 @@ class ControlPageState extends State<ControlPage> {
                               : const Text('Estado:',
                                   style: TextStyle(
                                       fontSize: 30,
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255))),
+                                      color: Color.fromARGB(255, 0, 0, 0))),
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -641,9 +637,9 @@ class ControlPageState extends State<ControlPage> {
                                 activeColor:
                                     const Color.fromARGB(255, 189, 189, 189),
                                 activeTrackColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
+                                    const Color.fromARGB(255, 72, 72, 72),
                                 inactiveThumbColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
+                                    const Color.fromARGB(255, 72, 72, 72),
                                 inactiveTrackColor:
                                     const Color.fromARGB(255, 189, 189, 189),
                                 value: turnOn,
@@ -660,7 +656,7 @@ class ControlPageState extends State<ControlPage> {
                           const Text('Temperatura de corte:',
                               style: TextStyle(
                                   fontSize: 25,
-                                  color: Color.fromARGB(255, 255, 255, 255))),
+                                  color: Color.fromARGB(255, 0, 0, 0))),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -668,28 +664,27 @@ class ControlPageState extends State<ControlPage> {
                                   text: tempValue.round().toString(),
                                   style: const TextStyle(
                                       fontSize: 30,
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)))),
+                                      color: Color.fromARGB(255, 0, 0, 0)))),
                               const Text.rich(TextSpan(
                                   text: '°C',
                                   style: TextStyle(
                                       fontSize: 30,
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)))),
+                                      color: Color.fromARGB(255, 0, 0, 0)))),
                             ],
                           ),
                           if (deviceOwner) ...[
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
                                 trackHeight: 50.0,
-                                thumbColor: Colors.white,
+                                thumbColor:
+                                    const Color.fromARGB(255, 72, 72, 72),
                                 thumbShape: const RoundSliderThumbShape(
                                   enabledThumbRadius: 0.0,
                                 ),
                               ),
                               child: Slider(
                                 activeColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
+                                    const Color.fromARGB(255, 72, 72, 72),
                                 inactiveColor:
                                     const Color.fromARGB(255, 189, 189, 189),
                                 value: tempValue,
@@ -713,18 +708,17 @@ class ControlPageState extends State<ControlPage> {
                                   const Text('Activar control\n por distancia:',
                                       style: TextStyle(
                                           fontSize: 25,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255))),
+                                          color: Color.fromARGB(255, 0, 0, 0))),
                                   const SizedBox(width: 30),
                                   Transform.scale(
                                     scale: 1.5,
                                     child: Switch(
                                       activeColor: const Color.fromARGB(
                                           255, 189, 189, 189),
-                                      activeTrackColor: const Color.fromARGB(
-                                          255, 255, 255, 255),
-                                      inactiveThumbColor: const Color.fromARGB(
-                                          255, 255, 255, 255),
+                                      activeTrackColor:
+                                          const Color.fromARGB(255, 72, 72, 72),
+                                      inactiveThumbColor:
+                                          const Color.fromARGB(255, 72, 72, 72),
                                       inactiveTrackColor: const Color.fromARGB(
                                           255, 189, 189, 189),
                                       value: isTaskScheduled,
@@ -751,8 +745,7 @@ class ControlPageState extends State<ControlPage> {
                                     Text('Distancia de apagado',
                                         style: TextStyle(
                                             fontSize: 20,
-                                            color: Color.fromARGB(
-                                                255, 255, 255, 255)))
+                                            color: Color.fromARGB(255, 0, 0, 0)))
                                   ]),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -761,29 +754,27 @@ class ControlPageState extends State<ControlPage> {
                                       text: distOffValue.round().toString(),
                                       style: const TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))),
+                                          color: Color.fromARGB(255, 0, 0, 0)))),
                                   const Text.rich(TextSpan(
                                       text: 'Metros',
                                       style: TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))),
+                                          color: Color.fromARGB(255, 0, 0, 0)))),
                                 ],
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 30.0,
-                                  thumbColor: Colors.white,
+                                  thumbColor: const Color.fromARGB(255, 72, 72, 72),
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 0.0,
                                   ),
                                 ),
                                 child: Slider(
-                                  activeColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  inactiveColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                activeColor:
+                                    const Color.fromARGB(255, 72, 72, 72),
+                                inactiveColor:
+                                    const Color.fromARGB(255, 189, 189, 189),
                                   value: distOffValue,
                                   divisions: 20,
                                   onChanged: (value) {
@@ -806,8 +797,7 @@ class ControlPageState extends State<ControlPage> {
                                     Text('Distancia de encendido',
                                         style: TextStyle(
                                             fontSize: 20,
-                                            color: Color.fromARGB(
-                                                255, 255, 255, 255)))
+                                            color: Color.fromARGB(255, 0, 0, 0)))
                                   ]),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -816,29 +806,27 @@ class ControlPageState extends State<ControlPage> {
                                       text: distOnValue.round().toString(),
                                       style: const TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))),
+                                          color: Color.fromARGB(255, 0, 0, 0)))),
                                   const Text.rich(TextSpan(
                                       text: 'Metros',
                                       style: TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))),
+                                          color: Color.fromARGB(255, 0, 0, 0)))),
                                 ],
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 30.0,
-                                  thumbColor: Colors.white,
+                                  thumbColor: const Color.fromARGB(255, 72, 72, 72),
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 0.0,
                                   ),
                                 ),
                                 child: Slider(
-                                  activeColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
-                                  inactiveColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                activeColor:
+                                    const Color.fromARGB(255, 72, 72, 72),
+                                inactiveColor:
+                                    const Color.fromARGB(255, 189, 189, 189),
                                   value: distOnValue,
                                   divisions: 20,
                                   onChanged: (value) {
@@ -859,7 +847,7 @@ class ControlPageState extends State<ControlPage> {
                             const SizedBox(height: 30),
                             const Text('Modo actual: ',
                                 style: TextStyle(
-                                    fontSize: 25, color: Colors.white)),
+                                    fontSize: 25, color: Color.fromARGB(255, 0, 0, 0))),
                             IconButton(
                               onPressed: () {
                                 setState(() {
@@ -867,16 +855,16 @@ class ControlPageState extends State<ControlPage> {
                                   printLog('Estado: $nightMode');
                                   int fun = nightMode ? 1 : 0;
                                   String data =
-                                      '022000_IOT[9]($fun)'; //TODO: Cambiar comando
+                                      '${command(deviceType)}[9]($fun)';
                                   printLog(data);
                                   myDevice.toolsUuid.write(data.codeUnits);
                                 });
                               },
                               icon: nightMode
                                   ? const Icon(Icons.nightlight,
-                                      color: Colors.white, size: 50)
+                                      color: Color.fromARGB(255, 0, 0, 0), size: 50)
                                   : const Icon(Icons.wb_sunny,
-                                      color: Colors.white, size: 50),
+                                      color: Color.fromARGB(255, 0, 0, 0), size: 50),
                             ),
                             const SizedBox(
                               height: 20,
@@ -885,7 +873,7 @@ class ControlPageState extends State<ControlPage> {
                                 'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 25, color: Colors.white)),
+                                    fontSize: 25, color: Color.fromARGB(255, 0, 0, 0))),
                           ],
                         ],
                       ),

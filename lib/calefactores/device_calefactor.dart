@@ -5,10 +5,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:project_022000iot_user/calefactores/master_calefactor.dart';
+import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:project_022000iot_user/master.dart';
+import 'package:biocalden_smart_life/master.dart';
 
 //CONTROL TAB // On Off y set temperatura
 
@@ -869,7 +869,7 @@ class ControlPageState extends State<ControlPage> {
                                   nightMode = !nightMode;
                                   printLog('Estado: $nightMode');
                                   int fun = nightMode ? 1 : 0;
-                                  String data = '022000_IOT[9]($fun)';
+                                  String data = '${command(deviceType)}[9]($fun)';
                                   printLog(data);
                                   myDevice.toolsUuid.write(data.codeUnits);
                                 });

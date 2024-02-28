@@ -1,4 +1,4 @@
-name: project_022000iot_user
+name: biocalden_smart_life
 description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+8
@@ -55,7 +55,12 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/Corte_laser_negro.png
+    - assets/Biocalden/Biocalden_banner.png
+    - assets/Biocalden/Corte_laser_negro.png
+    - assets/Biocalden/B_negra.png
     - assets/cert/emqxsl-ca.crt
-    - assets/IntelligentGasFlyerCL.png
-    - assets/IntelligentGasFlyerSL.png
+    - assets/IntelligentGas/IntelligentGasFlyerCL.png
+    - assets/IntelligentGas/IntelligentGasFlyerSL.png
+    - assets/IntelligentGas/G.png
+    - assets/Silema/WB_logo.png
+    - assets/Silema/WB_Banner.png

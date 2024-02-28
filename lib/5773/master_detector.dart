@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_022000iot_user/master.dart';
+import 'package:biocalden_smart_life/master.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 // VARIABLES //
@@ -75,10 +75,11 @@ class DrawerDetectorState extends State<DrawerDetector> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: 100),
           SizedBox(
             height: 50,
             // width: double.infinity,
-            child: Image.asset('assets/IntelligentGasFlyerCL.png'),
+            child: Image.asset('assets/IntelligentGas/IntelligentGasFlyerCL.png'),
           ),
           Icon(
             Icons.lightbulb,
@@ -172,7 +173,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                         // const SizedBox(width: 5),
                                         const Text('ceat@ibsanitarios.com.ar',
                                             style: TextStyle(
-                                                color: Color.fromARGB(255, 0, 0, 0),
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0),
                                                 fontSize: 20))
                                       ],
                                     )),
@@ -203,7 +205,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                       const Text(
                                         'pablo@intelligentgas.com.ar',
                                         style: TextStyle(
-                                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20),
+                                            color: Color.fromARGB(255, 0, 0, 0),
+                                            fontSize: 20),
                                         overflow: TextOverflow.ellipsis,
                                       )
                                     ],
@@ -231,7 +234,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                     // const SizedBox(width: 5),
                                     const Text('+54 9 11 6223-2619',
                                         style: TextStyle(
-                                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20))
+                                            color: Color.fromARGB(255, 0, 0, 0),
+                                            fontSize: 20))
                                   ],
                                 ),
                                 SingleChildScrollView(
@@ -256,7 +260,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
                                         const Text(
                                           'service@calefactorescalden.com.ar',
                                           style: TextStyle(
-                                              color: Color.fromARGB(255, 0, 0, 0),
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 20),
                                           overflow: TextOverflow.ellipsis,
                                         )
