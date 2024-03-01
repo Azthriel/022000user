@@ -141,7 +141,6 @@ class RadiadorPageState extends State<RadiadorPage> {
       DocumentReference documentRef =
           FirebaseFirestore.instance.collection(deviceName).doc('info');
       await documentRef.set({'estado': on}, SetOptions(merge: true));
-      sendMessagemqtt(deviceName, on ? '1' : '0', deviceType);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
     }

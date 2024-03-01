@@ -64,3 +64,88 @@ exports.sendDetectorAlert = functions.firestore
         return null;
       }
     });
+
+
+exports.multitaskFunction = functions.https.onRequest(
+    async (req, res) => {
+      if (req.method !== "POST") {
+        res.status(405).send("Método no permitido");
+        return;
+      }
+      const type = req.body.type;
+      if (type === "Calefactor") {
+        const collectionName = req.body.deviceName;
+        if (!collectionName) {
+          res.status(400).send("El nombre de la colección es requerido");
+          return;
+        }
+        try {
+          const docRef = admin.firestore()
+              .collection(collectionName).doc("info");
+          const doc = await docRef.get();
+          if (!doc.exists) {
+            res.status(404).send("Documento"+ collectionName + "no encontrado");
+            return;
+          }
+          const data = doc.data();
+
+          const verhard = req.body.hv;
+          const productType = req.body.product_code;
+          const otaRef = admin.firestore()
+              .collection("OtaData").doc(productType);
+          const otadoc = await otaRef.get();
+          if (!otadoc.exists) {
+            res.status(404).send("El producto"+ productType + "no existe");
+            return;
+          }
+          const versions = otadoc.data();
+          if (!(verhard in versions)) {
+            res.status(404).send("No existe versión de hardware: " + verhard);
+            return;
+          }
+          const sv = versions[verhard];
+          const estado = data["estado"];
+          res.status(200).send({status: estado, sv: sv});
+        } catch (error) {
+          console.error("Error al obtener el documento:", error);
+          res.status(500).send("Error interno del servidor", error);
+        }
+      } else if (type === "Detector") {
+        const postData = req.body;
+        const collectionName = postData.deviceName;
+        const alertValue = postData.alert === "1";
+        const ppmco = parseInt(postData.ppmCO, 10);
+        const ppmch4 = parseInt(postData.ppmCH4, 10);
+        const update = {
+          "alert": alertValue,
+          "ppmCO": ppmco,
+          "ppmCH4": ppmch4,
+        };
+
+        const verhard = req.body.vh;
+        const productType = req.body.product_code;
+        const otaRef = admin.firestore()
+            .collection("OtaData").doc(productType);
+        const otadoc = await otaRef.get();
+        if (!otadoc.exists) {
+          res.status(404).send("El producto"+ productType + "no existe");
+          return;
+        }
+        const versions = otadoc.data();
+        if (!(verhard in versions)) {
+          res.status(404).send("No existe version de hardware");
+          return;
+        }
+        const sv = versions[verhard];
+        try {
+          const docRef = admin.firestore()
+              .collection(collectionName).doc("info");
+          await docRef.update(update);
+          res.status(200).send("Valores actualizados" + {sv: sv});
+        } catch (error) {
+          console.error("Error al actualizar el documento:", error);
+          res.status(500).send("Error al actualizar el documento");
+        }
+      }
+      res.status(666).send("Mandaste cualquier cosa");
+    });

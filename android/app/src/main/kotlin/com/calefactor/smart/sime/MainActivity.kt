@@ -1,4 +1,4 @@
-package com.calefactor.smart.sime
+package com.biocalden.smartlife.sime
 
 import io.flutter.embedding.android.FlutterActivity
 

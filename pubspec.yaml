@@ -1,7 +1,7 @@
 name: biocalden_smart_life
 description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.0.1+8
+version: 1.1.1+0
 
 environment:
   sdk: '>=3.2.2 <4.0.0'
@@ -24,7 +24,6 @@ dependencies:
   shared_preferences: ^2.2.2
   url_launcher: ^6.2.3
   workmanager: ^0.5.2
-  mqtt_client: ^10.0.1
   flutter_email_sender: ^6.0.2
   http: ^1.2.0
   firebase_messaging: ^14.7.15
@@ -58,7 +57,6 @@ flutter:
     - assets/Biocalden/Biocalden_banner.png
     - assets/Biocalden/Corte_laser_negro.png
     - assets/Biocalden/B_negra.png
-    - assets/cert/emqxsl-ca.crt
     - assets/IntelligentGas/IntelligentGasFlyerCL.png
     - assets/IntelligentGas/IntelligentGasFlyerSL.png
     - assets/IntelligentGas/G.png

@@ -7,13 +7,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:mqtt_client/mqtt_client.dart';
-import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -49,22 +46,15 @@ int lastUser = 0;
 List<String> previusConnections = [];
 Map<String, String> nicknamesMap = {};
 String deviceType = '';
-MqttServerClient? mqttClient5773;
-MqttServerClient? mqttClient022000;
-MqttServerClient? mqttClient027000;
-MqttServerClient? mqttClient041220;
-bool mqttConected022000 = false;
-bool mqttConected027000 = false;
-bool mqttConected5773 = false;
-bool mqttConected041220 = false;
 String softwareVersion = '';
 String hardwareVersion = '';
 String actualToken = '';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24022600';
+String appVersionNumber = '24022801';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
+//ACORDATE: Comenta el print de la función printLog
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -124,149 +114,6 @@ String command(String device) {
 void loadValues() async {
   actualToken = await loadOldToken();
   previusConnections = await cargarLista();
-}
-
-void setupMqtt5773() async {
-  String deviceId = 'intelligentgas_IOT/${generateRandomNumbers(32)}';
-  String hostname = '';
-  String username = '';
-  String password = '';
-
-  // Cargar el certificado CA
-  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
-  SecurityContext context = SecurityContext(withTrustedRoots: false);
-  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-
-  mqttClient5773 = MqttServerClient.withPort(hostname, deviceId, 8883);
-
-  mqttClient5773!.secure = true;
-
-  mqttClient5773!.logging(on: true);
-  mqttClient5773!.onDisconnected = mqttonDisconnected;
-
-  // Configuración de las credenciales
-  mqttClient5773!.setProtocolV311();
-  mqttClient5773!.keepAlivePeriod = 3;
-  await mqttClient5773!.connect(username, password);
-  mqttConected5773 = true;
-}
-
-void setupMqtt022000() async {
-  String deviceId = 'calden022000_IOT/${generateRandomNumbers(32)}';
-  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
-  String username = '022000_IOT';
-  String password = '022000_IOT';
-
-  // Cargar el certificado CA
-  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
-  SecurityContext context = SecurityContext(withTrustedRoots: false);
-  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-
-  mqttClient022000 = MqttServerClient.withPort(hostname, deviceId, 8883);
-
-  mqttClient022000!.secure = true;
-
-  mqttClient022000!.logging(on: true);
-  mqttClient022000!.onDisconnected = mqttonDisconnected;
-
-  // Configuración de las credenciales
-  mqttClient022000!.setProtocolV311();
-  mqttClient022000!.keepAlivePeriod = 3;
-  await mqttClient022000!.connect(username, password);
-  mqttConected022000 = true;
-}
-
-void setupMqtt027000() async {
-  String deviceId = 'calden_IOT027000/${generateRandomNumbers(32)}';
-  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
-  String username = '027000_IOT';
-  String password = '027000_IOT';
-
-  // Cargar el certificado CA
-  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
-  SecurityContext context = SecurityContext(withTrustedRoots: false);
-  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-
-  mqttClient027000 = MqttServerClient.withPort(hostname, deviceId, 8883);
-
-  mqttClient027000!.secure = true;
-
-  mqttClient027000!.logging(on: true);
-  mqttClient027000!.onDisconnected = mqttonDisconnected;
-
-  // Configuración de las credenciales
-  mqttClient027000!.setProtocolV311();
-  mqttClient027000!.keepAlivePeriod = 3;
-  await mqttClient027000!.connect(username, password);
-  mqttConected027000 = true;
-}
-
-void setupMqtt041220() async {
-  String deviceId = 'calden_IOT041220/${generateRandomNumbers(32)}';
-  String hostname = 'm989ca21.ala.us-east-1.emqxsl.com';
-  String username = '041220_IOT';
-  String password = '041220_IOT';
-
-  // Cargar el certificado CA
-  ByteData data = await rootBundle.load('assets/cert/emqxsl-ca.crt');
-  SecurityContext context = SecurityContext(withTrustedRoots: false);
-  context.setTrustedCertificatesBytes(data.buffer.asUint8List());
-
-  mqttClient041220 = MqttServerClient.withPort(hostname, deviceId, 8883);
-
-  mqttClient041220!.secure = true;
-
-  mqttClient041220!.logging(on: true);
-  mqttClient041220!.onDisconnected = mqttonDisconnected;
-
-  // Configuración de las credenciales
-  mqttClient041220!.setProtocolV311();
-  mqttClient041220!.keepAlivePeriod = 3;
-  await mqttClient041220!.connect(username, password);
-  mqttConected041220 = true;
-}
-
-void mqttonDisconnected() {
-  mqttConected5773 = false;
-  mqttConected022000 = false;
-  mqttConected027000 = false;
-  mqttConected041220 = false;
-  printLog('Desconectado de mqtt');
-}
-
-void sendMessagemqtt(String deviceName, String message, String device) {
-  printLog(
-      'Conexiones: 57 $mqttConected5773 :: 022000 $mqttConected022000 :: 027000 $mqttConected027000 :: 041220 $mqttConected041220');
-  late RegExpMatch? match;
-  if (device == '022000' || device == '027000') {
-    final regex = RegExp(r'Calefactor(\d+)');
-    match = regex.firstMatch(deviceName);
-  } else if (device == '041220') {
-    final regex = RegExp(r'Radiador(\d+)');
-    match = regex.firstMatch(deviceName);
-  } else {
-    final regex = RegExp(r'Detector(\d+)');
-    match = regex.firstMatch(deviceName);
-  }
-
-  final serialNum = match!.group(1);
-  String topic = '${command(device)}/$serialNum';
-  final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
-  builder.addString(message);
-
-  if (device == '022000' && mqttConected022000) {
-    mqttClient022000!
-        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
-  } else if (device == '027000' && mqttConected027000) {
-    mqttClient027000!
-        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
-  } else if (device == '5773' && mqttConected5773) {
-    mqttClient5773!
-        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
-  } else if (device == '041220' && mqttConected041220) {
-    mqttClient041220!
-        .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
-  }
 }
 
 String generateErrorReport(FlutterErrorDetails details) {
@@ -1047,7 +894,6 @@ class MyDrawerState extends State<MyDrawer> {
         .collection(deviceName)
         .doc('info')
         .update({'estado': newState});
-    sendMessagemqtt(deviceName, newState ? '1' : '0', equipo);
   }
 
   @override
@@ -1231,37 +1077,29 @@ class MyDrawerState extends State<MyDrawer> {
                                 .doc(widget.userMail)
                                 .get(),
                             builder: (context, ownerSnapshot) {
-                              if (ownerSnapshot.connectionState ==
-                                  ConnectionState.done) {
-                                if (ownerSnapshot.data != null &&
-                                    ownerSnapshot.data!.exists) {
-                                  // Si el documento existe, mostrar el Switch
-                                  return Switch(
-                                    activeColor: const Color.fromARGB(
-                                        255, 189, 189, 189),
-                                    activeTrackColor: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    inactiveThumbColor: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                    inactiveTrackColor: const Color.fromARGB(
-                                        255, 189, 189, 189),
-                                    value: estado,
-                                    onChanged: (newValue) {
-                                      toggleState(deviceName, newValue, equipo);
-                                      setState(() {
-                                        estado = newValue;
-                                      });
-                                    },
-                                  );
-                                } else {
-                                  // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
-                                  return const SizedBox(height: 0, width: 0);
-                                }
-                              } else {
-                                // Manejo de otros estados de conexión
-                                return const CircularProgressIndicator(
-                                  color: Colors.white,
+                              if (ownerSnapshot.data != null &&
+                                  ownerSnapshot.data!.exists) {
+                                // Si el documento existe, mostrar el Switch
+                                return Switch(
+                                  activeColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  activeTrackColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveThumbColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  value: estado,
+                                  onChanged: (newValue) {
+                                    toggleState(deviceName, newValue, equipo);
+                                    setState(() {
+                                      estado = newValue;
+                                    });
+                                  },
                                 );
+                              } else {
+                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
+                                return const SizedBox(height: 0, width: 0);
                               }
                             },
                           ),
