@@ -126,8 +126,13 @@ class DetectorPageState extends State<DetectorPage> {
         myDevice.workUuid.onValueReceived.listen((List<int> status) {
       printLog('Cositas: $status');
       setState(() {
-        ppmCO = status[5] + (status[6] << 8);
-        ppmCH4 = status[7] + (status[8] << 8);
+        ppmCO = workValues[5] + (workValues[6] << 8);
+        ppmCH4 = workValues[7] + (workValues[8] << 8);
+        picoMaxppmCO = workValues[9] + (workValues[10] << 8);
+        picoMaxppmCH4 = workValues[11] + (workValues[12] << 8);
+        promedioppmCO = workValues[17] + (workValues[18] << 8);
+        promedioppmCH4 = workValues[19] + (workValues[20] << 8);
+        daysToExpire = workValues[21] + (workValues[22] << 8);
         printLog('Parte baja CO: ${status[9]} // Parte alta CO: ${status[10]}');
         printLog('PPMCO: $ppmCO');
         printLog(
@@ -438,17 +443,13 @@ class DetectorPageState extends State<DetectorPage> {
                       borderRadius: BorderRadius.circular(20),
                       border: const Border(
                         bottom: BorderSide(
-                            color: Color.fromARGB(255, 24, 178, 199),
-                            width: 5),
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
                         right: BorderSide(
-                            color: Color.fromARGB(255, 24, 178, 199),
-                            width: 5),
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
                         left: BorderSide(
-                            color: Color.fromARGB(255, 24, 178, 199),
-                            width: 5),
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
                         top: BorderSide(
-                            color: Color.fromARGB(255, 24, 178, 199),
-                            width: 5),
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
                       ),
                     ),
                     child: Center(
@@ -461,158 +462,443 @@ class DetectorPageState extends State<DetectorPage> {
                       ),
                     )),
                 const SizedBox(
-                  height: 50,
+                  height: 20,
                 ),
-                Container(
-                  height: 200,
-                  width: 200,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 0, 75, 81),
-                    borderRadius: BorderRadius.circular(20),
-                    border: const Border(
-                      bottom: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      right: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      left: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      top: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'GAS',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const Text(
-                        'Atmósfera Explosiva',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 15,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 200,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(20),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
                         ),
                       ),
-                      Text(
-                        '${(ppmCH4 / 500).round()}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 50,
-                        ),
-                      ),
-                      const Text(
-                        'LIE',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                Container(
-                  height: 200,
-                  width: 200,
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 0, 75, 81),
-                    borderRadius: BorderRadius.circular(20),
-                    border: const Border(
-                      bottom: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      right: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      left: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      top: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'CO',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const Text(
-                        'Monóxido de carbono',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 15,
-                        ),
-                      ),
-                      Text(
-                        '$ppmCO',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 50,
-                        ),
-                      ),
-                      const Text(
-                        'PPM',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                          fontSize: 30,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                Container(
-                    height: 50,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 0, 75, 81),
-                    borderRadius: BorderRadius.circular(20),
-                    border: const Border(
-                      bottom: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      right: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      left: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                      top: BorderSide(
-                          color: Color.fromARGB(255, 24, 178, 199), width: 5),
-                    ),
-                  ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Estado: ',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 255, 255, 255),
-                            fontSize: 30,
-                          ),
-                        ),
-                        Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'GAS',
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                                color: online ? Colors.green : Colors.red,
+                                color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 30,
-                                fontWeight: FontWeight.bold))
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'Atmósfera Explosiva',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '${(ppmCH4 / 500).round()}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 50,
+                            ),
+                          ),
+                          const Text(
+                            'LIE',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 200,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(20),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'CO',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'Monóxido de carbono',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '$ppmCO',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 50,
+                            ),
+                          ),
+                          const Text(
+                            'PPM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Pico máximo',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'PPM CH4',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '$picoMaxppmCH4',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                          const Text(
+                            'PPM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Pico máximo',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'PPM CO',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '$picoMaxppmCO',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                          const Text(
+                            'PPM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Promedio',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'PPM CH4',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '$promedioppmCH4',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                          const Text(
+                            'PPM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 0, 75, 81),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          right: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          left: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                          top: BorderSide(
+                              color: Color.fromARGB(255, 24, 178, 199),
+                              width: 5),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Promedio',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const Text(
+                            'PPM CO',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            '$promedioppmCO',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 30,
+                            ),
+                          ),
+                          const Text(
+                            'PPM',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Container(
+                    height: 80,
+                    width: 350,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 0, 75, 81),
+                      borderRadius: BorderRadius.circular(20),
+                      border: const Border(
+                        bottom: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                        right: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                        left: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                        top: BorderSide(
+                            color: Color.fromARGB(255, 24, 178, 199), width: 5),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Estado: ',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                              ),
+                            ),
+                            Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: online ? Colors.green : Colors.red,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold))
+                          ],
+                        ),
+                        Text(
+                          'El certificado del sensor caduca en: $daysToExpire dias',
+                          style: const TextStyle(
+                              fontSize: 15.0, color: Colors.white),
+                        ),
                       ],
                     )),
               ],

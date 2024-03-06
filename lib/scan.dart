@@ -19,7 +19,9 @@ class ScanPageState extends State<ScanPage> {
   List<BluetoothDevice> filteredDevices = [];
   bool isSearching = false;
   TextEditingController searchController = TextEditingController();
-  late EasyRefreshController _controller;
+  final EasyRefreshController _controller = EasyRefreshController(
+    controlFinishRefresh: true,
+  );
   final FocusNode searchFocusNode = FocusNode();
   bool toastFlag = false;
 
@@ -29,19 +31,14 @@ class ScanPageState extends State<ScanPage> {
     startBluetoothMonitoring();
     startLocationMonitoring();
 
-    // setupMqtt5773();
-    // setupMqtt022000();
-    // setupMqtt027000();
-
     loadNicknamesMap().then((loadedMap) {
       setState(() {
         nicknamesMap = loadedMap;
       });
     });
     filteredDevices = devices;
-    _controller = EasyRefreshController(
-      controlFinishRefresh: true,
-    );
+
+    printLog('Holis $bluetoothOn');
     scan();
   }
 
@@ -51,19 +48,14 @@ class ScanPageState extends State<ScanPage> {
     super.dispose();
   }
 
-  void scan() async {
+  void scan() {
+    printLog('Jiji');
     if (bluetoothOn) {
       printLog('Entre a escanear');
       toastFlag = false;
       try {
-        await FlutterBluePlus.startScan(
-            withKeywords: [
-              'Eléctrico',
-              'Gas',
-              'Detector',
-              'Calefactor',
-              'Radiador'
-            ],
+        FlutterBluePlus.startScan(
+            withKeywords: ['Eléctrico', 'Gas', 'Detector', 'Radiador'],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
             continuousUpdates: true);
@@ -79,6 +71,7 @@ class ScanPageState extends State<ScanPage> {
               });
             }
           }
+          setState(() {});
         });
       } catch (e, stackTrace) {
         printLog('Error al escanear $e $stackTrace');
@@ -235,8 +228,8 @@ class ScanPageState extends State<ScanPage> {
           iconTheme: IconThemeData(color: Color.fromARGB(255, 156, 157, 152)),
         ),
         onRefresh: () async {
-          await Future.delayed(const Duration(seconds: 2));
           await FlutterBluePlus.stopScan();
+          await Future.delayed(const Duration(seconds: 2));
           setState(() {
             devices.clear();
           });
@@ -432,6 +425,11 @@ class LoadState extends State<LoadingPage> {
 
         ppmCO = workValues[5] + (workValues[6] << 8);
         ppmCH4 = workValues[7] + (workValues[8] << 8);
+        picoMaxppmCO = workValues[9] + (workValues[10] << 8);
+        picoMaxppmCH4 = workValues[11] + (workValues[12] << 8);
+        promedioppmCO = workValues[17] + (workValues[18] << 8);
+        promedioppmCH4 = workValues[19] + (workValues[20] << 8);
+        daysToExpire = workValues[21] + (workValues[22] << 8);
         setupToken();
       }
 

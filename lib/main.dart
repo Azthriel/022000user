@@ -1,9 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/5773/device_detector.dart';
 import 'package:biocalden_smart_life/calefactores/device_calefactor.dart';
@@ -22,15 +20,7 @@ Future<void> main() async {
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
-    final fileName = 'error_report_${DateTime.now().toIso8601String()}.txt';
-    final directory = await getExternalStorageDirectory();
-    if (directory != null) {
-      final file = File('${directory.path}/$fileName');
-      await file.writeAsString(errorReport);
-      sendReportError(file.path);
-    } else {
-      printLog('Failed to get external storage directory');
-    }
+    sendReportError(errorReport);
   };
 
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {

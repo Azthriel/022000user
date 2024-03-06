@@ -8,7 +8,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_email_sender/flutter_email_sender.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
@@ -21,7 +20,7 @@ List<int> infoValues = [];
 List<int> toolsValues = [];
 String myDeviceid = '';
 String deviceName = '';
-bool bluetoothOn = false;
+bool bluetoothOn = true;
 bool checkbleFlag = false;
 bool checkubiFlag = false;
 String textState = '';
@@ -52,7 +51,7 @@ String actualToken = '';
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24022801';
+String appVersionNumber = '24030600';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: Comenta el print de la función printLog
 
@@ -123,17 +122,28 @@ Stacktrace: ${details.stack}
   ''';
 }
 
-void sendReportError(String filePath) async {
-  final Email email = Email(
-    body: '¡Hola! Te envio el reporte de error que surgió en mi app',
-    subject: 'Reporte de error $deviceName',
-    recipients: ['trillogonzalolaboral@gmail.com'],
-    attachmentPaths: [filePath],
-    isHTML: false,
-  );
+void sendReportError(String cuerpo) async {
+  String encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
+
+  String recipients = 'ingenieria@intelligentgas.com.ar';
+  String subject = 'Reporte de error $deviceName';
 
   try {
-    await FlutterEmailSender.send(email);
+    final Uri emailLaunchUri = Uri(
+      scheme: 'mailto',
+      path: recipients,
+      query: encodeQueryParameters(
+          <String, String>{'subject': subject, 'body': cuerpo}),
+    );
+
+    if (await canLaunchUrl(emailLaunchUri)) {
+      await launchUrl(emailLaunchUri);
+    }
     printLog('Correo enviado');
   } catch (error) {
     printLog('Error al enviar el correo: $error');
@@ -268,7 +278,7 @@ void bluetoothStatus() async {
     if (state != BluetoothAdapterState.on) {
       bluetoothOn = false;
       showBleText();
-    } else {
+    } else if(state == BluetoothAdapterState.on){
       bluetoothOn = true;
     }
   });

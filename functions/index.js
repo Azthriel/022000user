@@ -111,18 +111,13 @@ exports.multitaskFunction = functions.https.onRequest(
           res.status(500).send("Error interno del servidor", error);
         }
       } else if (type === "Detector") {
-        const postData = req.body;
-        const collectionName = postData.deviceName;
-        const alertValue = postData.alert === "1";
-        const ppmco = parseInt(postData.ppmCO, 10);
-        const ppmch4 = parseInt(postData.ppmCH4, 10);
-        const update = {
-          "alert": alertValue,
-          "ppmCO": ppmco,
-          "ppmCH4": ppmch4,
-        };
+        const collectionName = req.body.deviceName;
+        const fun = parseInt(req.body.alert, 10);
+        const alertValue = fun === 1;
+        const ppmco = parseInt(req.body.ppmCO, 10);
+        const ppmch4 = parseInt(req.body.ppmCH4, 10);
 
-        const verhard = req.body.vh;
+        const verhard = req.body.hv;
         const productType = req.body.product_code;
         const otaRef = admin.firestore()
             .collection("OtaData").doc(productType);
@@ -133,15 +128,19 @@ exports.multitaskFunction = functions.https.onRequest(
         }
         const versions = otadoc.data();
         if (!(verhard in versions)) {
-          res.status(404).send("No existe version de hardware");
+          res.status(404).send("No existe versión de hardware: " + verhard);
           return;
         }
         const sv = versions[verhard];
         try {
           const docRef = admin.firestore()
               .collection(collectionName).doc("info");
-          await docRef.update(update);
-          res.status(200).send("Valores actualizados" + {sv: sv});
+          await docRef.update({
+            "alert": alertValue,
+            "ppmCO": ppmco,
+            "ppmCH4": ppmch4,
+          });
+          res.status(200).send({sv: sv});
         } catch (error) {
           console.error("Error al actualizar el documento:", error);
           res.status(500).send("Error al actualizar el documento");

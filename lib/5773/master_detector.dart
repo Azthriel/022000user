@@ -9,6 +9,11 @@ int lastCO = 0;
 int lastCH4 = 0;
 int ppmCO = 0;
 int ppmCH4 = 0;
+int picoMaxppmCO = 0;
+int picoMaxppmCH4 = 0;
+int promedioppmCO = 0;
+int promedioppmCH4 = 0;
+int daysToExpire = 0;
 bool alert = false;
 
 // FUNCIONES //
@@ -79,7 +84,8 @@ class DrawerDetectorState extends State<DrawerDetector> {
           SizedBox(
             height: 50,
             // width: double.infinity,
-            child: Image.asset('assets/IntelligentGas/IntelligentGasFlyerCL.png'),
+            child:
+                Image.asset('assets/IntelligentGas/IntelligentGasFlyerCL.png'),
           ),
           Icon(
             Icons.lightbulb,
@@ -270,7 +276,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
                               ]));
                     });
               },
-              child: const Text('CONTACTANOS'))
+              child: const Text('CONTACTANOS')),
         ],
       ),
     );
