@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-biocalden-dev-81201-authRole",
+      "UnauthRoleArn": "arn:aws:iam::533266976677:role/amplify-biocalden-dev-81201-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::533266976677:role/amplify-biocalden-dev-81201-authRole",
+      "Region": "sa-east-1",
+      "DeploymentBucketName": "amplify-biocalden-dev-81201-deployment",
+      "UnauthRoleName": "amplify-biocalden-dev-81201-unauthRole",
+      "StackName": "amplify-biocalden-dev-81201",
+      "StackId": "arn:aws:cloudformation:sa-east-1:533266976677:stack/amplify-biocalden-dev-81201/8be9dea0-e12a-11ee-a914-0a6518c443f3",
+      "AmplifyAppId": "d2ztv9yjgck44h"
+    },
+    "categories": {
+      "auth": {
+        "BSL": {}
+      }
+    }
+  }
+}

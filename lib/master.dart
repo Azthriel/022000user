@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -37,7 +37,6 @@ bool wifilogoConnected = false;
 MaterialColor statusColor = Colors.grey;
 bool alreadyLog = false;
 int wrongPass = 0;
-final FirebaseAuth auth = FirebaseAuth.instance;
 Timer? locationTimer;
 Timer? bluetoothTimer;
 late bool nightMode;
@@ -48,16 +47,30 @@ String deviceType = '';
 String softwareVersion = '';
 String hardwareVersion = '';
 String actualToken = '';
+String currentUserEmail = '';
+
+// Si esta en modo profile.
+const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
+// Si esta en modo release.
+const bool xReleaseMode = bool.fromEnvironment('dart.vm.product');
+// Determina si la app esta en debug.
+const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
 String appVersionNumber = '24030600';
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
-//ACORDATE: Comenta el print de la función printLog
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
 // FUNCIONES //
+
+void printLog(var text) {
+  if (xDebugMode) {
+    // ignore: avoid_print
+    print('PrintData: $text');
+  }
+}
 
 void showToast(String message) {
   printLog('Toast: $message');
@@ -69,11 +82,6 @@ void showToast(String message) {
       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       textColor: const Color.fromARGB(255, 0, 0, 0),
       fontSize: 16.0);
-}
-
-void printLog(var text) {
-  // ignore: avoid_print
-  print('PrintData: $text');
 }
 
 Future<void> sendWifitoBle() async {
@@ -278,7 +286,7 @@ void bluetoothStatus() async {
     if (state != BluetoothAdapterState.on) {
       bluetoothOn = false;
       showBleText();
-    } else if(state == BluetoothAdapterState.on){
+    } else if (state == BluetoothAdapterState.on) {
       bluetoothOn = true;
     }
   });
@@ -454,7 +462,7 @@ String generateRandomNumbers(int length) {
 void sendOwner() async {
   try {
     String userEmail =
-        FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+        currentUserEmail;
     await FirebaseFirestore.instance.collection(deviceName).doc(userEmail).set({
       'owner': userEmail,
     });
@@ -610,6 +618,37 @@ void requestPermissionFCM() async {
   } else {
     printLog('User declined or has not accepted permission');
   }
+}
+
+void asking() async {
+  bool alreadyLog = await isUserSignedIn();
+
+  if (!alreadyLog) {
+    printLog('Usuario no está logueado');
+    navigatorKey.currentState?.pushReplacementNamed('/login');
+  } else {
+    printLog('Usuario logueado');
+    navigatorKey.currentState?.pushReplacementNamed('/scan');
+  }
+}
+
+Future<bool> isUserSignedIn() async {
+  final result = await Amplify.Auth.fetchAuthSession();
+  return result.isSignedIn;
+}
+
+Future<String?> getUserMail() async {
+  try {
+    final attributes = await Amplify.Auth.fetchUserAttributes();
+    for (final attribute in attributes) {
+      if (attribute.userAttributeKey.key == 'email') {
+        return attribute.value; // Retorna el correo electrónico del usuario
+      }
+    }
+  } on AuthException catch (e) {
+    printLog('Error fetching user attributes: ${e.message}');
+  }
+  return null; // Retorna nulo si no se encuentra el correo electrónico
 }
 
 // CLASES //

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:biocalden_smart_life/master.dart';
 
@@ -134,7 +133,7 @@ class ControlPageState extends State<ControlPage> {
 
   void turnDeviceOn(bool on) async {
     int fun = on ? 1 : 0;
-    String data = '${command(deviceType)}[6]($fun)';
+    String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     try {
       DocumentReference documentRef =
@@ -148,7 +147,7 @@ class ControlPageState extends State<ControlPage> {
   void sendValueOffToFirestore() async {
     try {
       String userEmail =
-          FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+          currentUserEmail;
       DocumentReference documentRef =
           FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
       await documentRef
@@ -161,7 +160,7 @@ class ControlPageState extends State<ControlPage> {
   void sendValueOnToFirestore() async {
     try {
       String userEmail =
-          FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+          currentUserEmail;
       DocumentReference documentRef =
           FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
       await documentRef
@@ -257,7 +256,7 @@ class ControlPageState extends State<ControlPage> {
 
         Position position = await _determinePosition();
         String userEmail =
-            FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+            currentUserEmail;
         DocumentReference documentRef =
             FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
         await documentRef.set(

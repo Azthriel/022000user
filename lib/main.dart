@@ -13,6 +13,9 @@ import 'package:workmanager/workmanager.dart';
 import 'calefactores/master_calefactor.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
+import 'amplifyconfiguration.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +67,18 @@ class MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     loadValues();
+    _configureAmplify();
     printLog('Empezamos');
+  }
+
+  void _configureAmplify() async {
+    try {
+      await Amplify.addPlugin(AmplifyAuthCognito());
+      await Amplify.configure(amplifyconfig);
+      printLog('Successfully configured');
+    } on Exception catch (e) {
+      printLog('Error configuring Amplify: $e');
+    }
   }
 
   @override

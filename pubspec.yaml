@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   firebase_core: ^2.24.0
-  firebase_auth: ^4.15.0
   permission_handler: ^11.1.0
   qr_code_scanner: ^1.0.1
   flutter_blue_plus: ^1.31.8
@@ -27,6 +26,8 @@ dependencies:
   flutter_email_sender: ^6.0.2
   http: ^1.2.0
   firebase_messaging: ^14.7.15
+  amplify_flutter: ^1.7.0
+  amplify_auth_cognito: ^1.7.0
 
 
 dev_dependencies:

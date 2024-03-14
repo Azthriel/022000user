@@ -1,7 +1,7 @@
 import 'dart:convert';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_refresh/easy_refresh.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:biocalden_smart_life/5773/master_detector.dart';
@@ -39,6 +39,9 @@ class ScanPageState extends State<ScanPage> {
     filteredDevices = devices;
 
     printLog('Holis $bluetoothOn');
+
+  currentUserEmail = getUserMail().toString();
+
     scan();
   }
 
@@ -194,10 +197,10 @@ class ScanPageState extends State<ScanPage> {
                               foregroundColor: MaterialStatePropertyAll(
                                   Color.fromARGB(255, 178, 181, 174))),
                           child: const Text('Cerrar sesión'),
-                          onPressed: () async {
-                            auth.signOut();
-                            Navigator.of(dialogContext)
-                                .pop(); // Cierra el AlertDialog
+                          onPressed: () {
+                            Amplify.Auth.signOut();
+                            asking();
+                            Navigator.of(dialogContext).pop();
                           },
                         ),
                       ],
@@ -212,8 +215,7 @@ class ScanPageState extends State<ScanPage> {
         ],
       ),
       drawer: MyDrawer(
-          userMail: FirebaseAuth.instance.currentUser?.email ??
-              'usuario_desconocido'),
+          userMail: currentUserEmail),
       body: EasyRefresh(
         controller: _controller,
         header: const ClassicHeader(
@@ -398,7 +400,7 @@ class LoadState extends State<LoadingPage> {
         lastUser = users;
 
         String userEmail =
-            FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+            currentUserEmail;
         var parts = utf8.decode(infoValues).split(':');
         if (parts[4] == 'NA') {
           deviceOwner = true;

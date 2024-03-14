@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -29,8 +28,7 @@ late List<String> pikachu;
 // FUNCIONES //
 
 Future<double> readDistanceOnValue() async {
-  String userEmail =
-      FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+  String userEmail = currentUserEmail;
 
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
@@ -54,7 +52,7 @@ Future<double> readDistanceOnValue() async {
 
 Future<double> readDistanceOffValue() async {
   String userEmail =
-      FirebaseAuth.instance.currentUser?.email ?? 'usuario_desconocido';
+      currentUserEmail;
 
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
@@ -355,9 +353,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                             '${command(deviceType)}[5](NA)';
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
-                                        String userEmail = FirebaseAuth
-                                                .instance.currentUser?.email ??
-                                            'usuario_desconocido';
+                                        String userEmail = currentUserEmail;
                                         FirebaseFirestore.instance
                                             .collection(deviceName)
                                             .doc(userEmail)
@@ -801,9 +797,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                             '${command(deviceType)}[5](NA)';
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
-                                        String userEmail = FirebaseAuth
-                                                .instance.currentUser?.email ??
-                                            'usuario_desconocido';
+                                        String userEmail = currentUserEmail;
                                         FirebaseFirestore.instance
                                             .collection(deviceName)
                                             .doc(userEmail)
@@ -850,7 +844,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                     children: [
                                       const Text('Contacto comercial:',
                                           style: TextStyle(
-                                              color: Color.fromARGB(255, 0, 0, 0),
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold)),
                                       Row(
@@ -863,13 +858,15 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                   '¡Hola! Tengo una duda comercial sobre los productos Biocalden smart: \n'),
                                               icon: const Icon(
                                                 Icons.phone,
-                                                color: Color.fromARGB(255, 0, 0, 0),
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0),
                                                 size: 20,
                                               )),
                                           // const SizedBox(width: 5),
                                           const Text('+54 9 11 6223-4181',
                                               style: TextStyle(
-                                                  color: Color.fromARGB(255, 0, 0, 0),
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
                                                   fontSize: 20))
                                         ],
                                       ),
@@ -886,7 +883,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                     '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                                                 icon: const Icon(
                                                   Icons.mail,
-                                                  color: Color.fromARGB(255, 0, 0, 0),
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
                                                   size: 20,
                                                 ),
                                               ),
@@ -894,14 +892,16 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                               const Text(
                                                   'ceat@ibsanitarios.com.ar',
                                                   style: TextStyle(
-                                                      color: Color.fromARGB(255, 0, 0, 0),
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0),
                                                       fontSize: 20))
                                             ],
                                           )),
                                       const SizedBox(height: 20),
                                       const Text('Consulta técnica:',
                                           style: TextStyle(
-                                              color: Color.fromARGB(255, 0, 0, 0),
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold)),
                                       SingleChildScrollView(
@@ -917,7 +917,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                   '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: $deviceType\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                                               icon: const Icon(
                                                 Icons.mail,
-                                                color: Color.fromARGB(255, 0, 0, 0),
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0),
                                                 size: 20,
                                               ),
                                             ),
@@ -925,7 +926,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                             const Text(
                                               'pablo@intelligentgas.com.ar',
                                               style: TextStyle(
-                                                  color: Color.fromARGB(255, 0, 0, 0),
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
                                                   fontSize: 20),
                                               overflow: TextOverflow.ellipsis,
                                             )
@@ -935,7 +937,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                       const SizedBox(height: 20),
                                       const Text('Customer service:',
                                           style: TextStyle(
-                                              color: Color.fromARGB(255, 0, 0, 0),
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
                                               fontSize: 20,
                                               fontWeight: FontWeight.bold)),
                                       Row(
@@ -948,13 +951,15 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                   '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
                                               icon: const Icon(
                                                 Icons.phone,
-                                                color: Color.fromARGB(255, 0, 0, 0),
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0),
                                                 size: 20,
                                               )),
                                           // const SizedBox(width: 5),
                                           const Text('+54 9 11 6223-2619',
                                               style: TextStyle(
-                                                  color: Color.fromARGB(255, 0, 0, 0),
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
                                                   fontSize: 20))
                                         ],
                                       ),
@@ -971,7 +976,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                     'Tengo una consulta referida a mi equipo $deviceName: \n'),
                                                 icon: const Icon(
                                                   Icons.mail,
-                                                  color: Color.fromARGB(255, 0, 0, 0),
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
                                                   size: 20,
                                                 ),
                                               ),
@@ -979,7 +985,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                               const Text(
                                                 'service@calefactorescalden.com.ar',
                                                 style: TextStyle(
-                                                    color: Color.fromARGB(255, 0, 0, 0),
+                                                    color: Color.fromARGB(
+                                                        255, 0, 0, 0),
                                                     fontSize: 20),
                                                 overflow: TextOverflow.ellipsis,
                                               )

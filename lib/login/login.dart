@@ -1,5 +1,5 @@
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/login/master_login.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -15,15 +15,7 @@ class AskLoginPageState extends State<AskLoginPage> {
   @override
   void initState() {
     super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        printLog('Usuario no está logueado');
-        navigatorKey.currentState?.pushReplacementNamed('/login');
-      } else {
-        printLog('Usuario logueado');
-        navigatorKey.currentState?.pushReplacementNamed('/scan');
-      }
-    });
+    asking();
   }
 
   //!Visual
@@ -61,82 +53,225 @@ class LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     showPrivacyDialogIfNeeded();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        printLog('Usuario no está logueado');
-        if (alreadyLog) {
-          navigatorKey.currentState?.pushReplacementNamed('/login');
-          alreadyLog = false;
-        }
+  }
+
+  Future<void> signUpUser(String email, String password) async {
+    try {
+      final userAttributes = {
+        AuthUserAttributeKey.email: email,
+        // additional attributes as needed
+      };
+      final result = await Amplify.Auth.signUp(
+        username: email,
+        password: password,
+        options: SignUpOptions(
+          userAttributes: userAttributes,
+        ),
+      );
+      await _handleSignUpResult(result);
+    } on AuthException catch (e) {
+      printLog('Error signing up user: ${e.message}');
+      if (e.message.contains('Password not long enough')) {
+        showToast('La contraseña debe tener minimo 8 caracteres');
+      } else if (e.message.contains('Password must have numeric characters')) {
+        showToast('La contraseña debe contener al menos un número');
       } else {
-        printLog('Usuario logueado');
-        if (!alreadyLog) {
-          navigatorKey.currentState?.pushReplacementNamed('/scan');
-          alreadyLog = true;
-          wrongPass = 0;
-        }
+        showToast('Contraseña invalida, intente otra');
       }
-    });
-  }
-
-  void registrarUsuario() async {
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: newUserController.text,
-        password: registerpasswordController.text,
-      );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'weak-password') {
-        printLog('La contraseña es demasiado débil.');
-        showToast('La contraseña es demasiado débil.');
-      } else if (e.code == 'email-already-in-use') {
-        printLog('Ya existe una cuenta con este correo electrónico.');
-        showToast('Ya existe una cuenta con este correo electrónico.');
-      }
-    } catch (e) {
-      showToast('Error al registrar usuario');
+      printLog('You could: ${e.recoverySuggestion}');
     }
   }
 
-  void iniciarSesion() async {
-    printLog('Intento iniciar');
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: mailController.text,
-        password: passwordController.text,
-      );
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        printLog('No se encontró ningún usuario con ese correo electrónico.');
-        showToast('No se encontró ningún usuario con ese correo electrónico.');
-      } else if (e.code == 'wrong-password') {
-        printLog('Contraseña incorrecta para ese usuario.');
-        showToast('Contraseña incorrecta para ese usuario.');
-        setState(() {
-          wrongPass += 1;
-        });
-      } else if (e.code == 'invalid-credential') {
-        printLog('Credenciales incorrectas.');
-        showToast('Credenciales incorrectas.');
-        setState(() {
-          wrongPass += 1;
-        });
-      }
-      printLog('$e');
+  Future<void> _handleSignUpResult(SignUpResult result) async {
+    switch (result.nextStep.signUpStep) {
+      case AuthSignUpStep.confirmSignUp:
+        final codeDeliveryDetails = result.nextStep.codeDeliveryDetails!;
+        _handleCodeDelivery(codeDeliveryDetails);
+        break;
+      case AuthSignUpStep.done:
+        printLog('Sign up is complete');
+        navigatorKey.currentState!.pushReplacementNamed('/scan');
+        break;
     }
   }
 
-  void restablecerContrasena() async {
-    FirebaseAuth auth = FirebaseAuth.instance;
+  void _handleCodeDelivery(AuthCodeDeliveryDetails codeDeliveryDetails) {
+    TextEditingController codeController = TextEditingController();
+    printLog(
+      'A confirmation code has been sent to ${codeDeliveryDetails.destination}. '
+      'Please check your ${codeDeliveryDetails.deliveryMedium.name} for the code.',
+    );
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          title: const Text(
+            'Ingresa el código de verificación.',
+            style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+          ),
+          content: TextField(
+            controller: codeController,
+            keyboardType: TextInputType.number,
+            style: const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            decoration: const InputDecoration(
+              icon: Icon(Icons.mail),
+              iconColor: Color.fromARGB(255, 178, 181, 174),
+              hintStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 178, 181, 174))),
+              child: const Text('Verificar código'),
+              onPressed: () async {
+                try {
+                  final result = await Amplify.Auth.confirmSignUp(
+                    username: newUserController.text,
+                    confirmationCode: codeController.text,
+                  );
+                  // Check if further confirmations are needed or if
+                  // the sign up is complete.
+                  await _handleSignUpResult(result);
+                } on AuthException catch (e) {
+                  safePrint('Error confirming user: ${e.message}');
+                  printLog('You could: ${e.recoverySuggestion}');
+                  if (e.message.contains('Password not long enough')) {
+                    showToast('La contraseña debe tener minimo 8 caracteres');
+                  } else if (e.message
+                      .contains('Password must have numeric characters')) {
+                    showToast('La contraseña debe contener al menos un número');
+                  } else if (e.message
+                      .contains('Invalid verification code provided')) {
+                    showToast('Código de confirmación incorrecto');
+                  } else {
+                    showToast('Error al cambiar contraseña');
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+  Future<void> resetPassword(String email) async {
     try {
-      await auth.sendPasswordResetEmail(email: mailController.text);
-      printLog('Correo de restablecimiento enviado.');
-      showToast('Correo de restablecimiento enviado.');
-    } on FirebaseAuthException catch (e) {
-      showToast('Correo electronico no encontrado.');
-      // Manejar los errores aquí (por ejemplo, correo electrónico no encontrado)
-      printLog('Error: ${e.message}');
+      final result = await Amplify.Auth.resetPassword(
+        username: email,
+      );
+      return _handleResetPasswordResult(result);
+    } on AuthException catch (e) {
+      safePrint('Error resetting password: ${e.message}');
+      showToast('Error intentando reestablecer contraseña');
+    }
+  }
+
+  void _handleCodeDeliveryNewPass(AuthCodeDeliveryDetails codeDeliveryDetails) {
+    TextEditingController npcodeController = TextEditingController();
+    TextEditingController npController = TextEditingController();
+    printLog(
+      'A confirmation code has been sent to ${codeDeliveryDetails.destination}. '
+      'Please check your ${codeDeliveryDetails.deliveryMedium.name} for the code.',
+    );
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          title: const Text(
+            'Ingresa el código de verificación y la nueva contraseña.',
+            style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+          ),
+          content: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: npcodeController,
+                keyboardType: TextInputType.number,
+                style:
+                    const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.mail),
+                  iconColor: Color.fromARGB(255, 178, 181, 174),
+                  hintStyle:
+                      TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: npController,
+                keyboardType: TextInputType.text,
+                style:
+                    const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                decoration: const InputDecoration(
+                  icon: Icon(Icons.key),
+                  iconColor: Color.fromARGB(255, 178, 181, 174),
+                  hintStyle:
+                      TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                ),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: MaterialStatePropertyAll(
+                      Color.fromARGB(255, 178, 181, 174))),
+              child: const Text('Cambiar contraseña'),
+              onPressed: () async {
+                try {
+                  final result = await Amplify.Auth.confirmResetPassword(
+                      username: mailController.text,
+                      confirmationCode: npcodeController.text,
+                      newPassword: npController.text);
+                  await _handleResetPasswordResult(result);
+                } on AuthException catch (e) {
+                  safePrint('Error confirming user: ${e.message}');
+                  printLog('You could: ${e.recoverySuggestion}');
+                  showToast('Código de confirmación incorrecto');
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleResetPasswordResult(ResetPasswordResult result) async {
+    switch (result.nextStep.updateStep) {
+      case AuthResetPasswordStep.confirmResetPasswordWithCode:
+        final codeDeliveryDetails = result.nextStep.codeDeliveryDetails!;
+        _handleCodeDeliveryNewPass(codeDeliveryDetails);
+      case AuthResetPasswordStep.done:
+        safePrint('Successfully reset password');
+        navigatorKey.currentState!.pushReplacementNamed('/scan');
+    }
+  }
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      SignInResult result = await Amplify.Auth.signIn(
+        username: email,
+        password: password,
+      );
+      if (result.isSignedIn) {
+        printLog('Ingreso exitoso');
+        navigatorKey.currentState!.pushReplacementNamed('/scan');
+        // Navegar a la página principal de la aplicación
+      }
+    } on AuthException catch (e) {
+      safePrint('Error singin user: ${e.message}');
+      printLog('You could: ${e.recoverySuggestion}');
     }
   }
 
@@ -223,8 +358,8 @@ class LoginPageState extends State<LoginPage> {
                                         width: double.infinity,
                                         height: 50,
                                         child: TextButton(
-                                            onPressed: () =>
-                                                restablecerContrasena(),
+                                            onPressed: () => resetPassword(
+                                                mailController.text),
                                             child: const TextUtil(
                                               text: '¿Olvidaste tu contraseña?',
                                             ))),
@@ -240,7 +375,9 @@ class LoginPageState extends State<LoginPage> {
                                                 .primaryColorLight,
                                           ),
                                           onPressed: () {
-                                            iniciarSesion();
+                                            // iniciarSesion();
+                                            signIn(mailController.text,
+                                                passwordController.text);
                                           },
                                           child: const TextUtil(
                                             text: 'Ingresar',
@@ -343,7 +480,9 @@ class LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         if (registerpasswordController.text ==
                             confirmpasswordController.text) {
-                          registrarUsuario();
+                          // registrarUsuario();
+                          signUpUser(newUserController.text,
+                              registerpasswordController.text);
                         } else {
                           showToast('Las contraseñas deben ser idénticas...');
                         }
