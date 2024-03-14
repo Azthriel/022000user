@@ -28,6 +28,7 @@ dependencies:
   firebase_messaging: ^14.7.15
   amplify_flutter: ^1.7.0
   amplify_auth_cognito: ^1.7.0
+  mqtt_client: ^10.2.0
 
 
 dev_dependencies:

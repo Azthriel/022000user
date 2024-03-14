@@ -14,6 +14,9 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+//!-----DATA MASTER-----!\\
+Map<String,Map<String,dynamic>> globalDATA = {};
+//!-----DATA MASTER-----!\\
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 List<int> infoValues = [];

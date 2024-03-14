@@ -51,8 +51,7 @@ Future<double> readDistanceOnValue() async {
 }
 
 Future<double> readDistanceOffValue() async {
-  String userEmail =
-      currentUserEmail;
+  String userEmail = currentUserEmail;
 
   try {
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
