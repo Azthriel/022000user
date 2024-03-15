@@ -46,7 +46,7 @@ app.*.map.json
 
 /assets/cert/
 
-/lib/mqttcerts.dart
+/lib/mqtt/mqtt_certificates.dart
 
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend

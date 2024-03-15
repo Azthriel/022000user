@@ -1,6 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/5773/device_detector.dart';
@@ -9,51 +9,55 @@ import 'package:biocalden_smart_life/login/login.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/scan.dart';
 import 'package:biocalden_smart_life/calefactores/device_silema.dart';
+import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
 import 'calefactores/master_calefactor.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'amplifyconfiguration.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);
   };
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        String displayMessage = message.notification?.body.toString() ??
-            'Un detector mando una alerta';
+  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  //   showDialog(
+  //     context: navigatorKey.currentContext!,
+  //     barrierDismissible: true,
+  //     builder: (BuildContext context) {
+  //       String displayMessage = message.notification?.body.toString() ??
+  //           'Un detector mando una alerta';
 
-        return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
-            title: const Text(
-              '¡ALERTA EN DETECTOR!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Color.fromARGB(255, 255, 0, 0),
-                  fontWeight: FontWeight.bold),
-            ),
-            content: Text(
-              displayMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-            ));
-      },
-    );
-    printLog('Llegó esta notif: $message');
-  });
+  //       return AlertDialog(
+  //           backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+  //           title: const Text(
+  //             '¡ALERTA EN DETECTOR!',
+  //             textAlign: TextAlign.center,
+  //             style: TextStyle(
+  //                 color: Color.fromARGB(255, 255, 0, 0),
+  //                 fontWeight: FontWeight.bold),
+  //           ),
+  //           content: Text(
+  //             displayMessage,
+  //             textAlign: TextAlign.center,
+  //             style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+  //           ));
+  //     },
+  //   );
+  //   printLog('Llegó esta notif: $message');
+  // });
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => GlobalDataNotifier(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -145,8 +149,6 @@ class PermissionHandlerState extends State<PermissionHandler> {
       await Permission.location.request();
     }
     permissionStatus3 = await Permission.location.status;
-
-    requestPermissionFCM();
 
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&

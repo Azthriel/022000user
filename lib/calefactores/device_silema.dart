@@ -2,10 +2,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:biocalden_smart_life/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
 
@@ -136,36 +137,12 @@ class RadiadorPageState extends State<RadiadorPage> {
     int fun = on ? 1 : 0;
     String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = on;
     try {
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc('info');
-      await documentRef.set({'estado': on}, SetOptions(merge: true));
-    } catch (e, s) {
-      printLog('Error al enviar valor a firebase $e $s');
-    }
-  }
-
-  void sendValueOffToFirestore() async {
-    try {
-      String userEmail =
-          currentUserEmail;
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-      await documentRef
-          .set({'distanciaOff': distOffValue.round()}, SetOptions(merge: true));
-    } catch (e, s) {
-      printLog('Error al enviar valor a firebase $e $s');
-    }
-  }
-
-  void sendValueOnToFirestore() async {
-    try {
-      String userEmail =
-          currentUserEmail;
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-      await documentRef
-          .set({'distanciaOn': distOnValue.round()}, SetOptions(merge: true));
+      String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+      String message =
+          jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      sendMessagemqtt(topic, message);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
     }
@@ -256,15 +233,9 @@ class RadiadorPageState extends State<RadiadorPage> {
         showToast('Recuerda tener la ubicación encendida.');
 
         Position position = await _determinePosition();
-        String userEmail =
-            currentUserEmail;
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-        await documentRef.set(
-            {'ubicacion': GeoPoint(position.latitude, position.longitude)},
-            SetOptions(merge: true));
-
-        scheduleBackgroundTask(userEmail, deviceName);
+        savePositionLatitude(position.latitude);
+        savePositionLongitud(position.longitude);
+        scheduleBackgroundTask(deviceName);
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
         printLog('Error al setear la ubicación $e');
@@ -295,8 +266,8 @@ class RadiadorPageState extends State<RadiadorPage> {
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(
-                    foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 0, 0, 0))),
+                    foregroundColor:
+                        MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
                 child: const Text('Habilitar'),
                 onPressed: () async {
                   var permissionStatus4 =
@@ -743,7 +714,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                                     Text('Distancia de apagado',
                                         style: TextStyle(
                                             fontSize: 20,
-                                            color: Color.fromARGB(255, 0, 0, 0)))
+                                            color:
+                                                Color.fromARGB(255, 0, 0, 0)))
                                   ]),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -752,27 +724,30 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       text: distOffValue.round().toString(),
                                       style: const TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(255, 0, 0, 0)))),
+                                          color:
+                                              Color.fromARGB(255, 0, 0, 0)))),
                                   const Text.rich(TextSpan(
                                       text: 'Metros',
                                       style: TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(255, 0, 0, 0)))),
+                                          color:
+                                              Color.fromARGB(255, 0, 0, 0)))),
                                 ],
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 30.0,
-                                  thumbColor: const Color.fromARGB(255, 72, 72, 72),
+                                  thumbColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 0.0,
                                   ),
                                 ),
                                 child: Slider(
-                                activeColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
-                                inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                  activeColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
+                                  inactiveColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
                                   value: distOffValue,
                                   divisions: 20,
                                   onChanged: (value) {
@@ -782,7 +757,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   },
                                   onChangeEnd: (value) {
                                     printLog('Valor enviado: ${value.round()}');
-                                    sendValueOffToFirestore();
+                                    saveDistanceOFF(value);
                                   },
                                   min: 100,
                                   max: 300,
@@ -795,7 +770,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                                     Text('Distancia de encendido',
                                         style: TextStyle(
                                             fontSize: 20,
-                                            color: Color.fromARGB(255, 0, 0, 0)))
+                                            color:
+                                                Color.fromARGB(255, 0, 0, 0)))
                                   ]),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -804,27 +780,30 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       text: distOnValue.round().toString(),
                                       style: const TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(255, 0, 0, 0)))),
+                                          color:
+                                              Color.fromARGB(255, 0, 0, 0)))),
                                   const Text.rich(TextSpan(
                                       text: 'Metros',
                                       style: TextStyle(
                                           fontSize: 30,
-                                          color: Color.fromARGB(255, 0, 0, 0)))),
+                                          color:
+                                              Color.fromARGB(255, 0, 0, 0)))),
                                 ],
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
                                   trackHeight: 30.0,
-                                  thumbColor: const Color.fromARGB(255, 72, 72, 72),
+                                  thumbColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
                                   thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 0.0,
                                   ),
                                 ),
                                 child: Slider(
-                                activeColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
-                                inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                  activeColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
+                                  inactiveColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
                                   value: distOnValue,
                                   divisions: 20,
                                   onChanged: (value) {
@@ -834,7 +813,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   },
                                   onChangeEnd: (value) {
                                     printLog('Valor enviado: ${value.round()}');
-                                    sendValueOnToFirestore();
+                                    saveDistanceON(value);
                                   },
                                   min: 3000,
                                   max: 5000,
@@ -845,7 +824,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                             const SizedBox(height: 30),
                             const Text('Modo actual: ',
                                 style: TextStyle(
-                                    fontSize: 25, color: Color.fromARGB(255, 0, 0, 0))),
+                                    fontSize: 25,
+                                    color: Color.fromARGB(255, 0, 0, 0))),
                             IconButton(
                               onPressed: () {
                                 setState(() {
@@ -860,9 +840,11 @@ class RadiadorPageState extends State<RadiadorPage> {
                               },
                               icon: nightMode
                                   ? const Icon(Icons.nightlight,
-                                      color: Color.fromARGB(255, 0, 0, 0), size: 50)
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                      size: 50)
                                   : const Icon(Icons.wb_sunny,
-                                      color: Color.fromARGB(255, 0, 0, 0), size: 50),
+                                      color: Color.fromARGB(255, 0, 0, 0),
+                                      size: 50),
                             ),
                             const SizedBox(
                               height: 20,
@@ -871,7 +853,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 25, color: Color.fromARGB(255, 0, 0, 0))),
+                                    fontSize: 25,
+                                    color: Color.fromARGB(255, 0, 0, 0))),
                           ],
                         ],
                       ),

@@ -4,19 +4,23 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 //!-----DATA MASTER-----!\\
-Map<String,Map<String,dynamic>> globalDATA = {};
+Map<String, Map<String, dynamic>> globalDATA = {};
 //!-----DATA MASTER-----!\\
+List<String> topicsToSub = [];
+Map<String, String> productCode = {};
+List<String> ownedDevices = [];
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 List<int> infoValues = [];
@@ -51,6 +55,7 @@ String softwareVersion = '';
 String hardwareVersion = '';
 String actualToken = '';
 String currentUserEmail = '';
+String deviceSerialNumber = '';
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -116,14 +121,11 @@ String command(String device) {
       return '015773_IOT';
     case '041220':
       return '041220_IOT';
+    case '020010':
+      return '020010_IOT';
     default:
       return '';
   }
-}
-
-void loadValues() async {
-  actualToken = await loadOldToken();
-  previusConnections = await cargarLista();
 }
 
 String generateErrorReport(FlutterErrorDetails details) {
@@ -441,16 +443,6 @@ void showPrivacyDialogIfNeeded() async {
   }
 }
 
-Future<void> guardarLista(List<String> listaDispositivos) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setStringList('dispositivos_conectados', listaDispositivos);
-}
-
-Future<List<String>> cargarLista() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getStringList('dispositivos_conectados') ?? [];
-}
-
 String generateRandomNumbers(int length) {
   Random random = Random();
   String result = '';
@@ -460,82 +452,6 @@ String generateRandomNumbers(int length) {
   }
 
   return result;
-}
-
-void sendOwner() async {
-  try {
-    String userEmail =
-        currentUserEmail;
-    await FirebaseFirestore.instance.collection(deviceName).doc(userEmail).set({
-      'owner': userEmail,
-    });
-  } catch (e, s) {
-    printLog('Error al enviar owner a firebase $e $s');
-  }
-}
-
-Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
-  final prefs = await SharedPreferences.getInstance();
-  String nicknamesString = json.encode(nicknamesMap);
-  await prefs.setString('nicknamesMap', nicknamesString);
-}
-
-Future<Map<String, String>> loadNicknamesMap() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? nicknamesString = prefs.getString('nicknamesMap');
-  if (nicknamesString != null) {
-    return Map<String, String>.from(json.decode(nicknamesString));
-  }
-  return {}; // Devuelve un mapa vacío si no hay nada almacenado
-}
-
-Future<void> saveDetectorsList(List<String> lista) async {
-  final prefs = await SharedPreferences.getInstance();
-  String detList = json.encode(lista);
-  await prefs.setString('detectoresLista', detList);
-}
-
-Future<List<String>> loadDetectorsList() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? detList = prefs.getString('detectoresLista');
-  if (detList != null) {
-    return json.decode(detList);
-  }
-  return []; // Devuelve una lista vacío si no hay nada almacenado
-}
-
-Future<void> saveOldToken(String token) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('token', token);
-}
-
-Future<String> loadOldToken() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
-  if (token != null) {
-    return token;
-  }
-  return '';
-}
-
-Future<bool> readStatusValue() async {
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc('info')
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['estado'];
-    } else {
-      printLog("Documento no encontrado");
-      return false;
-    }
-  } catch (e) {
-    printLog("Error al leer de Firestore: $e");
-    return false;
-  }
 }
 
 Future<void> openQRScanner(BuildContext context) async {
@@ -563,64 +479,6 @@ Map<String, String> parseWifiQR(String qrContent) {
   final ssid = ssidMatch?.group(1) ?? '';
   final password = passwordMatch?.group(1) ?? '';
   return {"SSID": ssid, "password": password};
-}
-
-void setupToken() async {
-  String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
-
-  if (token != null) {
-    removeTokenFromDatabase(actualToken);
-    actualToken = tokenToSend;
-    saveTokenToDatabase(tokenToSend);
-  }
-
-  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
-    String? newtokenToSend =
-        '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
-    saveTokenToDatabase(newtokenToSend);
-  });
-}
-
-void saveTokenToDatabase(String token) async {
-  saveOldToken(token);
-  DocumentReference documentRef =
-      FirebaseFirestore.instance.collection(deviceName).doc('info');
-  await documentRef.set({
-    'Tokens': FieldValue.arrayUnion([token])
-  }, SetOptions(merge: true));
-}
-
-void removeTokenFromDatabase(String token) async {
-  printLog('Borrando esto: $token');
-  try {
-    DocumentReference documentRef =
-        FirebaseFirestore.instance.collection(deviceName).doc('info');
-    await documentRef.update({
-      'Tokens': FieldValue.arrayRemove([token])
-    });
-  } catch (e, s) {
-    printLog('Error al borrar token $e $s');
-  }
-}
-
-void requestPermissionFCM() async {
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-    provisional: false,
-  );
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    printLog('User granted permission');
-  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-    printLog('User granted provisional permission');
-  } else {
-    printLog('User declined or has not accepted permission');
-  }
 }
 
 void asking() async {
@@ -652,6 +510,14 @@ Future<String?> getUserMail() async {
     printLog('Error fetching user attributes: ${e.message}');
   }
   return null; // Retorna nulo si no se encuentra el correo electrónico
+}
+
+String extractSerialNumber(String productName) {
+  RegExp regExp = RegExp(r'(\d{8})');
+
+  Match? match = regExp.firstMatch(productName);
+
+  return match?.group(0) ?? '';
 }
 
 // CLASES //
@@ -699,6 +565,7 @@ class MyDevice {
       var partes = str.split(':');
       var fun = partes[0].split('_');
       deviceType = fun[0];
+      productCode[device.platformName] = partes[0];
       softwareVersion = partes[2];
       hardwareVersion = partes[3];
       printLog('Device: $deviceType');
@@ -935,17 +802,19 @@ class MyDrawer extends StatefulWidget {
 }
 
 class MyDrawerState extends State<MyDrawer> {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   int fun = 0;
   int fun1 = 0;
   bool fun2 = false;
 
-  void toggleState(String deviceName, bool newState, String equipo) async {
+  void toggleState(String deviceName, bool newState) async {
     // Función para cambiar el estado
-    await _firestore
-        .collection(deviceName)
-        .doc('info')
-        .update({'estado': newState});
+    deviceSerialNumber = extractSerialNumber(deviceName);
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
+        newState;
+    String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+    String message = jsonEncode(
+        globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+    sendMessagemqtt(topic, message);
   }
 
   @override
@@ -1000,14 +869,16 @@ class MyDrawerState extends State<MyDrawer> {
                 }
 
                 String deviceName = previusConnections[index - 1];
-                return FutureBuilder<DocumentSnapshot>(
-                  future: _firestore.collection(deviceName).doc('info').get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      String equipo = snapshot.data!['tipo'];
-                      if (equipo == '022000' || equipo == '027000') {
-                        bool estado = snapshot.data!['estado'];
-                        return ListTile(
+                return Consumer<GlobalDataNotifier>(
+                  builder: (context, notifier, child) {
+                    String equipo = productCode[deviceName]!;
+                    Map<String, dynamic> topicData =
+                        notifier.getData('$equipo/$deviceName');
+                    if (equipo == '022000_IOT') {
+                      bool estado = topicData['w_status'];
+                      bool heaterOn = topicData['f_status'];
+                      bool owner = ownedDevices.contains(deviceName);
+                      return ListTile(
                           leading: SizedBox(
                             width: 20,
                             child: Align(
@@ -1024,6 +895,11 @@ class MyDrawerState extends State<MyDrawer> {
                                     previusConnections.removeAt(index - 1);
                                   });
                                   guardarLista(previusConnections);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                  topicsToSub
+                                      .remove('devices_tx/$equipo/$deviceName');
+                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1036,29 +912,26 @@ class MyDrawerState extends State<MyDrawer> {
                           subtitle: estado
                               ? Row(
                                   children: [
-                                    const Text('Encendido',
-                                        style: TextStyle(
-                                            color: Colors.green, fontSize: 15)),
-                                    equipo == '022000'
-                                        ? Icon(Icons.flash_on_rounded,
-                                            size: 15, color: Colors.amber[800])
-                                        : Icon(Icons.local_fire_department,
-                                            size: 15, color: Colors.amber[800])
+                                    if (heaterOn) ...[
+                                      Text('Calentando',
+                                          style: TextStyle(
+                                              color: Colors.amber[800],
+                                              fontSize: 15)),
+                                      Icon(Icons.flash_on_rounded,
+                                          size: 15, color: Colors.amber[800])
+                                    ] else ...[
+                                      const Text('Encendido',
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 15)),
+                                    ],
                                   ],
                                 )
                               : const Text('Apagado',
                                   style: TextStyle(
                                       color: Colors.red, fontSize: 15)),
-                          trailing: FutureBuilder<DocumentSnapshot>(
-                            future: _firestore
-                                .collection(deviceName)
-                                .doc(widget.userMail)
-                                .get(),
-                            builder: (context, ownerSnapshot) {
-                              if (ownerSnapshot.data != null &&
-                                  ownerSnapshot.data!.exists) {
-                                // Si el documento existe, mostrar el Switch
-                                return Switch(
+                          trailing: owner
+                              ? Switch(
                                   activeColor:
                                       const Color.fromARGB(255, 156, 157, 152),
                                   activeTrackColor:
@@ -1069,22 +942,21 @@ class MyDrawerState extends State<MyDrawer> {
                                       const Color.fromARGB(255, 156, 157, 152),
                                   value: estado,
                                   onChanged: (newValue) {
-                                    toggleState(deviceName, newValue, equipo);
+                                    toggleState(deviceName, newValue);
                                     setState(() {
                                       estado = newValue;
                                     });
                                   },
-                                );
-                              } else {
-                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
-                                return const SizedBox(height: 0, width: 0);
-                              }
-                            },
-                          ),
-                        );
-                      } else if (equipo == '041220') {
-                        bool estado = snapshot.data!['estado'];
-                        return ListTile(
+                                )
+                              : const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ));
+                    } else if (equipo == '027000_IOT') {
+                      bool estado = topicData['w_status'];
+                      bool heaterOn = topicData['f_status'];
+                      bool owner = ownedDevices.contains(deviceName);
+                      return ListTile(
                           leading: SizedBox(
                             width: 20,
                             child: Align(
@@ -1101,6 +973,11 @@ class MyDrawerState extends State<MyDrawer> {
                                     previusConnections.removeAt(index - 1);
                                   });
                                   guardarLista(previusConnections);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                  topicsToSub
+                                      .remove('devices_tx/$equipo/$deviceName');
+                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1113,78 +990,51 @@ class MyDrawerState extends State<MyDrawer> {
                           subtitle: estado
                               ? Row(
                                   children: [
-                                    const Text('Encendido',
-                                        style: TextStyle(
-                                            color: Colors.green, fontSize: 15)),
-                                    Icon(Icons.flash_on_rounded,
-                                        size: 15, color: Colors.amber[800])
+                                    if (heaterOn) ...[
+                                      Text('Calentando',
+                                          style: TextStyle(
+                                              color: Colors.amber[800],
+                                              fontSize: 15)),
+                                      Icon(Icons.local_fire_department,
+                                          size: 15, color: Colors.amber[800])
+                                    ] else ...[
+                                      const Text('Encendido',
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 15)),
+                                    ],
                                   ],
                                 )
                               : const Text('Apagado',
                                   style: TextStyle(
                                       color: Colors.red, fontSize: 15)),
-                          trailing: FutureBuilder<DocumentSnapshot>(
-                            future: _firestore
-                                .collection(deviceName)
-                                .doc(widget.userMail)
-                                .get(),
-                            builder: (context, ownerSnapshot) {
-                              if (ownerSnapshot.data != null &&
-                                  ownerSnapshot.data!.exists) {
-                                // Si el documento existe, mostrar el Switch
-                                return Switch(
+                          trailing: owner
+                              ? Switch(
                                   activeColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                      const Color.fromARGB(255, 156, 157, 152),
                                   activeTrackColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
+                                      const Color.fromARGB(255, 178, 181, 174),
                                   inactiveThumbColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
+                                      const Color.fromARGB(255, 178, 181, 174),
                                   inactiveTrackColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                      const Color.fromARGB(255, 156, 157, 152),
                                   value: estado,
                                   onChanged: (newValue) {
-                                    toggleState(deviceName, newValue, equipo);
+                                    toggleState(deviceName, newValue);
                                     setState(() {
                                       estado = newValue;
                                     });
                                   },
-                                );
-                              } else {
-                                // Si el documento no existe, no mostrar nada o mostrar un widget alternativo
-                                return const SizedBox(height: 0, width: 0);
-                              }
-                            },
-                          ),
-                        );
-                      } else {
-                        int ppmCO = snapshot.data!['ppmCO'] ?? 0;
-                        int ppmCH4 = snapshot.data!['ppmCH4'] ?? 0;
-                        bool alert = snapshot.data!['alert'] ?? false;
-                        FirebaseFirestore.instance
-                            .collection(deviceName)
-                            .doc('info')
-                            .snapshots()
-                            .listen((event) {
-                          if (event.data()!['ppmCO'] != fun) {
-                            setState(() {
-                              ppmCO = event.data()!['ppmCO'];
-                            });
-                            fun = ppmCO;
-                          }
-                          if (event.data()!['ppmCH4'] != fun1) {
-                            setState(() {
-                              ppmCH4 = event.data()!['ppmCH4'];
-                            });
-                            fun1 = ppmCH4;
-                          }
-                          if (event.data()!['alert'] != fun2) {
-                            setState(() {
-                              alert = event.data()!['alert'];
-                            });
-                            fun2 = alert;
-                          }
-                        });
-                        return ListTile(
+                                )
+                              : const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ));
+                    } else if (equipo == '041220_IOT') {
+                      bool estado = topicData['w_status'];
+                      bool heaterOn = topicData['f_status'];
+                      bool owner = ownedDevices.contains(deviceName);
+                      return ListTile(
                           leading: SizedBox(
                             width: 20,
                             child: Align(
@@ -1201,7 +1051,11 @@ class MyDrawerState extends State<MyDrawer> {
                                     previusConnections.removeAt(index - 1);
                                   });
                                   guardarLista(previusConnections);
-                                  removeTokenFromDatabase(actualToken);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                  topicsToSub
+                                      .remove('devices_tx/$equipo/$deviceName');
+                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1211,60 +1065,147 @@ class MyDrawerState extends State<MyDrawer> {
                                   color: Color.fromARGB(255, 178, 181, 174),
                                   fontSize: 15,
                                   fontWeight: FontWeight.bold)),
-                          subtitle: Text.rich(
-                            TextSpan(children: [
-                              const TextSpan(
-                                text: 'PPM CO: ',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 156, 157, 152),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              TextSpan(
-                                text: '$ppmCO\n',
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 156, 157, 152),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              const TextSpan(
-                                text: 'CH4 LIE: ',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 156, 157, 152),
-                                  fontSize: 15,
-                                ),
-                              ),
-                              TextSpan(
-                                text: '${(ppmCH4 / 500).round()}%',
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 156, 157, 152),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            ]),
-                          ),
-                          trailing: alert
-                              ? const Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: Colors.red,
+                          subtitle: estado
+                              ? Row(
+                                  children: [
+                                    if (heaterOn) ...[
+                                      Text('Calentando',
+                                          style: TextStyle(
+                                              color: Colors.amber[800],
+                                              fontSize: 15)),
+                                      Icon(Icons.flash_on_rounded,
+                                          size: 15, color: Colors.amber[800])
+                                    ] else ...[
+                                      const Text('Encendido',
+                                          style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 15)),
+                                    ],
+                                  ],
                                 )
-                              : null,
-                        );
-                      }
+                              : const Text('Apagado',
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 15)),
+                          trailing: owner
+                              ? Switch(
+                                  activeColor:
+                                      const Color.fromARGB(255, 156, 157, 152),
+                                  activeTrackColor:
+                                      const Color.fromARGB(255, 178, 181, 174),
+                                  inactiveThumbColor:
+                                      const Color.fromARGB(255, 178, 181, 174),
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 156, 157, 152),
+                                  value: estado,
+                                  onChanged: (newValue) {
+                                    toggleState(deviceName, newValue);
+                                    setState(() {
+                                      estado = newValue;
+                                    });
+                                  },
+                                )
+                              : const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ));
+                    } else {
+                      int ppmCO = topicData['ppmco'];
+                      int ppmCH4 = topicData['ppmch4'];
+                      bool alert = topicData['alert'];
+                      return ListTile(
+                        leading: SizedBox(
+                          width: 20,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Color.fromARGB(255, 156, 157, 152),
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                printLog('Eliminando de la lista');
+                                setState(() {
+                                  previusConnections.removeAt(index - 1);
+                                });
+                                guardarLista(previusConnections);
+                                unSubToTopicMQTT(
+                                    'devices_tx/$equipo/$deviceName');
+                                topicsToSub
+                                    .remove('devices_tx/$equipo/$deviceName');
+                                saveTopicList(topicsToSub);
+                              },
+                            ),
+                          ),
+                        ),
+                        title: Text(nicknamesMap[deviceName] ?? deviceName,
+                            style: const TextStyle(
+                                color: Color.fromARGB(255, 178, 181, 174),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold)),
+                        subtitle: Text.rich(
+                          TextSpan(children: [
+                            const TextSpan(
+                              text: 'PPM CO: ',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 156, 157, 152),
+                                fontSize: 15,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '$ppmCO\n',
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const TextSpan(
+                              text: 'CH4 LIE: ',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 156, 157, 152),
+                                fontSize: 15,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${(ppmCH4 / 500).round()}%',
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ]),
+                        ),
+                        trailing: alert
+                            ? const Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.red,
+                              )
+                            : null,
+                      );
                     }
-                    return ListTile(
-                      title: Text(nicknamesMap[deviceName] ?? deviceName,
-                          style: const TextStyle(
-                              color: Colors.white, fontSize: 15)),
-                      subtitle: const Text(
-                        'Cargando...',
-                        style: TextStyle(color: Colors.white, fontSize: 15),
-                      ),
-                    );
                   },
                 );
               },
             ),
     );
+  }
+}
+
+//*-PROVIDER-*// Actualización de data
+
+class GlobalDataNotifier extends ChangeNotifier {
+  final Map<String, Map<String, dynamic>> _data = {};
+
+  // Obtener datos por topic específico
+  Map<String, dynamic> getData(String topic) {
+    return _data[topic] ?? {};
+  }
+
+  // Actualizar datos para un topic específico y notificar a los oyentes
+  void updateData(String topic, Map<String, dynamic> newData) {
+    if (_data[topic] != newData) {
+      _data[topic] = newData;
+      notifyListeners(); // Esto notifica a todos los oyentes que algo cambió
+    }
   }
 }

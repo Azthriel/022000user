@@ -2,11 +2,12 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:biocalden_smart_life/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:biocalden_smart_life/master.dart';
 
 //CONTROL TAB // On Off y set temperatura
@@ -135,36 +136,11 @@ class ControlPageState extends State<ControlPage> {
     int fun = on ? 1 : 0;
     String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = on;
     try {
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc('info');
-      await documentRef.set({'estado': on}, SetOptions(merge: true));
-    } catch (e, s) {
-      printLog('Error al enviar valor a firebase $e $s');
-    }
-  }
-
-  void sendValueOffToFirestore() async {
-    try {
-      String userEmail =
-          currentUserEmail;
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-      await documentRef
-          .set({'distanciaOff': distOffValue.round()}, SetOptions(merge: true));
-    } catch (e, s) {
-      printLog('Error al enviar valor a firebase $e $s');
-    }
-  }
-
-  void sendValueOnToFirestore() async {
-    try {
-      String userEmail =
-          currentUserEmail;
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-      await documentRef
-          .set({'distanciaOn': distOnValue.round()}, SetOptions(merge: true));
+      String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+      String message = jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      sendMessagemqtt(topic, message);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
     }
@@ -255,15 +231,9 @@ class ControlPageState extends State<ControlPage> {
         showToast('Recuerda tener la ubicación encendida.');
 
         Position position = await _determinePosition();
-        String userEmail =
-            currentUserEmail;
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc(userEmail);
-        await documentRef.set(
-            {'ubicacion': GeoPoint(position.latitude, position.longitude)},
-            SetOptions(merge: true));
-
-        scheduleBackgroundTask(userEmail, deviceName);
+        savePositionLatitude(position.latitude);
+        savePositionLongitud(position.longitude);
+        scheduleBackgroundTask(deviceName);
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
         printLog('Error al setear la ubicación $e');
@@ -794,7 +764,7 @@ class ControlPageState extends State<ControlPage> {
                                   },
                                   onChangeEnd: (value) {
                                     printLog('Valor enviado: ${value.round()}');
-                                    sendValueOffToFirestore();
+                                    saveDistanceOFF(value);
                                   },
                                   min: 100,
                                   max: 300,
@@ -849,7 +819,7 @@ class ControlPageState extends State<ControlPage> {
                                   },
                                   onChangeEnd: (value) {
                                     printLog('Valor enviado: ${value.round()}');
-                                    sendValueOnToFirestore();
+                                    saveDistanceON(value);
                                   },
                                   min: 3000,
                                   max: 5000,

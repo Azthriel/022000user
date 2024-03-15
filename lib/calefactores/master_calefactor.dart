@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:biocalden_smart_life/firebase_options.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,67 +25,6 @@ bool userConnected = false;
 late List<String> pikachu;
 
 // FUNCIONES //
-
-Future<double> readDistanceOnValue() async {
-  String userEmail = currentUserEmail;
-
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc(userEmail)
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['distanciaOn']?.toDouble() ??
-          3000.0; // Retorna 100.0 si no se encuentra el campo
-    } else {
-      printLog("Documento no encontrado");
-      return 3000.0;
-    }
-  } catch (e) {
-    printLog("Error al leer de Firestore: $e");
-    return 3000.0;
-  }
-}
-
-Future<double> readDistanceOffValue() async {
-  String userEmail = currentUserEmail;
-
-  try {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc(userEmail)
-        .get();
-    if (documentSnapshot.exists) {
-      Map<String, dynamic> data =
-          documentSnapshot.data() as Map<String, dynamic>;
-      return data['distanciaOff']?.toDouble() ??
-          100.0; // Retorna 100.0 si no se encuentra el campo
-    } else {
-      printLog("Documento no encontrado");
-      return 100.0;
-    }
-  } catch (e) {
-    printLog("Error al leer de Firestore: $e");
-    return 100.0;
-  }
-}
-
-Future<void> saveControlValue(bool control) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('ControlValue', control);
-}
-
-Future<bool> loadControlValue() async {
-  final prefs = await SharedPreferences.getInstance();
-  bool? controlValue = prefs.getBool('ControlValue');
-  if (controlValue != null) {
-    return controlValue;
-  } else {
-    return false;
-  }
-}
 
 void gamerMode(int fun) {
   String data = '${command(deviceType)}[11]($fun)';
@@ -352,11 +290,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                             '${command(deviceType)}[5](NA)';
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
-                                        String userEmail = currentUserEmail;
-                                        FirebaseFirestore.instance
-                                            .collection(deviceName)
-                                            .doc(userEmail)
-                                            .delete();
+                                        ownedDevices.remove(deviceName);
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
@@ -796,11 +730,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                             '${command(deviceType)}[5](NA)';
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
-                                        String userEmail = currentUserEmail;
-                                        FirebaseFirestore.instance
-                                            .collection(deviceName)
-                                            .doc(userEmail)
-                                            .delete();
+                                        ownedDevices.remove(deviceName);
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
@@ -1005,78 +935,85 @@ class SilemaDrawerState extends State<SilemaDrawer> {
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     String deviceName = inputData?['deviceName'];
+    String sn = extractSerialNumber(deviceName);
 
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+    double latitude = await loadLatitude();
+    double longitude = await loadLongitud();
+    double distanceOn = await loadDistanceON();
+    double distanceOff = await loadDistanceOFF();
 
-    // Leer datos de Firestore
-    DocumentSnapshot snapshot = await FirebaseFirestore.instance
-        .collection(deviceName)
-        .doc('info')
-        .get();
+    Position storedLocation = Position(
+      latitude: latitude,
+      longitude: longitude,
+      timestamp: DateTime.now(), // Esto es solo un marcador de posición
+      accuracy: 0.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      floor: 0,
+      isMocked: false,
+      altitudeAccuracy: 0.0,
+      headingAccuracy: 0.0,
+    );
 
-    if (snapshot.exists) {
-      printLog('Desgloso datos');
-      Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-      GeoPoint storedLocation = data['ubicacion']; // La ubicación almacenada
-      int distanceOn =
-          data['distanciaOn']; // El umbral de distancia para encendido
-      int distanceOff =
-          data['distanciaOff']; // El umbral de distancia para apagado
+    printLog('Distancia guardada $storedLocation');
 
-      printLog('Distancia guardada $storedLocation');
+    Position currentPosition1 = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    printLog('$currentPosition1');
 
-      Position currentPosition1 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      printLog('$currentPosition1');
+    double distance1 = Geolocator.distanceBetween(
+      currentPosition1.latitude,
+      currentPosition1.longitude,
+      storedLocation.latitude,
+      storedLocation.longitude,
+    );
+    printLog('$distance1');
 
-      double distance1 = Geolocator.distanceBetween(
-        currentPosition1.latitude,
-        currentPosition1.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      printLog('$distance1');
+    await Future.delayed(const Duration(minutes: 2));
 
-      await Future.delayed(const Duration(minutes: 2));
+    Position currentPosition2 = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    printLog('$currentPosition1');
 
-      Position currentPosition2 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      printLog('$currentPosition1');
+    double distance2 = Geolocator.distanceBetween(
+      currentPosition2.latitude,
+      currentPosition2.longitude,
+      storedLocation.latitude,
+      storedLocation.longitude,
+    );
+    printLog('$distance2');
 
-      double distance2 = Geolocator.distanceBetween(
-        currentPosition2.latitude,
-        currentPosition2.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      printLog('$distance2');
-
-      if (distance2.round() <= distanceOn && distance1 > distance2) {
-        printLog('Usuario cerca, encendiendo');
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc('info');
-        await documentRef.set({'estado': true}, SetOptions(merge: true));
-        //En un futuro acá agrego las notificaciones unu
-      } else if (distance2.round() >= distanceOff && distance1 < distance2) {
-        printLog('Usuario lejos, apagando');
-        //Estas re lejos apago el calefactor
-        DocumentReference documentRef =
-            FirebaseFirestore.instance.collection(deviceName).doc('info');
-        await documentRef.set({'estado': false}, SetOptions(merge: true));
-      }
+    if (distance2.round() <= distanceOn && distance1 > distance2) {
+      printLog('Usuario cerca, encendiendo');
+      globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = true;
+      String topic =
+          'devices_rx/${productCode[deviceName]}/$sn';
+      String message = jsonEncode(
+          globalDATA['${productCode[deviceName]}/$sn']);
+      sendMessagemqtt(topic, message);
+      //En un futuro acá agrego las notificaciones unu
+    } else if (distance2.round() >= distanceOff && distance1 < distance2) {
+      printLog('Usuario lejos, apagando');
+            printLog('Usuario cerca, encendiendo');
+      globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = true;
+      String topic =
+          'devices_rx/${productCode[deviceName]}/$sn';
+      String message = jsonEncode(
+          globalDATA['${productCode[deviceName]}/$sn']);
+      sendMessagemqtt(topic, message);
+      //Estas re lejos apago el calefactor
     }
-
     return Future.value(true);
   });
 }
 
-void scheduleBackgroundTask(String userEmail, String deviceName) {
+void scheduleBackgroundTask(String deviceName) {
   Workmanager().registerPeriodicTask(
     'ControldeDistancia', // ID único para la tarea
     "checkLocationTask", // Nombre de la tarea
     inputData: {
-      'userEmail': userEmail,
       'deviceName': deviceName,
     },
     frequency:

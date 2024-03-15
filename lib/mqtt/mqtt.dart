@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/mqttCerts.dart';
+import 'package:biocalden_smart_life/mqtt_certificates.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:provider/provider.dart';
 
 MqttServerClient? mqttAWSFlutterClient;
 
@@ -19,9 +20,12 @@ void setupMqtt() async {
     mqttAWSFlutterClient!.port = 8883; // Puerto estándar para MQTT sobre TLS
     mqttAWSFlutterClient!.securityContext = SecurityContext.defaultContext;
 
-    mqttAWSFlutterClient!.securityContext.setTrustedCertificatesBytes(utf8.encode(caCert));
-    mqttAWSFlutterClient!.securityContext.useCertificateChainBytes(utf8.encode(certChain));
-    mqttAWSFlutterClient!.securityContext.usePrivateKeyBytes(utf8.encode(privateKey));
+    mqttAWSFlutterClient!.securityContext
+        .setTrustedCertificatesBytes(utf8.encode(caCert));
+    mqttAWSFlutterClient!.securityContext
+        .useCertificateChainBytes(utf8.encode(certChain));
+    mqttAWSFlutterClient!.securityContext
+        .usePrivateKeyBytes(utf8.encode(privateKey));
 
     mqttAWSFlutterClient!.logging(on: true);
     mqttAWSFlutterClient!.onDisconnected = mqttonDisconnected;
@@ -29,9 +33,9 @@ void setupMqtt() async {
     // Configuración de las credenciales
     mqttAWSFlutterClient!.setProtocolV311();
     mqttAWSFlutterClient!.keepAlivePeriod = 3;
-    try{
+    try {
       await mqttAWSFlutterClient!.connect();
-    }catch (e){
+    } catch (e) {
       printLog('Error intentando conectar: $e');
     }
     printLog('Usuario conectado a mqtt');
@@ -75,11 +79,14 @@ void listenToTopics() {
       final Map<String, dynamic> messageMap = json.decode(messageString);
 
       globalDATA.putIfAbsent(keyName, () => {}).addAll(messageMap);
+      GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
+          navigatorKey.currentContext!,
+          listen: false);
+      notifier.updateData(keyName, messageMap);
 
       printLog('Received message: $messageString from topic: $topic');
     } catch (e) {
       printLog('Error decoding message: $e');
     }
-
   });
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -40,7 +41,11 @@ class ScanPageState extends State<ScanPage> {
 
     printLog('Holis $bluetoothOn');
 
-  currentUserEmail = getUserMail().toString();
+    currentUserEmail = getUserMail().toString();
+
+    for (var topic in topicsToSub){
+      subToTopicMQTT(topic);
+    }
 
     scan();
   }
@@ -214,8 +219,7 @@ class ScanPageState extends State<ScanPage> {
               ))
         ],
       ),
-      drawer: MyDrawer(
-          userMail: currentUserEmail),
+      drawer: MyDrawer(userMail: currentUserEmail),
       body: EasyRefresh(
         controller: _controller,
         header: const ClassicHeader(
@@ -373,11 +377,11 @@ class LoadState extends State<LoadingPage> {
       if (!previusConnections.contains(deviceName)) {
         previusConnections.add(deviceName);
         guardarLista(previusConnections);
+        topicsToSub.add('devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
+        saveTopicList(topicsToSub);
+        subToTopicMQTT('devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
       }
-      DocumentReference documentRef =
-          FirebaseFirestore.instance.collection(deviceName).doc('info');
-      await documentRef.set({'tipo': deviceType}, SetOptions(merge: true));
-
+      deviceSerialNumber = extractSerialNumber(deviceName);
       //Si es un calefactor
       if (deviceType == '022000' ||
           deviceType == '027000' ||
@@ -390,7 +394,6 @@ class LoadState extends State<LoadingPage> {
         nightMode = parts2[4] == '1';
         printLog('Estado: $turnOn');
 
-        await documentRef.set({'estado': turnOn}, SetOptions(merge: true));
         var parts3 = utf8.decode(toolsValues).split(':');
         final regex = RegExp(r'\((\d+)\)');
         final match = regex.firstMatch(parts3[2]);
@@ -399,24 +402,25 @@ class LoadState extends State<LoadingPage> {
         userConnected = users > 1;
         lastUser = users;
 
-        String userEmail =
-            currentUserEmail;
+        String userEmail = currentUserEmail;
         var parts = utf8.decode(infoValues).split(':');
         if (parts[4] == 'NA') {
           deviceOwner = true;
           printLog('Mando owner');
           String mailData = '${command(deviceType)}[5]($userEmail)';
           myDevice.toolsUuid.write(mailData.codeUnits);
-          distOffValue = await readDistanceOffValue();
-          distOnValue = await readDistanceOnValue();
+          distOffValue = await loadDistanceOFF();
+          distOnValue = await loadDistanceON();
           isTaskScheduled = await loadControlValue();
-          sendOwner();
+          ownedDevices.add(deviceName);
+          saveOwnedDevices(ownedDevices);
         } else if (parts[4] == userEmail) {
           deviceOwner = true;
-          distOffValue = await readDistanceOffValue();
-          distOnValue = await readDistanceOnValue();
+          distOffValue = await loadDistanceOFF();
+          distOnValue = await loadDistanceON();
           isTaskScheduled = await loadControlValue();
-          sendOwner();
+          ownedDevices.add(deviceName);
+          saveOwnedDevices(ownedDevices);
         } else {
           deviceOwner = false;
         }
@@ -432,7 +436,6 @@ class LoadState extends State<LoadingPage> {
         promedioppmCO = workValues[17] + (workValues[18] << 8);
         promedioppmCH4 = workValues[19] + (workValues[20] << 8);
         daysToExpire = workValues[21] + (workValues[22] << 8);
-        setupToken();
       }
 
       return Future.value(true);
