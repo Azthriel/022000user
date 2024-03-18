@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/mqtt_certificates.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt_certificates.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:provider/provider.dart';

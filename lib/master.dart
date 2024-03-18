@@ -56,6 +56,7 @@ String hardwareVersion = '';
 String actualToken = '';
 String currentUserEmail = '';
 String deviceSerialNumber = '';
+late String appName;
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -67,7 +68,9 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 //!------------------------------VERSION NUMBER---------------------------------------
 
 String appVersionNumber = '24030600';
+bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
+//ACORDATE: En caso de Silema, cambiar bool a false...
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
@@ -400,12 +403,12 @@ void showPrivacyDialogIfNeeded() async {
             'Política de Privacidad',
             style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
           ),
-          content: const SingleChildScrollView(
+          content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
-                  'En calefactor Smart,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.',
-                  style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                  'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.',
+                  style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
                 ),
               ],
             ),
@@ -418,7 +421,7 @@ void showPrivacyDialogIfNeeded() async {
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
                 Uri uri =
-                    Uri.parse('https://calefactorescalden.com.ar/privacidad/');
+                    Uri.parse( biocalden ? 'https://calefactorescalden.com.ar/privacidad/' : 'https://silema.com.ar/privacidad/');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
                 } else {

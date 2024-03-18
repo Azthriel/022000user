@@ -276,7 +276,7 @@ class LoginPageState extends State<LoginPage> {
   }
 
   void _launchURL() async {
-    String url = 'https://biocalden.com.ar/';
+    String url = biocalden ? 'https://biocalden.com.ar/' : 'http://www.silema.com.ar/';
     var uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -391,8 +391,8 @@ class LoginPageState extends State<LoginPage> {
                                       height: 200,
                                       child: IconButton(
                                           onPressed: _launchURL,
-                                          icon: Image.asset(
-                                              'assets/Biocalden/Corte_laser_negro.png')),
+                                          icon: Image.asset( biocalden ?
+                                              'assets/Biocalden/Corte_laser_negro.png' : 'assets/Silema/WB_logo.png')),
                                     ),
                                     Align(
                                         alignment: Alignment.bottomCenter,

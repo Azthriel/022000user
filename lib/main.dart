@@ -72,6 +72,7 @@ class MyAppState extends State<MyApp> {
     super.initState();
     loadValues();
     _configureAmplify();
+    appName = biocalden ? 'Biocalden Smart Life' : 'Silema calefactores';
     printLog('Empezamos');
   }
 

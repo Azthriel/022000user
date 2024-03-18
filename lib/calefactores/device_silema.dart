@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/mqtt.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -137,11 +137,13 @@ class RadiadorPageState extends State<RadiadorPage> {
     int fun = on ? 1 : 0;
     String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
-    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = on;
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
+        on;
     try {
-      String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-      String message =
-          jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      String topic =
+          'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+      String message = jsonEncode(
+          globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
       sendMessagemqtt(topic, message);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
@@ -260,9 +262,9 @@ class RadiadorPageState extends State<RadiadorPage> {
               'Habilita la ubicación todo el tiempo',
               style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
             ),
-            content: const Text(
-                'Calefactor Smart utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+            content: Text(
+                '$appName utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
+                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(

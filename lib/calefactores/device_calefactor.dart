@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/mqtt.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -258,9 +258,9 @@ class ControlPageState extends State<ControlPage> {
               'Habilita la ubicación todo el tiempo',
               style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
             ),
-            content: const Text(
-                'Calefactor Smart utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+            content: Text(
+                '$appName utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
+                style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(
