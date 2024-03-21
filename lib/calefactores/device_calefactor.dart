@@ -102,6 +102,7 @@ class ControlPageState extends State<ControlPage> {
 
     final wifiSub =
         myDevice.toolsUuid.onValueReceived.listen((List<int> status) {
+      printLog('Llegaron cositas wifi');
       updateWifiValues(status);
     });
 
@@ -137,10 +138,13 @@ class ControlPageState extends State<ControlPage> {
     String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
     globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = on;
+    saveGlobalData(globalDATA);
     try {
       String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+      String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
       String message = jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
       sendMessagemqtt(topic, message);
+      sendMessagemqtt(topic2, message);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
     }

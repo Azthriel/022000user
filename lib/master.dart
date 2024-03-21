@@ -14,6 +14,8 @@ import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:http/http.dart' as http;
 
 //!-----DATA MASTER-----!\\
 Map<String, Map<String, dynamic>> globalDATA = {};
@@ -57,6 +59,7 @@ String actualToken = '';
 String currentUserEmail = '';
 String deviceSerialNumber = '';
 late String appName;
+late String folderName;
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -67,7 +70,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24030600';
+String appVersionNumber = '24032000';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -114,7 +117,7 @@ Future<void> sendWifitoBle() async {
 }
 
 String command(String device) {
-  printLog('Entro $device');
+  // printLog('Entro $device');
   switch (device) {
     case '022000':
       return '022000_IOT';
@@ -408,7 +411,8 @@ void showPrivacyDialogIfNeeded() async {
               children: <Widget>[
                 Text(
                   'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.',
-                  style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+                  style: const TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255)),
                 ),
               ],
             ),
@@ -420,8 +424,9 @@ void showPrivacyDialogIfNeeded() async {
                       Color.fromARGB(255, 255, 255, 255))),
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
-                Uri uri =
-                    Uri.parse( biocalden ? 'https://calefactorescalden.com.ar/privacidad/' : 'https://silema.com.ar/privacidad/');
+                Uri uri = Uri.parse(biocalden
+                    ? 'https://calefactorescalden.com.ar/privacidad/'
+                    : 'https://silema.com.ar/privacidad/');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
                 } else {
@@ -501,7 +506,7 @@ Future<bool> isUserSignedIn() async {
   return result.isSignedIn;
 }
 
-Future<String?> getUserMail() async {
+Future<String> getUserMail() async {
   try {
     final attributes = await Amplify.Auth.fetchUserAttributes();
     for (final attribute in attributes) {
@@ -512,7 +517,11 @@ Future<String?> getUserMail() async {
   } on AuthException catch (e) {
     printLog('Error fetching user attributes: ${e.message}');
   }
-  return null; // Retorna nulo si no se encuentra el correo electrónico
+  return ''; // Retorna nulo si no se encuentra el correo electrónico
+}
+
+void getMail() async {
+  currentUserEmail = await getUserMail();
 }
 
 String extractSerialNumber(String productName) {
@@ -521,6 +530,264 @@ String extractSerialNumber(String productName) {
   Match? match = regExp.firstMatch(productName);
 
   return match?.group(0) ?? '';
+}
+
+void showContactInfo(BuildContext context) {
+  showDialog(
+      barrierDismissible: true,
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+            content: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Contacto comercial:',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                          onPressed: () => _sendWhatsAppMessage('5491162234181',
+                              '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                          icon: const Icon(
+                            Icons.phone,
+                            color: Color.fromARGB(255, 29, 163, 169),
+                            size: 20,
+                          )),
+                      // const SizedBox(width: 5),
+                      const Text('+54 9 11 6223-4181',
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 0, 0, 0),
+                              fontSize: 20))
+                    ],
+                  ),
+                  SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () => _launchEmail(
+                                'ceat@ibsanitarios.com.ar',
+                                'Consulta comercial acerca de la linea $appName',
+                                '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                            icon: const Icon(
+                              Icons.mail,
+                              color: Color.fromARGB(255, 29, 163, 169),
+                              size: 20,
+                            ),
+                          ),
+                          // const SizedBox(width: 5),
+                          const Text('ceat@ibsanitarios.com.ar',
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 0, 0, 0),
+                                  fontSize: 20))
+                        ],
+                      )),
+                  const SizedBox(height: 20),
+                  const Text('Consulta técnica:',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () => _launchEmail(
+                              'pablo@intelligentgas.com.ar',
+                              'Consulta ref. $deviceName',
+                              '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${productCode[deviceName]}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                          icon: const Icon(
+                            Icons.mail,
+                            color: Color.fromARGB(255, 29, 163, 169),
+                            size: 20,
+                          ),
+                        ),
+                        // const SizedBox(width: 5),
+                        const Text(
+                          'pablo@intelligentgas.com.ar',
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 0, 0, 0),
+                              fontSize: 20),
+                          overflow: TextOverflow.ellipsis,
+                        )
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text('Customer service:',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                          onPressed: () => _sendWhatsAppMessage('5491162232619',
+                              '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
+                          icon: const Icon(
+                            Icons.phone,
+                            color: Color.fromARGB(255, 29, 163, 169),
+                            size: 20,
+                          )),
+                      // const SizedBox(width: 5),
+                      const Text('+54 9 11 6223-2619',
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 0, 0, 0),
+                              fontSize: 20))
+                    ],
+                  ),
+                  SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            onPressed: () => _launchEmail(
+                                'service@calefactorescalden.com.ar',
+                                'Consulta ${productCode[deviceName]}',
+                                'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                            icon: const Icon(
+                              Icons.mail,
+                              color: Color.fromARGB(255, 29, 163, 169),
+                              size: 20,
+                            ),
+                          ),
+                          // const SizedBox(width: 5),
+                          const Text(
+                            'service@calefactorescalden.com.ar',
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 0, 0, 0),
+                                fontSize: 20),
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        ],
+                      )),
+                ]));
+      });
+}
+
+Future<void> _sendWhatsAppMessage(String phoneNumber, String message) async {
+  var whatsappUrl =
+      "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+  Uri uri = Uri.parse(whatsappUrl);
+
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri);
+  } else {
+    showToast('No se pudo abrir WhatsApp');
+  }
+}
+
+void _launchEmail(String mail, String asunto, String cuerpo) async {
+  final Uri emailLaunchUri = Uri(
+    scheme: 'mailto',
+    path: mail,
+    query: encodeQueryParameters(
+        <String, String>{'subject': asunto, 'body': cuerpo}),
+  );
+
+  if (await canLaunchUrl(emailLaunchUri)) {
+    await launchUrl(emailLaunchUri);
+  } else {
+    showToast('No se pudo abrir el correo electrónico');
+  }
+}
+
+String encodeQueryParameters(Map<String, String> params) {
+  return params.entries
+      .map((e) =>
+          '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+      .join('&');
+}
+
+void setupToken() async {
+  String? token = await FirebaseMessaging.instance.getToken();
+  String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
+
+  if (token != null) {
+    removeTokenFromDatabase(actualToken, deviceName);
+    actualToken = tokenToSend;
+    saveTokenToDatabase(tokenToSend, deviceName);
+  }
+
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+    String? newtokenToSend =
+        '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
+    saveTokenToDatabase(newtokenToSend, deviceName);
+  });
+}
+
+void saveTokenToDatabase(String token, String device) async {
+  saveToken(token);
+  final url = Uri.parse('https://us-central1-eiot-2b484.cloudfunctions.net/saveToken');
+  final response = await http.post(url,
+      body: json.encode({
+        'product_code': productCode[device],
+        'serialNumber': extractSerialNumber(device),
+        'token': token,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      });
+
+  if (response.statusCode == 200) {
+    // Handle success
+    printLog('Token added successfully');
+  } else {
+    // Handle failure
+    printLog('Failed to add token');
+  }
+}
+
+void removeTokenFromDatabase(String token, String device) async {
+  printLog('Borrando esto: $token');
+  final url = Uri.parse('https://us-central1-eiot-2b484.cloudfunctions.net/removeToken');
+  final response = await http.post(url,
+      body: json.encode({
+        'product_code': productCode[device],
+        'serialNumber': extractSerialNumber(device),
+        'token': token,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      });
+
+  if (response.statusCode == 200) {
+    // Handle success
+    printLog('Token removed successfully');
+  } else {
+    // Handle failure
+    printLog('Failed to removed token');
+  }
+}
+
+void requestPermissionFCM() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+    provisional: false,
+  );
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    printLog('User granted permission');
+  } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    printLog('User granted provisional permission');
+  } else {
+    printLog('User declined or has not accepted permission');
+  }
 }
 
 // CLASES //
@@ -569,9 +836,16 @@ class MyDevice {
       var fun = partes[0].split('_');
       deviceType = fun[0];
       productCode[device.platformName] = partes[0];
+      saveProductCodesMap(productCode);
       softwareVersion = partes[2];
       hardwareVersion = partes[3];
       printLog('Device: $deviceType');
+      printLog('Product code: ${productCode[device.platformName]}');
+      printLog('Serial number: ${extractSerialNumber(device.platformName)}');
+      globalDATA.putIfAbsent(
+          '${productCode[device.platformName]}/${extractSerialNumber(device.platformName)}',
+          () => {});
+      saveGlobalData(globalDATA);
 
       if (deviceType == '022000' ||
           deviceType == '027000' ||
@@ -811,13 +1085,18 @@ class MyDrawerState extends State<MyDrawer> {
 
   void toggleState(String deviceName, bool newState) async {
     // Función para cambiar el estado
+
     deviceSerialNumber = extractSerialNumber(deviceName);
     globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
         newState;
+    saveGlobalData(globalDATA);
     String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+    String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
     String message = jsonEncode(
         globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
     sendMessagemqtt(topic, message);
+    sendMessagemqtt(topic2, message);
+    printLog(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
   }
 
   @override
@@ -874,12 +1153,21 @@ class MyDrawerState extends State<MyDrawer> {
                 String deviceName = previusConnections[index - 1];
                 return Consumer<GlobalDataNotifier>(
                   builder: (context, notifier, child) {
-                    String equipo = productCode[deviceName]!;
-                    Map<String, dynamic> topicData =
-                        notifier.getData('$equipo/$deviceName');
+                    String equipo = productCode[deviceName] ?? 'Error';
+                    Map<String, dynamic> topicData = notifier
+                        .getData('$equipo/${extractSerialNumber(deviceName)}');
+                    globalDATA
+                        .putIfAbsent(
+                            '$equipo/${extractSerialNumber(deviceName)}',
+                            () => {})
+                        .addAll(topicData);
+                    saveGlobalData(globalDATA);
+                    Map<String, dynamic> deviceDATA = globalDATA[
+                        '$equipo/${extractSerialNumber(deviceName)}']!;
+                    printLog(deviceDATA);
                     if (equipo == '022000_IOT') {
-                      bool estado = topicData['w_status'];
-                      bool heaterOn = topicData['f_status'];
+                      bool estado = deviceDATA['w_status'] ?? false;
+                      bool heaterOn = deviceDATA['f_status'] ?? false;
                       bool owner = ownedDevices.contains(deviceName);
                       return ListTile(
                           leading: SizedBox(
@@ -956,8 +1244,8 @@ class MyDrawerState extends State<MyDrawer> {
                                   width: 0,
                                 ));
                     } else if (equipo == '027000_IOT') {
-                      bool estado = topicData['w_status'];
-                      bool heaterOn = topicData['f_status'];
+                      bool estado = deviceDATA['w_status'] ?? false;
+                      bool heaterOn = deviceDATA['f_status'] ?? false;
                       bool owner = ownedDevices.contains(deviceName);
                       return ListTile(
                           leading: SizedBox(
@@ -1034,8 +1322,8 @@ class MyDrawerState extends State<MyDrawer> {
                                   width: 0,
                                 ));
                     } else if (equipo == '041220_IOT') {
-                      bool estado = topicData['w_status'];
-                      bool heaterOn = topicData['f_status'];
+                      bool estado = deviceDATA['w_status'] ?? false;
+                      bool heaterOn = deviceDATA['f_status'] ?? false;
                       bool owner = ownedDevices.contains(deviceName);
                       return ListTile(
                           leading: SizedBox(
@@ -1111,10 +1399,12 @@ class MyDrawerState extends State<MyDrawer> {
                                   height: 0,
                                   width: 0,
                                 ));
+                    } else if (equipo == 'error') {
+                      return const Text('Un error inesperado ha ocurrido');
                     } else {
-                      int ppmCO = topicData['ppmco'];
-                      int ppmCH4 = topicData['ppmch4'];
-                      bool alert = topicData['alert'];
+                      int ppmCO = deviceDATA['ppmco'] ?? 0;
+                      int ppmCH4 = deviceDATA['ppmch4'] ?? 0;
+                      bool alert = deviceDATA['alert'] ?? false;
                       return ListTile(
                         leading: SizedBox(
                           width: 20,
@@ -1137,6 +1427,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 topicsToSub
                                     .remove('devices_tx/$equipo/$deviceName');
                                 saveTopicList(topicsToSub);
+                                removeTokenFromDatabase(actualToken, deviceName);
                               },
                             ),
                           ),

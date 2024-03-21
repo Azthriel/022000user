@@ -32,20 +32,11 @@ class ScanPageState extends State<ScanPage> {
     startBluetoothMonitoring();
     startLocationMonitoring();
 
-    loadNicknamesMap().then((loadedMap) {
-      setState(() {
-        nicknamesMap = loadedMap;
-      });
-    });
     filteredDevices = devices;
 
     printLog('Holis $bluetoothOn');
 
-    currentUserEmail = getUserMail().toString();
-
-    for (var topic in topicsToSub){
-      subToTopicMQTT(topic);
-    }
+    getMail();
 
     scan();
   }
@@ -79,7 +70,6 @@ class ScanPageState extends State<ScanPage> {
               });
             }
           }
-          setState(() {});
         });
       } catch (e, stackTrace) {
         printLog('Error al escanear $e $stackTrace');
@@ -377,9 +367,11 @@ class LoadState extends State<LoadingPage> {
       if (!previusConnections.contains(deviceName)) {
         previusConnections.add(deviceName);
         guardarLista(previusConnections);
-        topicsToSub.add('devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
+        topicsToSub.add(
+            'devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
         saveTopicList(topicsToSub);
-        subToTopicMQTT('devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
+        subToTopicMQTT(
+            'devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
       }
       deviceSerialNumber = extractSerialNumber(deviceName);
       //Si es un calefactor
@@ -404,6 +396,7 @@ class LoadState extends State<LoadingPage> {
 
         String userEmail = currentUserEmail;
         var parts = utf8.decode(infoValues).split(':');
+        printLog('Actual: $userEmail... Deberia ser: ${parts[4]}');
         if (parts[4] == 'NA') {
           deviceOwner = true;
           printLog('Mando owner');
@@ -436,6 +429,8 @@ class LoadState extends State<LoadingPage> {
         promedioppmCO = workValues[17] + (workValues[18] << 8);
         promedioppmCH4 = workValues[19] + (workValues[20] << 8);
         daysToExpire = workValues[21] + (workValues[22] << 8);
+
+        setupToken();
       }
 
       return Future.value(true);

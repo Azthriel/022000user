@@ -2,149 +2,120 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
 
-exports.sendDetectorAlert = functions.firestore
-    .document("/{collectionId}/info")
-    .onUpdate((change, context) => {
-      const newValue = change.after.data();
-      const oldValue = change.before.data();
+exports.sendNotification = functions.https.onCall((data, context) => {
+  // Asegúrate de que la petición contenga product_code y serialNumber
+  const productCode = data.product_code;
+  const serialNumber = data.serialNumber;
 
-      if (context.params.collectionId.startsWith("Detector")) {
-        if (newValue.alert === true && oldValue.alert === false) {
-          // Recuperamos los tokens del documento
-          let tokens = newValue.Tokens || [];
+  if (!productCode || !serialNumber) {
+    throw new functions.https.HttpsError("invalid-argument");
+  }
 
-          tokens = tokens.map((token) => {
-            const parts = token.split("/-/");
-            const alertMessage = `Alerta en ${parts[1]}`;
-            return {
-              token: parts[0],
-              notification: {
-                title: "¡ALERTA DETECTADA!",
-                body: alertMessage,
-              },
-              android: {
-                notification: {
-                  sound: "default",
-                },
-              },
-              apns: {
-                payload: {
-                  aps: {
-                    sound: "default",
-                  },
-                },
-              },
-              data: {
-                click_action: "FLUTTER_NOTIFICATION_CLICK",
-                status: "done",
-              },
-            };
-          });
+  const documentPath = `${productCode}/${serialNumber}`;
 
-          // Verificamos si hay tokens para enviar la notificación
-          if (tokens.length > 0) {
-            // Enviamos la notificación para cada token
-            return Promise.all(tokens.map((message) => admin.messaging()
-                .send(message)))
-                .then((responses) => {
-                  console.log("Successfully sent all messages:", responses);
-                  return responses;
-                })
-                .catch((error) => {
-                  console.log("Error sending messages:", error);
-                  throw new functions.https.HttpsError("unkwn", error.message);
-                });
-          } else {
-            console.log("No tokens available for notification.");
-            return null;
-          }
-        }
-      } else {
-        console.log("Not a detector");
-        return null;
-      }
+  // Referencia al documento de Firestore
+  const docRef = admin.firestore().doc(documentPath);
+
+  return docRef.get().then((doc) => {
+    if (!doc.exists) {
+      throw new functions.https.HttpsError("not-found");
+    }
+
+    // Recuperamos los tokens del documento
+    let tokens = doc.data().Tokens || [];
+
+    tokens = tokens.map((token) => {
+      const parts = token.split("/-/");
+      const alertMessage = `Alerta en ${parts[1]}`;
+      return {
+        token: parts[0],
+        notification: {
+          title: "¡ALERTA DETECTADA!",
+          body: alertMessage,
+        },
+        android: {
+          notification: {
+            sound: "default",
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: "default",
+            },
+          },
+        },
+        data: {
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          status: "done",
+        },
+      };
     });
 
-
-exports.multitaskFunction = functions.https.onRequest(
-    async (req, res) => {
-      if (req.method !== "POST") {
-        res.status(405).send("Método no permitido");
-        return;
-      }
-      const type = req.body.type;
-      if (type === "Calefactor") {
-        const collectionName = req.body.deviceName;
-        if (!collectionName) {
-          res.status(400).send("El nombre de la colección es requerido");
-          return;
-        }
-        try {
-          const docRef = admin.firestore()
-              .collection(collectionName).doc("info");
-          const doc = await docRef.get();
-          if (!doc.exists) {
-            res.status(404).send("Documento"+ collectionName + "no encontrado");
-            return;
-          }
-          const data = doc.data();
-
-          const verhard = req.body.hv;
-          const productType = req.body.product_code;
-          const otaRef = admin.firestore()
-              .collection("OtaData").doc(productType);
-          const otadoc = await otaRef.get();
-          if (!otadoc.exists) {
-            res.status(404).send("El producto"+ productType + "no existe");
-            return;
-          }
-          const versions = otadoc.data();
-          if (!(verhard in versions)) {
-            res.status(404).send("No existe versión de hardware: " + verhard);
-            return;
-          }
-          const sv = versions[verhard];
-          const estado = data["estado"];
-          res.status(200).send({status: estado, sv: sv});
-        } catch (error) {
-          console.error("Error al obtener el documento:", error);
-          res.status(500).send("Error interno del servidor", error);
-        }
-      } else if (type === "Detector") {
-        const collectionName = req.body.deviceName;
-        const fun = parseInt(req.body.alert, 10);
-        const alertValue = fun === 1;
-        const ppmco = parseInt(req.body.ppmCO, 10);
-        const ppmch4 = parseInt(req.body.ppmCH4, 10);
-
-        const verhard = req.body.hv;
-        const productType = req.body.product_code;
-        const otaRef = admin.firestore()
-            .collection("OtaData").doc(productType);
-        const otadoc = await otaRef.get();
-        if (!otadoc.exists) {
-          res.status(404).send("El producto"+ productType + "no existe");
-          return;
-        }
-        const versions = otadoc.data();
-        if (!(verhard in versions)) {
-          res.status(404).send("No existe versión de hardware: " + verhard);
-          return;
-        }
-        const sv = versions[verhard];
-        try {
-          const docRef = admin.firestore()
-              .collection(collectionName).doc("info");
-          await docRef.update({
-            "alert": alertValue,
-            "ppmCO": ppmco,
-            "ppmCH4": ppmch4,
+    // Verificamos si hay tokens para enviar la notificación
+    if (tokens.length > 0) {
+      // Enviamos la notificación para cada token
+      return Promise.all(tokens.map((message) => admin.messaging()
+          .send(message)))
+          .then((responses) => {
+            console.log("Successfully sent all messages:", responses);
+            return responses;
+          })
+          .catch((error) => {
+            console.log("Error sending messages:", error);
+            throw new functions.https.HttpsError("unkwn", error.message);
           });
-          res.status(200).send({sv: sv});
-        } catch (error) {
-          console.error("Error al actualizar el documento:", error);
-          res.status(500).send("Error al actualizar el documento");
-        }
-      }
-      res.status(666).send("Mandaste cualquier cosa");
-    });
+    } else {
+      console.log("No tokens available for notification.");
+      return null;
+    }
+  });
+});
+
+exports.saveToken = functions.https.onCall((data, context) => {
+  const productCode = data.product_code;
+  const serialNumber = data.serialNumber;
+  const token = data.token;
+
+  if (!productCode || !serialNumber || !token) {
+    throw new functions.https.HttpsError("invalid-argument");
+  }
+
+  const documentPath = `${productCode}/${serialNumber}`;
+
+  return admin.firestore().doc(documentPath).set({
+    Tokens: admin.firestore.FieldValue.arrayUnion(token),
+  }, {merge: true})
+      .then(() => {
+        console.log("Token added successfully");
+        return {success: true};
+      })
+      .catch((error) => {
+        console.log("Error adding token:", error);
+        throw new functions.https.HttpsError("unknown", "Failed to add token.");
+      });
+});
+
+exports.removeToken = functions.https.onCall((data, context) => {
+  const productCode = data.product_code;
+  const serialNumber = data.serialNumber;
+  const token = data.token;
+
+  if (!productCode || !serialNumber || !token) {
+    throw new functions.https.HttpsError("invalid-argument");
+  }
+
+  const documentPath = `${productCode}/${serialNumber}`;
+
+  return admin.firestore().doc(documentPath).update({
+    notificationTokens: admin.firestore.FieldValue.arrayRemove(token),
+  })
+      .then(() => {
+        console.log("Token removed successfully");
+        return {success: true};
+      })
+      .catch((error) => {
+        console.log("Error removing token:", error);
+        throw new functions.https.HttpsError("unknown");
+      });
+});

@@ -9,6 +9,8 @@ void loadValues() async {
   productCode = await loadProductCodesMap();
   topicsToSub = await loadTopicList();
   ownedDevices = await loadOwnedDevices();
+  nicknamesMap = await loadNicknamesMap();
+  actualToken = await loadToken();
 }
 // MASTERLOAD \\
 
@@ -123,7 +125,7 @@ Future<void> saveDistanceON(double distanceON) async {
 
 Future<double> loadDistanceON() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('distanceON') ?? 0;
+  return prefs.getDouble('distanceON') ?? 3000;
 }
 
 Future<void> saveDistanceOFF(double distanceOFF) async {
@@ -133,7 +135,7 @@ Future<void> saveDistanceOFF(double distanceOFF) async {
 
 Future<double> loadDistanceOFF() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('distanceOFF') ?? 0;
+  return prefs.getDouble('distanceOFF') ?? 100;
 }
 
 //*-Control de distancia
@@ -165,7 +167,25 @@ Future<List<String>> loadOwnedDevices() async {
   final prefs = await SharedPreferences.getInstance();
   String? devicesList = prefs.getString('OwnedDevices');
   if (devicesList != null) {
-    return json.decode(devicesList);
+    List<dynamic> decodedList = json.decode(devicesList);
+    return decodedList.cast<String>();
   }
-  return []; // Devuelve una lista vacío si no hay nada almacenado
+  return []; // Devuelve una lista vacía si no hay nada almacenado
+}
+
+//*- Token FCM
+
+Future<void> saveToken(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('token', token);
+}
+
+Future<String> loadToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+  if (token != null) {
+    return token;
+  } else {
+    return '';
+  }
 }

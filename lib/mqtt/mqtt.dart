@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/mqtt/mqtt_certificates.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:provider/provider.dart';
 
 MqttServerClient? mqttAWSFlutterClient;
 
-void setupMqtt() async {
+Future<bool> setupMqtt() async {
   try {
     printLog('Haciendo setup');
     String deviceId = 'FlutterDevice/${generateRandomNumbers(32)}';
@@ -35,30 +36,57 @@ void setupMqtt() async {
     mqttAWSFlutterClient!.keepAlivePeriod = 3;
     try {
       await mqttAWSFlutterClient!.connect();
+      printLog('Usuario conectado a mqtt');
+
+      return true;
     } catch (e) {
       printLog('Error intentando conectar: $e');
+
+      return false;
     }
-    printLog('Usuario conectado a mqtt');
   } catch (e, s) {
     printLog('Error setup mqtt $e $s');
+    return false;
   }
 }
 
 void mqttonDisconnected() {
   printLog('Desconectado de mqtt');
-  setupMqtt();
+  setupMqtt().then((value) {
+    if (value) {
+      for (var topic in topicsToSub) {
+        printLog('Subscribiendo a $topic');
+        subToTopicMQTT(topic);
+      }
+      listenToTopics();
+    }
+  });
 }
 
 void sendMessagemqtt(String topic, String message) {
+  printLog('Voy a mandar $message');
+  printLog('A el topic $topic');
   final MqttClientPayloadBuilder builder = MqttClientPayloadBuilder();
   builder.addString(message);
 
-  mqttAWSFlutterClient!
-      .publishMessage(topic, MqttQos.exactlyOnce, builder.payload!);
+  printLog('${builder.payload} : ${utf8.decode(builder.payload!)}');
+
+  try {
+    mqttAWSFlutterClient!
+        .publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    printLog('Mensaje enviado');
+  } catch (e, s) {
+    printLog('Error sending message $e $s');
+  }
 }
 
 void subToTopicMQTT(String topic) {
-  mqttAWSFlutterClient!.subscribe(topic, MqttQos.atLeastOnce);
+  try {
+    mqttAWSFlutterClient!.subscribe(topic, MqttQos.atLeastOnce);
+    printLog('Subscrito correctamente a $topic');
+  } catch (e) {
+    printLog('Error al subscribir al topic $topic, $e');
+  }
 }
 
 void unSubToTopicMQTT(String topic) {
@@ -66,25 +94,28 @@ void unSubToTopicMQTT(String topic) {
 }
 
 void listenToTopics() {
-  mqttAWSFlutterClient!.updates
-      ?.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+  mqttAWSFlutterClient!.updates!.listen((c) {
+    printLog('LLego algo(mqtt)');
     final MqttPublishMessage recMess = c[0].payload as MqttPublishMessage;
     final String topic = c[0].topic;
     var listNames = topic.split('/');
     final List<int> message = recMess.payload.message;
     String keyName = "${listNames[1]}/${listNames[2]}";
+    printLog('Keyname: $keyName');
 
     final String messageString = utf8.decode(message);
     try {
       final Map<String, dynamic> messageMap = json.decode(messageString);
 
       globalDATA.putIfAbsent(keyName, () => {}).addAll(messageMap);
+      saveGlobalData(globalDATA);
+      printLog(globalDATA[keyName]);
       GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
           navigatorKey.currentContext!,
           listen: false);
       notifier.updateData(keyName, messageMap);
 
-      printLog('Received message: $messageString from topic: $topic');
+      printLog('Received message: $messageMap from topic: $topic');
     } catch (e) {
       printLog('Error decoding message: $e');
     }

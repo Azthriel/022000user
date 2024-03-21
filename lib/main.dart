@@ -1,6 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/5773/device_detector.dart';
@@ -25,32 +27,32 @@ Future<void> main() async {
     sendReportError(errorReport);
   };
 
-  // FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-  //   showDialog(
-  //     context: navigatorKey.currentContext!,
-  //     barrierDismissible: true,
-  //     builder: (BuildContext context) {
-  //       String displayMessage = message.notification?.body.toString() ??
-  //           'Un detector mando una alerta';
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        String displayMessage = message.notification?.body.toString() ??
+            'Un detector mando una alerta';
 
-  //       return AlertDialog(
-  //           backgroundColor: const Color.fromARGB(255, 230, 254, 255),
-  //           title: const Text(
-  //             '¡ALERTA EN DETECTOR!',
-  //             textAlign: TextAlign.center,
-  //             style: TextStyle(
-  //                 color: Color.fromARGB(255, 255, 0, 0),
-  //                 fontWeight: FontWeight.bold),
-  //           ),
-  //           content: Text(
-  //             displayMessage,
-  //             textAlign: TextAlign.center,
-  //             style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-  //           ));
-  //     },
-  //   );
-  //   printLog('Llegó esta notif: $message');
-  // });
+        return AlertDialog(
+            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+            title: const Text(
+              '¡ALERTA EN DETECTOR!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  color: Color.fromARGB(255, 255, 0, 0),
+                  fontWeight: FontWeight.bold),
+            ),
+            content: Text(
+              displayMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+            ));
+      },
+    );
+    printLog('Llegó esta notif: $message');
+  });
 
   runApp(
     ChangeNotifierProvider(
@@ -73,6 +75,15 @@ class MyAppState extends State<MyApp> {
     loadValues();
     _configureAmplify();
     appName = biocalden ? 'Biocalden Smart Life' : 'Silema calefactores';
+    setupMqtt().then((value) {
+      if (value) {
+        for (var topic in topicsToSub) {
+          printLog('Subscribiendo a $topic');
+          subToTopicMQTT(topic);
+        }
+      }
+    });
+    listenToTopics();
     printLog('Empezamos');
   }
 
@@ -150,6 +161,8 @@ class PermissionHandlerState extends State<PermissionHandler> {
       await Permission.location.request();
     }
     permissionStatus3 = await Permission.location.status;
+
+    requestPermissionFCM();
 
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&
