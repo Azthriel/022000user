@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "629146285429",
-    "project_id": "eiot-2b484",
-    "storage_bucket": "eiot-2b484.appspot.com"
+    "project_number": "264309112998",
+    "project_id": "biocaldensmartlife",
+    "storage_bucket": "biocaldensmartlife.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:629146285429:android:f1b48cd12d8aff1c690f3c",
+        "mobilesdk_app_id": "1:264309112998:android:4151f2671eb7732916b467",
         "android_client_info": {
           "package_name": "com.biocalden.smartlife.sime"
         }
@@ -15,45 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCN27B6sJr9pQ5NOOiRX_uXk3EP6ZBDjkI"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:629146285429:android:7881f1a638e0c06c690f3c",
-        "android_client_info": {
-          "package_name": "com.calefactor.smart.sime"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCN27B6sJr9pQ5NOOiRX_uXk3EP6ZBDjkI"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:629146285429:android:83efdeff0ffef4ee690f3c",
-        "android_client_info": {
-          "package_name": "com.example.silema"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCN27B6sJr9pQ5NOOiRX_uXk3EP6ZBDjkI"
+          "current_key": "AIzaSyCNgFXTMR81oPHrgpRv3WSipJnleRkYnRE"
         }
       ],
       "services": {

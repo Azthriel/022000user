@@ -70,7 +70,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24032000';
+String appVersionNumber = '24032500';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -715,24 +715,33 @@ void setupToken() async {
   String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
 
   if (token != null) {
-    removeTokenFromDatabase(actualToken, deviceName);
+    if(actualToken != ''){
+      await removeTokenFromDatabase(actualToken, deviceName);
+    }
     actualToken = tokenToSend;
     saveTokenToDatabase(tokenToSend, deviceName);
   }
 
-  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) {
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
     String? newtokenToSend =
         '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
+
+    if(actualToken != ''){
+      await removeTokenFromDatabase(actualToken, deviceName);
+    }
+    actualToken = newtokenToSend;
     saveTokenToDatabase(newtokenToSend, deviceName);
   });
 }
 
 void saveTokenToDatabase(String token, String device) async {
   saveToken(token);
-  final url = Uri.parse('https://us-central1-eiot-2b484.cloudfunctions.net/saveToken');
+  printLog("Voy a mandar: $token");
+  final url =
+      Uri.parse('https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken');
   final response = await http.post(url,
       body: json.encode({
-        'product_code': productCode[device],
+        'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
       }),
@@ -746,28 +755,31 @@ void saveTokenToDatabase(String token, String device) async {
   } else {
     // Handle failure
     printLog('Failed to add token');
+    printLog(response);
+    printLog(response.body);
   }
 }
 
-void removeTokenFromDatabase(String token, String device) async {
+Future<void> removeTokenFromDatabase(String token, String device) async {
   printLog('Borrando esto: $token');
-  final url = Uri.parse('https://us-central1-eiot-2b484.cloudfunctions.net/removeToken');
+  final url = Uri.parse(
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeToken');
   final response = await http.post(url,
       body: json.encode({
-        'product_code': productCode[device],
+        'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
       }),
       headers: {
         'Content-Type': 'application/json',
       });
-
   if (response.statusCode == 200) {
     // Handle success
     printLog('Token removed successfully');
   } else {
     // Handle failure
     printLog('Failed to removed token');
+    printLog(response.body);
   }
 }
 
@@ -1404,7 +1416,7 @@ class MyDrawerState extends State<MyDrawer> {
                     } else {
                       int ppmCO = deviceDATA['ppmco'] ?? 0;
                       int ppmCH4 = deviceDATA['ppmch4'] ?? 0;
-                      bool alert = deviceDATA['alert'] ?? false;
+                      bool alert = deviceDATA['alert'] == 1;
                       return ListTile(
                         leading: SizedBox(
                           width: 20,
@@ -1427,7 +1439,8 @@ class MyDrawerState extends State<MyDrawer> {
                                 topicsToSub
                                     .remove('devices_tx/$equipo/$deviceName');
                                 saveTopicList(topicsToSub);
-                                removeTokenFromDatabase(actualToken, deviceName);
+                                removeTokenFromDatabase(
+                                    actualToken, deviceName);
                               },
                             ),
                           ),

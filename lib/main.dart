@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:biocalden_smart_life/firebase_options.dart';
 import 'package:biocalden_smart_life/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -14,13 +15,16 @@ import 'package:biocalden_smart_life/calefactores/device_silema.dart';
 import 'package:provider/provider.dart';
 import 'package:workmanager/workmanager.dart';
 import 'calefactores/master_calefactor.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'amplifyconfiguration.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);

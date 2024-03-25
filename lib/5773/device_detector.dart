@@ -94,24 +94,25 @@ class DetectorPageState extends State<DetectorPage> {
 
   void _subscribeToWorkCharacteristic() async {
     await myDevice.workUuid.setNotifyValue(true);
-
+    printLog('Me suscribí a work');
     final workSub =
         myDevice.workUuid.onValueReceived.listen((List<int> status) {
       printLog('Cositas: $status');
       setState(() {
-        alert = workValues[4] == 1;
-        ppmCO = workValues[5] + (workValues[6] << 8);
-        ppmCH4 = workValues[7] + (workValues[8] << 8);
-        picoMaxppmCO = workValues[9] + (workValues[10] << 8);
-        picoMaxppmCH4 = workValues[11] + (workValues[12] << 8);
-        promedioppmCO = workValues[17] + (workValues[18] << 8);
-        promedioppmCH4 = workValues[19] + (workValues[20] << 8);
-        daysToExpire = workValues[21] + (workValues[22] << 8);
+        alert = status[4] == 1;
+        ppmCO = status[5] + (status[6] << 8);
+        ppmCH4 = status[7] + (status[8] << 8);
+        picoMaxppmCO = status[9] + (status[10] << 8);
+        picoMaxppmCH4 = status[11] + (status[12] << 8);
+        promedioppmCO = status[17] + (status[18] << 8);
+        promedioppmCH4 = status[19] + (status[20] << 8);
+        daysToExpire = status[21] + (status[22] << 8);
         printLog('Parte baja CO: ${status[9]} // Parte alta CO: ${status[10]}');
         printLog('PPMCO: $ppmCO');
         printLog(
             'Parte baja CH4: ${status[11]} // Parte alta CH4: ${status[12]}');
         printLog('PPMCH4: $ppmCH4');
+        printLog('Alerta: $alert');
         _textToShow = alert ? 'PELIGRO' : 'AIRE PURO';
       });
     });
@@ -227,6 +228,7 @@ class DetectorPageState extends State<DetectorPage> {
             title: GestureDetector(
               onTap: () async {
                 await _showEditNicknameDialog(context);
+                setupToken();
               },
               child: Text(nickname),
             ),
