@@ -347,7 +347,18 @@ class RadiadorPageState extends State<RadiadorPage> {
                   onTap: () async {
                     await _showEditNicknameDialog(context);
                   },
-                  child: Text(nickname),
+                  child: Row(
+                    children: [
+                      Text(nickname),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      const Icon(
+                        Icons.edit,
+                        size: 20,
+                      )
+                    ],
+                  ),
                 ),
                 actions: userConnected
                     ? null

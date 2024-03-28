@@ -187,6 +187,7 @@ class DetectorPageState extends State<DetectorPage> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -230,7 +231,18 @@ class DetectorPageState extends State<DetectorPage> {
                 await _showEditNicknameDialog(context);
                 setupToken();
               },
-              child: Text(nickname),
+              child: Row(
+                  children: [
+                    Text(nickname),
+                    const SizedBox(
+                      width: 3,
+                    ),
+                    const Icon(
+                      Icons.edit,
+                      size: 20,
+                    )
+                  ],
+                ),
             ),
             actions: <Widget>[
               IconButton(
@@ -411,7 +423,7 @@ class DetectorPageState extends State<DetectorPage> {
               children: [
                 Container(
                     height: 100,
-                    width: 350,
+                    width: width - 50,
                     decoration: BoxDecoration(
                       color: alert
                           ? Colors.red
@@ -440,132 +452,135 @@ class DetectorPageState extends State<DetectorPage> {
                 const SizedBox(
                   height: 20,
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 0, 75, 81),
-                        borderRadius: BorderRadius.circular(20),
-                        border: const Border(
-                          bottom: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          right: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          left: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          top: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 200,
+                        width: (width/2) - 15,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 0, 75, 81),
+                          borderRadius: BorderRadius.circular(20),
+                          border: const Border(
+                            bottom: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            right: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            left: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            top: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'GAS',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'GAS',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'Atmósfera Explosiva',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '${(ppmCH4 / 500).round()}',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 50,
+                              ),
+                            ),
+                            const Text(
+                              'LIE',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 30,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'Atmósfera Explosiva',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '${(ppmCH4 / 500).round()}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 50,
-                            ),
-                          ),
-                          const Text(
-                            'LIE',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 5,
-                    ),
-                    Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 0, 75, 81),
-                        borderRadius: BorderRadius.circular(20),
-                        border: const Border(
-                          bottom: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          right: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          left: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
-                          top: BorderSide(
-                              color: Color.fromARGB(255, 24, 178, 199),
-                              width: 5),
+                          ],
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'CO',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Container(
+                        height: 200,
+                        width: (width/2) - 15,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 0, 75, 81),
+                          borderRadius: BorderRadius.circular(20),
+                          border: const Border(
+                            bottom: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            right: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            left: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                            top: BorderSide(
+                                color: Color.fromARGB(255, 24, 178, 199),
+                                width: 5),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'CO',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'Monóxido de carbono',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '$ppmCO',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 50,
+                              ),
+                            ),
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 30,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'Monóxido de carbono',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$ppmCO',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 50,
-                            ),
-                          ),
-                          const Text(
-                            'PPM',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(
                   height: 15,

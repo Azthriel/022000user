@@ -27,6 +27,7 @@ MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 List<int> infoValues = [];
 List<int> toolsValues = [];
+List<int> ioValues = [];
 String myDeviceid = '';
 String deviceName = '';
 bool bluetoothOn = true;
@@ -52,14 +53,16 @@ late bool nightMode;
 int lastUser = 0;
 List<String> previusConnections = [];
 Map<String, String> nicknamesMap = {};
+Map<String, String> subNicknamesMap = {};
 String deviceType = '';
 String softwareVersion = '';
 String hardwareVersion = '';
 String actualToken = '';
+String actualIOToken = '';
 String currentUserEmail = '';
 String deviceSerialNumber = '';
 late String appName;
-late String folderName;
+List<bool> notificationOn = [];
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -70,7 +73,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24032500';
+String appVersionNumber = '24032700';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -538,14 +541,14 @@ void showContactInfo(BuildContext context) {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+            // backgroundColor: const Color.fromARGB(255, 230, 254, 255),
             content: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('Contacto comercial:',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0),
+                          // color: Color.fromARGB(255, 0, 0, 0),
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   Row(
@@ -556,13 +559,13 @@ void showContactInfo(BuildContext context) {
                               '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
                           icon: const Icon(
                             Icons.phone,
-                            color: Color.fromARGB(255, 29, 163, 169),
+                            // color: Color.fromARGB(255, 29, 163, 169),
                             size: 20,
                           )),
                       // const SizedBox(width: 5),
                       const Text('+54 9 11 6223-4181',
                           style: TextStyle(
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              // color: Color.fromARGB(255, 0, 0, 0),
                               fontSize: 20))
                     ],
                   ),
@@ -578,21 +581,21 @@ void showContactInfo(BuildContext context) {
                                 '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                             icon: const Icon(
                               Icons.mail,
-                              color: Color.fromARGB(255, 29, 163, 169),
+                              // color: Color.fromARGB(255, 29, 163, 169),
                               size: 20,
                             ),
                           ),
                           // const SizedBox(width: 5),
                           const Text('ceat@ibsanitarios.com.ar',
                               style: TextStyle(
-                                  color: Color.fromARGB(255, 0, 0, 0),
+                                  // color: Color.fromARGB(255, 0, 0, 0),
                                   fontSize: 20))
                         ],
                       )),
                   const SizedBox(height: 20),
                   const Text('Consulta técnica:',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0),
+                          // color: Color.fromARGB(255, 0, 0, 0),
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   SingleChildScrollView(
@@ -607,7 +610,7 @@ void showContactInfo(BuildContext context) {
                               '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${productCode[deviceName]}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                           icon: const Icon(
                             Icons.mail,
-                            color: Color.fromARGB(255, 29, 163, 169),
+                            // color: Color.fromARGB(255, 29, 163, 169),
                             size: 20,
                           ),
                         ),
@@ -615,7 +618,7 @@ void showContactInfo(BuildContext context) {
                         const Text(
                           'pablo@intelligentgas.com.ar',
                           style: TextStyle(
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              // color: Color.fromARGB(255, 0, 0, 0),
                               fontSize: 20),
                           overflow: TextOverflow.ellipsis,
                         )
@@ -625,7 +628,7 @@ void showContactInfo(BuildContext context) {
                   const SizedBox(height: 20),
                   const Text('Customer service:',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 0, 0, 0),
+                          // color: Color.fromARGB(255, 0, 0, 0),
                           fontSize: 20,
                           fontWeight: FontWeight.bold)),
                   Row(
@@ -636,13 +639,13 @@ void showContactInfo(BuildContext context) {
                               '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
                           icon: const Icon(
                             Icons.phone,
-                            color: Color.fromARGB(255, 29, 163, 169),
+                            // color: Color.fromARGB(255, 29, 163, 169),
                             size: 20,
                           )),
                       // const SizedBox(width: 5),
                       const Text('+54 9 11 6223-2619',
                           style: TextStyle(
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              // color: Color.fromARGB(255, 0, 0, 0),
                               fontSize: 20))
                     ],
                   ),
@@ -658,7 +661,7 @@ void showContactInfo(BuildContext context) {
                                 'Tengo una consulta referida a mi equipo $deviceName: \n'),
                             icon: const Icon(
                               Icons.mail,
-                              color: Color.fromARGB(255, 29, 163, 169),
+                              // color: Color.fromARGB(255, 29, 163, 169),
                               size: 20,
                             ),
                           ),
@@ -715,10 +718,11 @@ void setupToken() async {
   String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
 
   if (token != null) {
-    if(actualToken != ''){
+    if (actualToken != '') {
       await removeTokenFromDatabase(actualToken, deviceName);
     }
     actualToken = tokenToSend;
+    saveToken(actualToken);
     saveTokenToDatabase(tokenToSend, deviceName);
   }
 
@@ -726,7 +730,7 @@ void setupToken() async {
     String? newtokenToSend =
         '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
 
-    if(actualToken != ''){
+    if (actualToken != '') {
       await removeTokenFromDatabase(actualToken, deviceName);
     }
     actualToken = newtokenToSend;
@@ -735,10 +739,9 @@ void setupToken() async {
 }
 
 void saveTokenToDatabase(String token, String device) async {
-  saveToken(token);
   printLog("Voy a mandar: $token");
-  final url =
-      Uri.parse('https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken');
+  final url = Uri.parse(
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken');
   final response = await http.post(url,
       body: json.encode({
         'productCode': productCode[device],
@@ -802,6 +805,30 @@ void requestPermissionFCM() async {
   }
 }
 
+void setupIOToken(String nick) async {
+  String? token = await FirebaseMessaging.instance.getToken();
+  String? tokenToSend = '$token/-/$nick';
+
+  if (token != null) {
+    if (actualIOToken != '') {
+      await removeTokenFromDatabase(actualIOToken, deviceName);
+    }
+    actualIOToken = tokenToSend;
+    saveTokenIO(actualIOToken);
+    saveTokenToDatabase(tokenToSend, deviceName);
+  }
+
+  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    String? newtokenToSend = '$newToken/-/$nick';
+
+    if (actualIOToken != '') {
+      await removeTokenFromDatabase(actualIOToken, deviceName);
+    }
+    actualIOToken = newtokenToSend;
+    saveTokenToDatabase(newtokenToSend, deviceName);
+  });
+}
+
 // CLASES //
 
 //*-BLE-*//caracteristicas y servicios
@@ -822,6 +849,7 @@ class MyDevice {
   late BluetoothCharacteristic varsUuid;
   late BluetoothCharacteristic workUuid;
   late BluetoothCharacteristic lightUuid;
+  late BluetoothCharacteristic ioUuid;
 
   Future<bool> setup(BluetoothDevice connectedDevice) async {
     try {
@@ -859,26 +887,54 @@ class MyDevice {
           () => {});
       saveGlobalData(globalDATA);
 
-      if (deviceType == '022000' ||
-          deviceType == '027000' ||
-          deviceType == '041220') {
-        BluetoothService espService = services.firstWhere(
-            (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
+      switch (deviceType) {
+        case '022000':
+          BluetoothService espService = services.firstWhere(
+              (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
 
-        varsUuid = espService.characteristics.firstWhere((c) =>
-            c.uuid ==
-            Guid(
-                '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //WorkingTemp:WorkingStatus:EnergyTimer:HeaterOn:NightMode
-      } else {
-        BluetoothService service = services.firstWhere(
-            (s) => s.uuid == Guid('dd249079-0ce8-4d11-8aa9-53de4040aec6'));
+          varsUuid = espService.characteristics.firstWhere((c) =>
+              c.uuid ==
+              Guid(
+                  '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //WorkingTemp:WorkingStatus:EnergyTimer:HeaterOn:NightMode
+          break;
+        case '027000':
+          BluetoothService espService = services.firstWhere(
+              (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
 
-        workUuid = service.characteristics.firstWhere((c) =>
-            c.uuid ==
-            Guid(
-                '6869fe94-c4a2-422a-ac41-b2a7a82803e9')); //Array de datos (ppm,etc)
-        lightUuid = service.characteristics.firstWhere((c) =>
-            c.uuid == Guid('12d3c6a1-f86e-4d5b-89b5-22dc3f5c831f')); //No leo
+          varsUuid = espService.characteristics.firstWhere((c) =>
+              c.uuid ==
+              Guid(
+                  '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //WorkingTemp:WorkingStatus:EnergyTimer:HeaterOn:NightMode
+          break;
+        case '041220':
+          BluetoothService espService = services.firstWhere(
+              (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
+
+          varsUuid = espService.characteristics.firstWhere((c) =>
+              c.uuid ==
+              Guid(
+                  '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //WorkingTemp:WorkingStatus:EnergyTimer:HeaterOn:NightMode
+          break;
+        case '015773':
+          BluetoothService service = services.firstWhere(
+              (s) => s.uuid == Guid('dd249079-0ce8-4d11-8aa9-53de4040aec6'));
+
+          workUuid = service.characteristics.firstWhere((c) =>
+              c.uuid ==
+              Guid(
+                  '6869fe94-c4a2-422a-ac41-b2a7a82803e9')); //Array de datos (ppm,etc)
+          lightUuid = service.characteristics.firstWhere((c) =>
+              c.uuid == Guid('12d3c6a1-f86e-4d5b-89b5-22dc3f5c831f')); //No leo
+
+          break;
+        case '020010':
+          BluetoothService service = services.firstWhere(
+              (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
+          ioUuid = service.characteristics.firstWhere(
+              (c) => c.uuid == Guid('03b1c5d9-534a-4980-aed3-f59615205216'));
+          break;
+        case '030710':
+          break;
       }
 
       return Future.value(true);

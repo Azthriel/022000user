@@ -54,7 +54,13 @@ class ScanPageState extends State<ScanPage> {
       toastFlag = false;
       try {
         FlutterBluePlus.startScan(
-            withKeywords: ['Eléctrico', 'Gas', 'Detector', 'Radiador'],
+            withKeywords: [
+              'Eléctrico',
+              'Gas',
+              'Detector',
+              'Radiador',
+              'Módulo'
+            ],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
             continuousUpdates: true);
@@ -347,8 +353,10 @@ class LoadState extends State<LoadingPage> {
           navigatorKey.currentState?.pushReplacementNamed('/calefactor');
         } else if (deviceType == '041220') {
           navigatorKey.currentState?.pushReplacementNamed('/radiador');
-        } else {
+        } else if (deviceType == '015773') {
           navigatorKey.currentState?.pushReplacementNamed('/detector');
+        } else if (deviceType == '020010') {
+          navigatorKey.currentState?.pushReplacementNamed('/io');
         }
       } else {
         showToast('Error en el dispositivo, intente nuevamente');
@@ -417,7 +425,7 @@ class LoadState extends State<LoadingPage> {
         } else {
           deviceOwner = false;
         }
-      } else {
+      } else if (deviceType == '015773') {
         //Si soy un detector
         workValues = await myDevice.workUuid.read();
         printLog('Valores work: $workValues');
@@ -431,6 +439,9 @@ class LoadState extends State<LoadingPage> {
         daysToExpire = workValues[21] + (workValues[22] << 8);
 
         setupToken();
+      } else if (deviceType == '020010') {
+        ioValues = await myDevice.ioUuid.read();
+        printLog('Valores IO: $ioValues');
       }
 
       return Future.value(true);

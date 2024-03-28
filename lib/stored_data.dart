@@ -11,6 +11,9 @@ void loadValues() async {
   ownedDevices = await loadOwnedDevices();
   nicknamesMap = await loadNicknamesMap();
   actualToken = await loadToken();
+  actualIOToken = await loadTokenIO();
+  subNicknamesMap = await loadSubNicknamesMap();
+  notificationOn = await loadNotificationOn();
 }
 // MASTERLOAD \\
 
@@ -69,6 +72,23 @@ Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
 Future<Map<String, String>> loadNicknamesMap() async {
   final prefs = await SharedPreferences.getInstance();
   String? nicknamesString = prefs.getString('nicknamesMap');
+  if (nicknamesString != null) {
+    return Map<String, String>.from(json.decode(nicknamesString));
+  }
+  return {}; // Devuelve un mapa vacío si no hay nada almacenado
+}
+
+//*-SubNicknames
+
+Future<void> saveSubNicknamesMap(Map<String, String> nicknamesMap) async {
+  final prefs = await SharedPreferences.getInstance();
+  String nicknamesString = json.encode(nicknamesMap);
+  await prefs.setString('subNicknamesMap', nicknamesString);
+}
+
+Future<Map<String, String>> loadSubNicknamesMap() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? nicknamesString = prefs.getString('subNicknamesMap');
   if (nicknamesString != null) {
     return Map<String, String>.from(json.decode(nicknamesString));
   }
@@ -155,6 +175,24 @@ Future<bool> loadControlValue() async {
   }
 }
 
+//*-NotificationOn List
+
+Future<void> saveNotificationOn(List<String> lista) async {
+  final prefs = await SharedPreferences.getInstance();
+  String devicesList = json.encode(lista);
+  await prefs.setString('NotificationOn', devicesList);
+}
+
+Future<List<bool>> loadNotificationOn() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? devicesList = prefs.getString('NotificationOn');
+  if (devicesList != null) {
+    List<dynamic> decodedList = json.decode(devicesList);
+    return decodedList.cast<bool>();
+  }
+  return List<bool>.filled(4, false); // Devuelve una lista vacía si no hay nada almacenado
+}
+
 //*-Owned Devices
 
 Future<void> saveOwnedDevices(List<String> lista) async {
@@ -183,6 +221,21 @@ Future<void> saveToken(String token) async {
 Future<String> loadToken() async {
   final prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
+  if (token != null) {
+    return token;
+  } else {
+    return '';
+  }
+}
+
+Future<void> saveTokenIO(String token) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('tokenio', token);
+}
+
+Future<String> loadTokenIO() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('tokenio');
   if (token != null) {
     return token;
   } else {

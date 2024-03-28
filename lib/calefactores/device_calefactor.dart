@@ -137,12 +137,16 @@ class ControlPageState extends State<ControlPage> {
     int fun = on ? 1 : 0;
     String data = '${command(deviceType)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
-    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] = on;
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
+        on;
     saveGlobalData(globalDATA);
     try {
-      String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-      String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
-      String message = jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      String topic =
+          'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+      String topic2 =
+          'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+      String message = jsonEncode(
+          globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
       sendMessagemqtt(topic, message);
       sendMessagemqtt(topic2, message);
     } catch (e, s) {
@@ -264,7 +268,8 @@ class ControlPageState extends State<ControlPage> {
             ),
             content: Text(
                 '$appName utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: const TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
+                style:
+                    const TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(
@@ -343,7 +348,18 @@ class ControlPageState extends State<ControlPage> {
                   onTap: () async {
                     await _showEditNicknameDialog(context);
                   },
-                  child: Text(nickname),
+                  child: Row(
+                    children: [
+                      Text(nickname),
+                      const SizedBox(
+                        width: 3,
+                      ),
+                      const Icon(
+                        Icons.edit,
+                        size: 20,
+                      )
+                    ],
+                  ),
                 ),
                 actions: userConnected
                     ? null
@@ -841,7 +857,8 @@ class ControlPageState extends State<ControlPage> {
                                   nightMode = !nightMode;
                                   printLog('Estado: $nightMode');
                                   int fun = nightMode ? 1 : 0;
-                                  String data = '${command(deviceType)}[9]($fun)';
+                                  String data =
+                                      '${command(deviceType)}[9]($fun)';
                                   printLog(data);
                                   myDevice.toolsUuid.write(data.codeUnits);
                                 });

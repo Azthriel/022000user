@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:biocalden_smart_life/020010/device_inout.dart';
 import 'package:biocalden_smart_life/firebase_options.dart';
 import 'package:biocalden_smart_life/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
@@ -129,6 +130,7 @@ class MyAppState extends State<MyApp> {
         '/calefactor': (context) => const ControlPage(),
         '/detector': (context) => const DetectorPage(),
         '/radiador': (context) => const RadiadorPage(),
+        '/io':(context) => const IODevices(),
       },
     );
   }

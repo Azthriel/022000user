@@ -1,7 +1,7 @@
 name: biocalden_smart_life
 description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 2.0.1+4
+version: 2.0.1+6
 
 environment:
   sdk: '>=3.2.2 <4.0.0'
@@ -64,3 +64,4 @@ flutter:
     - assets/IntelligentGas/G.png
     - assets/Silema/WB_logo.png
     - assets/Silema/WB_Banner.png
+    - assets/Biocalden/BiocaldenBanner.png

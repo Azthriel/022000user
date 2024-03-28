@@ -119,7 +119,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       height: 50,
                       // width: double.infinity,
                       child:
-                          Image.asset('assets/Biocalden/Biocalden_banner.png'),
+                          Image.asset('assets/Biocalden/BiocaldenBanner.png'),
                     ),
                     const SizedBox(height: 50),
                     SizedBox(
@@ -277,17 +277,19 @@ class DeviceDrawerState extends State<DeviceDrawer> {
               ),
             ),
             Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: ElevatedButton(
-                    style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 189, 189, 189)),
-                        foregroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 255, 255, 255))),
-                    onPressed: () {
-                      showContactInfo(context);
-                    },
-                    child: const Text('CONTACTANOS'))),
+              padding: const EdgeInsets.all(10.0),
+              child: ElevatedButton(
+                style: const ButtonStyle(
+                    backgroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(255, 189, 189, 189)),
+                    foregroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(255, 255, 255, 255))),
+                onPressed: () {
+                  showContactInfo(context);
+                },
+                child: const Text('CONTACTANOS'),
+              ),
+            ),
           ],
         ));
   }
