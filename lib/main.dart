@@ -38,14 +38,16 @@ Future<void> main() async {
       barrierDismissible: true,
       builder: (BuildContext context) {
         String displayMessage = message.notification?.body.toString() ??
-            'Un detector mando una alerta';
+            'Un equipo mando una alerta';
+        String displayTitle =
+            message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
 
         return AlertDialog(
             backgroundColor: const Color.fromARGB(255, 230, 254, 255),
-            title: const Text(
-              '¡ALERTA EN DETECTOR!',
+            title: Text(
+              displayTitle,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                   color: Color.fromARGB(255, 255, 0, 0),
                   fontWeight: FontWeight.bold),
             ),
@@ -130,7 +132,7 @@ class MyAppState extends State<MyApp> {
         '/calefactor': (context) => const ControlPage(),
         '/detector': (context) => const DetectorPage(),
         '/radiador': (context) => const RadiadorPage(),
-        '/io':(context) => const IODevices(),
+        '/io': (context) => const IODevices(),
       },
     );
   }

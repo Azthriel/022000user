@@ -145,8 +145,7 @@ class ControlPageState extends State<ControlPage> {
           'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
       String topic2 =
           'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
-      String message = jsonEncode(
-          globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      String message = jsonEncode({'w_status': on ? '1' : '0'});
       sendMessagemqtt(topic, message);
       sendMessagemqtt(topic2, message);
     } catch (e, s) {

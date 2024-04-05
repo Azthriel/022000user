@@ -1,90 +1,35 @@
 import 'dart:convert';
-
 import 'package:biocalden_smart_life/master.dart';
+import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 
 // VARIABLES //
-bool configPass = false;
 List<String> tipo = [];
 List<bool> estado = [];
 List<String> valores = [];
+
 // FUNCIONES //
-
-Future<void> passText(BuildContext context) {
-  TextEditingController passController = TextEditingController();
-
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        backgroundColor: const Color(0xff1f1d20),
-        title: const Text(
-          'Ingresar contraseña del módulo ubicada en el manual',
-          style: TextStyle(
-            color: Color(0xffa79986),
-          ),
-        ),
-        content: TextField(
-          style: const TextStyle(
-            color: Color(0xffa79986),
-          ),
-          cursorColor: const Color(0xffa79986),
-          controller: passController,
-          decoration: const InputDecoration(
-            hintText: "********",
-            hintStyle: TextStyle(
-              color: Color(0xffa79986),
-            ),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Color(0xffa79986),
-              ),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: Color(0xffa79986),
-              ),
-            ),
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            style: const ButtonStyle(
-              foregroundColor: MaterialStatePropertyAll(
-                Color(0xffa79986),
-              ),
-            ),
-            child: const Text('Cancelar'),
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-            },
-          ),
-          TextButton(
-            style: const ButtonStyle(
-              foregroundColor: MaterialStatePropertyAll(
-                Color(0xffa79986),
-              ),
-            ),
-            child: const Text('Probar'),
-            onPressed: () {
-              if (passController.text == '53494d45') {
-                configPass = true;
-                Navigator.of(dialogContext).pop();
-              } else {
-                showToast('Contraseña incorrecta');
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
 
 void controlOut(bool value, int index) async {
   String fun = '$index#${value ? '1' : '0'}';
   await myDevice.ioUuid.write(fun.codeUnits);
+
+  String fun2 = '$index:${value ? '1' : '0'}';
+  deviceSerialNumber = extractSerialNumber(deviceName);
+  String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+  String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+  String message = jsonEncode({'io': fun2});
+  sendMessagemqtt(topic, message);
+  valores[index] = fun2;
+  String data = valores.join('/');
+  globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io'] = data;
+  saveGlobalData(globalDATA);
+  String message2 =
+      jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+  sendMessagemqtt(topic2, message2);
+
+  printLog('Guarde en IO: $data');
 }
 
 Future<void> changeModes(BuildContext context) {
@@ -96,33 +41,82 @@ Future<void> changeModes(BuildContext context) {
       return AlertDialog(
         backgroundColor: const Color(0xff1f1d20),
         title: const Text(
-          'Ingresar contraseña del módulo ubicada en el manual',
-          style: TextStyle(
-            color: Color(0xffa79986),
-          ),
+          'Cambiar modo:',
+          style:
+              TextStyle(color: Color(0xffa79986), fontWeight: FontWeight.bold),
         ),
-        content: ListView.builder(
-            itemCount: parts.length,
-            itemBuilder: (context, int index) {
-              bool entrada = tipo[index] == 'Entrada';
-              return ListTile(
-                title: Text(
-                  subNicknamesMap['$deviceName/-/${parts[index]}'] ??
-                      '${tipo[index]} ${index + 1}',
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (var i = 0; i < parts.length; i++) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xff4b2427),
+                  borderRadius: BorderRadius.circular(20),
+                  border: const Border(
+                    bottom: BorderSide(color: Color(0xffa79986), width: 1),
+                    right: BorderSide(color: Color(0xffa79986), width: 1),
+                    left: BorderSide(color: Color(0xffa79986), width: 1),
+                    top: BorderSide(color: Color(0xffa79986), width: 1),
+                  ),
                 ),
-                subtitle: entrada
-                    ? const Text('¿Cambiar de entrada a salida?')
-                    : const Text('¿Cambiar de salida a entrada?'),
-                leading: TextButton(
-                    onPressed: () {
-                      String fun =
-                          '${command(deviceType)}[13]($index#${entrada ? '0' : '1'})';
-                      printLog(fun);
-                      myDevice.toolsUuid.write(fun.codeUnits);
-                    },
-                    child: const Text('CAMBIAR')),
-              );
-            }),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        subNicknamesMap['$deviceName/-/${parts[i]}'] ??
+                            '${tipo[i]} ${i + 1}',
+                        style: const TextStyle(
+                            color: Color(0xffa79986),
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                        height: 5,
+                      ),
+                      tipo[i] == 'Entrada'
+                          ? const Text(
+                              '    ¿Cambiar de entrada a salida?    ',
+                              style: TextStyle(
+                                color: Color(0xffa79986),
+                              ),
+                            )
+                          : const Text(
+                              '    ¿Cambiar de salida a entrada?    ',
+                              style: TextStyle(
+                                color: Color(0xffa79986),
+                              ),
+                            ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      TextButton(
+                          onPressed: () {
+                            String fun =
+                                '${command(deviceType)}[13]($i#${tipo[i] == 'Entrada' ? '0' : '1'})';
+                            printLog(fun);
+                            myDevice.toolsUuid.write(fun.codeUnits);
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: const Text(
+                            'CAMBIAR',
+                            style: TextStyle(
+                              color: Color(0xffa79986),
+                            ),
+                          )),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+            ],
+          ],
+        ),
         actions: <Widget>[
           TextButton(
             style: const ButtonStyle(
@@ -130,19 +124,10 @@ Future<void> changeModes(BuildContext context) {
                 Color(0xffa79986),
               ),
             ),
-            child: const Text('Cancelar'),
+            child: const Text('Cerrar'),
             onPressed: () {
               Navigator.of(dialogContext).pop();
             },
-          ),
-          TextButton(
-            style: const ButtonStyle(
-              foregroundColor: MaterialStatePropertyAll(
-                Color(0xffa79986),
-              ),
-            ),
-            child: const Text('Probar'),
-            onPressed: () {},
           ),
         ],
       );
@@ -159,6 +144,7 @@ class DrawerIO extends StatefulWidget {
 }
 
 class DrawerIOState extends State<DrawerIO> {
+  TextEditingController passController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -173,11 +159,50 @@ class DrawerIOState extends State<DrawerIO> {
             child: Image.asset('assets/Biocalden/BiocaldenBanner.png'),
           ),
           const Spacer(),
+          const Text(
+            'Ingresar la contraseña del módulo ubicada en el manual',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xffa79986), fontSize: 20),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          SizedBox(
+            width: 200,
+            child: TextField(
+              style: const TextStyle(
+                color: Color(0xffa79986),
+              ),
+              cursorColor: const Color(0xffa79986),
+              controller: passController,
+              decoration: const InputDecoration(
+                hintText: "********",
+                hintStyle: TextStyle(
+                  color: Color(0xffa79986),
+                ),
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xffa79986),
+                  ),
+                ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(
+                    color: Color(0xffa79986),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
           ElevatedButton(
               onPressed: () {
-                passText(context).then((value) {
-                  printLog(configPass);
-                });
+                if (passController.text == '53494d45') {
+                  changeModes(context);
+                } else {
+                  showToast('Clave incorrecta');
+                }
               },
               style: const ButtonStyle(
                 backgroundColor: MaterialStatePropertyAll(

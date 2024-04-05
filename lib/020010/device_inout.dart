@@ -12,7 +12,6 @@ class IODevices extends StatefulWidget {
 }
 
 class IODevicesState extends State<IODevices> {
-
   bool werror = false;
   late String nickname;
   var parts = utf8.decode(ioValues).split('/');
@@ -188,6 +187,17 @@ class IODevicesState extends State<IODevices> {
                   nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
                   saveNicknamesMap(nicknamesMap);
                   printLog('$nicknamesMap');
+                  if (notificationOn.contains(true)) {
+                    notificationOn.asMap().entries.forEach((entry) {
+                      int index = entry.key;
+                      var element = entry.value;
+                      if (element) {
+                        String nick =
+                            '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} ${index + 1}'}';
+                        setupIOToken(nick, index);
+                      }
+                    });
+                  }
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
               },
@@ -259,10 +269,13 @@ class IODevicesState extends State<IODevices> {
               onPressed: () {
                 setState(() {
                   String newNickname = subNicknameController.text;
-                  subNicknamesMap['$deviceName/-/${parts[index]}'] =
+                  subNicknamesMap['$deviceName/-/$index'] =
                       newNickname;
                   saveSubNicknamesMap(subNicknamesMap);
                   printLog('$subNicknamesMap');
+                  String nick =
+                      '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
+                  setupIOToken(nick, index);
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
               },
@@ -551,15 +564,12 @@ class IODevicesState extends State<IODevices> {
                               onTap: () async {
                                 await _showEditSubNicknameDialog(
                                     context, index);
-                                String nick =
-                                    '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} ${index + 1}'}';
-                                setupIOToken(nick);
                               },
                               child: Row(
                                 children: [
                                   Text(
                                     subNicknamesMap[
-                                            '$deviceName/-/${parts[index]}'] ??
+                                            '$deviceName/-/$index'] ??
                                         '${tipo[index]} ${index + 1}',
                                     style: const TextStyle(
                                         color: Color(0xff3e3d38),
@@ -602,7 +612,7 @@ class IODevicesState extends State<IODevices> {
                                     ? const Icon(
                                         Icons.new_releases,
                                         color: Color(0xff9b9b9b),
-                                        size: 150,
+                                        size: 80,
                                       )
                                     : const Icon(
                                         Icons.new_releases,
@@ -680,8 +690,8 @@ class IODevicesState extends State<IODevices> {
                                             );
                                           } else {
                                             String nick =
-                                                '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} ${index + 1}'}';
-                                            setupIOToken(nick);
+                                                '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
+                                            setupIOToken(nick, index);
                                             showToast('Notificación activada');
                                             setState(() {
                                               notificationOn[index] = true;
@@ -723,6 +733,10 @@ class IODevicesState extends State<IODevices> {
                                     value: estado[index],
                                     onChanged: (value) {
                                       controlOut(value, index);
+                                      printLog(
+                                          '👍${'$deviceName/-/$index'}');
+                                      printLog(
+                                          '👀👀👀: ${subNicknamesMap['$deviceName/-/$index']}');
                                     },
                                   ),
                                 )

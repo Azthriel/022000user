@@ -73,7 +73,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24032700';
+String appVersionNumber = '24040400';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -546,136 +546,135 @@ void showContactInfo(BuildContext context) {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Contacto comercial:',
+              const Text('Contacto comercial:',
+                  style: TextStyle(
+                      // color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                      onPressed: () => _sendWhatsAppMessage('5491162234181',
+                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                      icon: const Icon(
+                        Icons.phone,
+                        // color: Color.fromARGB(255, 29, 163, 169),
+                        size: 20,
+                      )),
+                  // const SizedBox(width: 5),
+                  const Text('+54 9 11 6223-4181',
                       style: TextStyle(
                           // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                  Row(
+                          fontSize: 20))
+                ],
+              ),
+              SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                          onPressed: () => _sendWhatsAppMessage('5491162234181',
-                              '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
-                          icon: const Icon(
-                            Icons.phone,
-                            // color: Color.fromARGB(255, 29, 163, 169),
-                            size: 20,
-                          )),
-                      // const SizedBox(width: 5),
-                      const Text('+54 9 11 6223-4181',
-                          style: TextStyle(
-                              // color: Color.fromARGB(255, 0, 0, 0),
-                              fontSize: 20))
-                    ],
-                  ),
-                  SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () => _launchEmail(
-                                'ceat@ibsanitarios.com.ar',
-                                'Consulta comercial acerca de la linea $appName',
-                                '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
-                            icon: const Icon(
-                              Icons.mail,
-                              // color: Color.fromARGB(255, 29, 163, 169),
-                              size: 20,
-                            ),
-                          ),
-                          // const SizedBox(width: 5),
-                          const Text('ceat@ibsanitarios.com.ar',
-                              style: TextStyle(
-                                  // color: Color.fromARGB(255, 0, 0, 0),
-                                  fontSize: 20))
-                        ],
-                      )),
-                  const SizedBox(height: 20),
-                  const Text('Consulta técnica:',
-                      style: TextStyle(
-                          // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          onPressed: () => _launchEmail(
-                              'pablo@intelligentgas.com.ar',
-                              'Consulta ref. $deviceName',
-                              '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${productCode[deviceName]}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
-                          icon: const Icon(
-                            Icons.mail,
-                            // color: Color.fromARGB(255, 29, 163, 169),
-                            size: 20,
-                          ),
+                        onPressed: () => _launchEmail(
+                            'ceat@ibsanitarios.com.ar',
+                            'Consulta comercial acerca de la linea $appName',
+                            '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                        icon: const Icon(
+                          Icons.mail,
+                          // color: Color.fromARGB(255, 29, 163, 169),
+                          size: 20,
                         ),
-                        // const SizedBox(width: 5),
-                        const Text(
-                          'pablo@intelligentgas.com.ar',
-                          style: TextStyle(
-                              // color: Color.fromARGB(255, 0, 0, 0),
-                              fontSize: 20),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Text('Customer service:',
-                      style: TextStyle(
-                          // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                          onPressed: () => _sendWhatsAppMessage('5491162232619',
-                              '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
-                          icon: const Icon(
-                            Icons.phone,
-                            // color: Color.fromARGB(255, 29, 163, 169),
-                            size: 20,
-                          )),
+                      ),
                       // const SizedBox(width: 5),
-                      const Text('+54 9 11 6223-2619',
+                      const Text('ceat@ibsanitarios.com.ar',
                           style: TextStyle(
                               // color: Color.fromARGB(255, 0, 0, 0),
                               fontSize: 20))
                     ],
-                  ),
-                  SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          IconButton(
-                            onPressed: () => _launchEmail(
-                                'service@calefactorescalden.com.ar',
-                                'Consulta ${productCode[deviceName]}',
-                                'Tengo una consulta referida a mi equipo $deviceName: \n'),
-                            icon: const Icon(
-                              Icons.mail,
-                              // color: Color.fromARGB(255, 29, 163, 169),
-                              size: 20,
-                            ),
-                          ),
-                          // const SizedBox(width: 5),
-                          const Text(
-                            'service@calefactorescalden.com.ar',
-                            style: TextStyle(
-                                color: Color.fromARGB(255, 0, 0, 0),
-                                fontSize: 20),
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
+                  )),
+              const SizedBox(height: 20),
+              const Text('Consulta técnica:',
+                  style: TextStyle(
+                      // color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () => _launchEmail(
+                          'pablo@intelligentgas.com.ar',
+                          'Consulta ref. $deviceName',
+                          '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${productCode[deviceName]}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                      icon: const Icon(
+                        Icons.mail,
+                        // color: Color.fromARGB(255, 29, 163, 169),
+                        size: 20,
+                      ),
+                    ),
+                    // const SizedBox(width: 5),
+                    const Text(
+                      'pablo@intelligentgas.com.ar',
+                      style: TextStyle(
+                          // color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 20),
+                      overflow: TextOverflow.ellipsis,
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text('Customer service:',
+                  style: TextStyle(
+                      // color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                      onPressed: () => _sendWhatsAppMessage('5491162232619',
+                          '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
+                      icon: const Icon(
+                        Icons.phone,
+                        // color: Color.fromARGB(255, 29, 163, 169),
+                        size: 20,
                       )),
-                ]));
+                  // const SizedBox(width: 5),
+                  const Text('+54 9 11 6223-2619',
+                      style: TextStyle(
+                          // color: Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 20))
+                ],
+              ),
+              SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: () => _launchEmail(
+                            'service@calefactorescalden.com.ar',
+                            'Consulta ${productCode[deviceName]}',
+                            'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                        icon: const Icon(
+                          Icons.mail,
+                          // color: Color.fromARGB(255, 29, 163, 169),
+                          size: 20,
+                        ),
+                      ),
+                      // const SizedBox(width: 5),
+                      const Text(
+                        'service@calefactorescalden.com.ar',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20),
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    ],
+                  )),
+            ]));
       });
 }
 
@@ -805,9 +804,9 @@ void requestPermissionFCM() async {
   }
 }
 
-void setupIOToken(String nick) async {
+void setupIOToken(String nick, int index) async {
   String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/$nick';
+  String? tokenToSend = '$token/-/$nick/-/${index + 1}';
 
   if (token != null) {
     if (actualIOToken != '') {
@@ -819,7 +818,7 @@ void setupIOToken(String nick) async {
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    String? newtokenToSend = '$newToken/-/$nick';
+    String? newtokenToSend = '$newToken/-/$nick/-/${index + 1}';
 
     if (actualIOToken != '') {
       await removeTokenFromDatabase(actualIOToken, deviceName);
@@ -1467,9 +1466,7 @@ class MyDrawerState extends State<MyDrawer> {
                                   height: 0,
                                   width: 0,
                                 ));
-                    } else if (equipo == 'error') {
-                      return const Text('Un error inesperado ha ocurrido');
-                    } else {
+                    } else if (equipo == '015773_IOT') {
                       int ppmCO = deviceDATA['ppmco'] ?? 0;
                       int ppmCH4 = deviceDATA['ppmch4'] ?? 0;
                       bool alert = deviceDATA['alert'] == 1;
@@ -1545,6 +1542,140 @@ class MyDrawerState extends State<MyDrawer> {
                               )
                             : null,
                       );
+                    } else if (equipo == '020010_IOT') {
+                      String io = deviceDATA['io'] ?? '0:0/0:0/0:0/1:1';
+                      var partes = io.split('/');
+                      List<String> tipoDrawer = [];
+                      List<bool> estadoDrawer = [];
+                      for (int i = 0; i < partes.length; i++) {
+                        var equipo = partes[i].split(':');
+                        tipoDrawer.add(equipo[0] == '0' ? 'Salida' : 'Entrada');
+                        estadoDrawer.add(equipo[1] == '1');
+                      }
+                      return ListTile(
+                        leading: SizedBox(
+                          width: 20,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Color.fromARGB(255, 156, 157, 152),
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                printLog('Eliminando de la lista');
+                                setState(() {
+                                  previusConnections.removeAt(index - 1);
+                                });
+                                guardarLista(previusConnections);
+                                unSubToTopicMQTT(
+                                    'devices_tx/$equipo/$deviceName');
+                                topicsToSub
+                                    .remove('devices_tx/$equipo/$deviceName');
+                                saveTopicList(topicsToSub);
+                                removeTokenFromDatabase(
+                                    actualToken, deviceName);
+                              },
+                            ),
+                          ),
+                        ),
+                        title: Text(nicknamesMap[deviceName] ?? deviceName,
+                            style: const TextStyle(
+                                color: Color.fromARGB(255, 178, 181, 174),
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold)),
+                        subtitle: SizedBox(
+                            height: 80,
+                            child: PageView.builder(
+                              physics: const PageScrollPhysics(
+                                  parent: BouncingScrollPhysics()),
+                              itemCount: partes.length,
+                              itemBuilder: (context, index) {
+                                bool entradaDrawer =
+                                    tipoDrawer[index] == 'Entrada';
+                                return ListTile(
+                                  title: Text(
+                                    subNicknamesMap['$deviceName/-/$index'] ??
+                                        '${tipoDrawer[index]} ${index + 1}',
+                                    style: const TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 178, 181, 174),
+                                        fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.start,
+                                  ),
+                                  subtitle: entradaDrawer
+                                      ? estadoDrawer[index]
+                                          ? const Text('Cerrado',
+                                              style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 15))
+                                          : const Text('Abierto',
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 15))
+                                      : estadoDrawer[index]
+                                          ? const Text('Encendido',
+                                              style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 15))
+                                          : const Text('Apagado',
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 15)),
+                                  trailing: entradaDrawer
+                                      ? estadoDrawer[index]
+                                          ? const Icon(
+                                              Icons.new_releases,
+                                              color: Color(0xff9b9b9b),
+                                            )
+                                          : const Icon(
+                                              Icons.new_releases,
+                                              color: Color(0xffcb3234),
+                                            )
+                                      : Switch(
+                                          activeColor: const Color.fromARGB(
+                                              255, 156, 157, 152),
+                                          activeTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                          inactiveThumbColor:
+                                              const Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                          inactiveTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 156, 157, 152),
+                                          value: estadoDrawer[index],
+                                          onChanged: (value) {
+                                            String fun =
+                                                '$index:${value ? '1' : '0'}';
+                                            deviceSerialNumber =
+                                                extractSerialNumber(deviceName);
+                                            String topic =
+                                                'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+                                            String topic2 =
+                                                'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+                                            String message =
+                                                jsonEncode({'io': fun});
+                                            sendMessagemqtt(topic, message);
+                                            partes[index] = fun;
+                                            String data = partes.join('/');
+                                            globalDATA[
+                                                    '${productCode[deviceName]}/$deviceSerialNumber']![
+                                                'io'] = data;
+                                            saveGlobalData(globalDATA);
+                                            String message2 = jsonEncode(globalDATA[
+                                                '${productCode[deviceName]}/$deviceSerialNumber']);
+                                            sendMessagemqtt(topic2, message2);
+                                            printLog('Guarde en io: $data');
+                                          },
+                                        ),
+                                );
+                              },
+                            )),
+                      );
+                    } else {
+                      return const Text('Un error inesperado ha ocurrido');
                     }
                   },
                 );
