@@ -143,11 +143,8 @@ class ControlPageState extends State<ControlPage> {
     try {
       String topic =
           'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-      String topic2 =
-          'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
-      String message = jsonEncode({'w_status': on ? '1' : '0'});
+      String message = jsonEncode({'w_status': on});
       sendMessagemqtt(topic, message);
-      sendMessagemqtt(topic2, message);
     } catch (e, s) {
       printLog('Error al enviar valor a firebase $e $s');
     }

@@ -1152,17 +1152,13 @@ class MyDrawerState extends State<MyDrawer> {
 
   void toggleState(String deviceName, bool newState) async {
     // Función para cambiar el estado
-
     deviceSerialNumber = extractSerialNumber(deviceName);
     globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
         newState;
     saveGlobalData(globalDATA);
     String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-    String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
-    String message = jsonEncode(
-        globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+    String message = jsonEncode({"w_status": newState});
     sendMessagemqtt(topic, message);
-    sendMessagemqtt(topic2, message);
     printLog(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
   }
 

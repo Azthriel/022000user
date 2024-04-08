@@ -104,6 +104,7 @@ void listenToTopics() {
     printLog('Keyname: $keyName');
 
     final String messageString = utf8.decode(message);
+    printLog('Mensaje: $messageString');
     try {
       final Map<String, dynamic> messageMap = json.decode(messageString);
 

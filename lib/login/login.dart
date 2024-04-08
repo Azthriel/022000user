@@ -21,11 +21,26 @@ class AskLoginPageState extends State<AskLoginPage> {
   //!Visual
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color.fromARGB(255, 37, 34, 35),
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
       body: Center(
-        child: CircularProgressIndicator(
-          color: Color.fromARGB(255, 255, 255, 255),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: 200,
+              child: Image.asset(biocalden
+                  ? 'assets/Biocalden/Corte_laser_negro.png'
+                  : 'assets/Silema/WB_logo.png'),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            const CircularProgressIndicator(
+              color: Color.fromARGB(255, 255, 255, 255),
+            ),
+          ],
         ),
       ),
     );
@@ -276,7 +291,8 @@ class LoginPageState extends State<LoginPage> {
   }
 
   void _launchURL() async {
-    String url = biocalden ? 'https://biocalden.com.ar/' : 'http://www.silema.com.ar/';
+    String url =
+        biocalden ? 'https://biocalden.com.ar/' : 'http://www.silema.com.ar/';
     var uri = Uri.parse(url);
     try {
       if (await canLaunchUrl(uri)) {
@@ -391,8 +407,9 @@ class LoginPageState extends State<LoginPage> {
                                       height: 200,
                                       child: IconButton(
                                           onPressed: _launchURL,
-                                          icon: Image.asset( biocalden ?
-                                              'assets/Biocalden/Corte_laser_negro.png' : 'assets/Silema/WB_logo.png')),
+                                          icon: Image.asset(biocalden
+                                              ? 'assets/Biocalden/Corte_laser_negro.png'
+                                              : 'assets/Silema/WB_logo.png')),
                                     ),
                                     Align(
                                         alignment: Alignment.bottomCenter,
