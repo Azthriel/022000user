@@ -107,6 +107,7 @@ class MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       title: 'Biocalden Smart Life',
       theme: ThemeData(

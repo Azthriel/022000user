@@ -13,7 +13,7 @@ void loadValues() async {
   actualToken = await loadToken();
   actualIOToken = await loadTokenIO();
   subNicknamesMap = await loadSubNicknamesMap();
-  notificationOn = await loadNotificationOn();
+  notificationMap = await loadNotificationMap();
 }
 // MASTERLOAD \\
 
@@ -177,20 +177,23 @@ Future<bool> loadControlValue() async {
 
 //*-NotificationOn List
 
-Future<void> saveNotificationOn(List<String> lista) async {
-  final prefs = await SharedPreferences.getInstance();
-  String devicesList = json.encode(lista);
-  await prefs.setString('NotificationOn', devicesList);
+Future<void> saveNotificationMap(Map<String, List<bool>> map) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String jsonString = json.encode(map);
+  await prefs.setString('NotificationMap', jsonString);
 }
 
-Future<List<bool>> loadNotificationOn() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? devicesList = prefs.getString('NotificationOn');
-  if (devicesList != null) {
-    List<dynamic> decodedList = json.decode(devicesList);
-    return decodedList.cast<bool>();
-  }
-  return List<bool>.filled(4, false); // Devuelve una lista vacía si no hay nada almacenado
+Future<Map<String, List<bool>>> loadNotificationMap() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? jsonString = prefs.getString('NotificationMap');
+  Map<String, List<bool>> map = jsonString != null
+      ? Map.from(json.decode(jsonString)).map((key, value) {
+          List<bool> boolList = List<bool>.from(value);
+          return MapEntry(key, boolList);
+        })
+      : {};
+
+  return map;
 }
 
 //*-Owned Devices

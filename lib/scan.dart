@@ -160,12 +160,16 @@ class ScanPageState extends State<ScanPage> {
           focusNode: searchFocusNode,
           controller: searchController,
           keyboardType: TextInputType.number,
-          style: const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+          style: const TextStyle(
+            color: Color.fromARGB(255, 178, 181, 174),
+          ),
           decoration: const InputDecoration(
             icon: Icon(Icons.search),
             iconColor: Color.fromARGB(255, 178, 181, 174),
             hintText: "Filtrar por nombre",
-            hintStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            hintStyle: TextStyle(
+              color: Color.fromARGB(255, 178, 181, 174),
+            ),
             border: InputBorder.none,
           ),
           onChanged: (value) {
@@ -190,17 +194,22 @@ class ScanPageState extends State<ScanPage> {
                       title: const Text(
                         '¿Estas seguro que quieres cerrar sesión?',
                         style: TextStyle(
-                            color: Color.fromARGB(255, 178, 181, 174)),
+                          color: Color.fromARGB(255, 178, 181, 174),
+                        ),
                       ),
                       actions: <Widget>[
                         TextButton(
                           style: const ButtonStyle(
-                              foregroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 178, 181, 174))),
+                            foregroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 178, 181, 174),
+                            ),
+                          ),
                           child: const Text('Cerrar sesión'),
                           onPressed: () {
                             Amplify.Auth.signOut();
                             asking();
+                            previusConnections.clear();
+                            ownedDevices.clear();
                             Navigator.of(dialogContext).pop();
                           },
                         ),

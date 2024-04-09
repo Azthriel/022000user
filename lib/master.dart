@@ -62,7 +62,7 @@ String actualIOToken = '';
 String currentUserEmail = '';
 String deviceSerialNumber = '';
 late String appName;
-List<bool> notificationOn = [];
+Map<String, List<bool>> notificationMap = {};
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -73,7 +73,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24040400';
+String appVersionNumber = '24040802';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -717,12 +717,14 @@ void setupToken() async {
   String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
 
   if (token != null) {
-    if (actualToken != '') {
+    if (actualToken != tokenToSend) {
       await removeTokenFromDatabase(actualToken, deviceName);
+      actualToken = tokenToSend;
+      saveToken(actualToken);
+      saveTokenToDatabase(tokenToSend, deviceName);
+    } else {
+      printLog('Token ya agregado...');
     }
-    actualToken = tokenToSend;
-    saveToken(actualToken);
-    saveTokenToDatabase(tokenToSend, deviceName);
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
@@ -806,19 +808,21 @@ void requestPermissionFCM() async {
 
 void setupIOToken(String nick, int index) async {
   String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/$nick/-/${index + 1}';
+  String? tokenToSend = '$token/-/$nick/-/$index';
 
   if (token != null) {
-    if (actualIOToken != '') {
+    if (actualIOToken != tokenToSend) {
       await removeTokenFromDatabase(actualIOToken, deviceName);
+      actualIOToken = tokenToSend;
+      saveTokenIO(actualIOToken);
+      saveTokenToDatabase(tokenToSend, deviceName);
+    } else {
+      printLog('ioToken ya existente...');
     }
-    actualIOToken = tokenToSend;
-    saveTokenIO(actualIOToken);
-    saveTokenToDatabase(tokenToSend, deviceName);
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    String? newtokenToSend = '$newToken/-/$nick/-/${index + 1}';
+    String? newtokenToSend = '$newToken/-/$nick/-/$index';
 
     if (actualIOToken != '') {
       await removeTokenFromDatabase(actualIOToken, deviceName);
@@ -1157,8 +1161,10 @@ class MyDrawerState extends State<MyDrawer> {
         newState;
     saveGlobalData(globalDATA);
     String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+    String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
     String message = jsonEncode({"w_status": newState});
     sendMessagemqtt(topic, message);
+    sendMessagemqtt(topic2, message);
     printLog(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
   }
 
@@ -1539,7 +1545,8 @@ class MyDrawerState extends State<MyDrawer> {
                             : null,
                       );
                     } else if (equipo == '020010_IOT') {
-                      String io = deviceDATA['io'] ?? '0:0/0:0/0:0/1:1';
+                      String io =
+                          '${deviceDATA['io0']}/${deviceDATA['io1']}/${deviceDATA['io2']}/${deviceDATA['io3']}';
                       var partes = io.split('/');
                       List<String> tipoDrawer = [];
                       List<bool> estadoDrawer = [];
@@ -1643,7 +1650,7 @@ class MyDrawerState extends State<MyDrawer> {
                                                   255, 156, 157, 152),
                                           value: estadoDrawer[index],
                                           onChanged: (value) {
-                                            String fun =
+                                            String fun2 =
                                                 '$index:${value ? '1' : '0'}';
                                             deviceSerialNumber =
                                                 extractSerialNumber(deviceName);
@@ -1652,18 +1659,23 @@ class MyDrawerState extends State<MyDrawer> {
                                             String topic2 =
                                                 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
                                             String message =
-                                                jsonEncode({'io': fun});
+                                                jsonEncode({'io': fun2});
                                             sendMessagemqtt(topic, message);
-                                            partes[index] = fun;
-                                            String data = partes.join('/');
-                                            globalDATA[
-                                                    '${productCode[deviceName]}/$deviceSerialNumber']![
-                                                'io'] = data;
+                                            estadoDrawer[index] = value;
+                                            for (int i = 0;
+                                                i < estadoDrawer.length;
+                                                i++) {
+                                              String device =
+                                                  '${tipoDrawer[i] == 'Salida' ? '0' : '1'}:${estadoDrawer[i] == true ? '1' : '0'}';
+                                              globalDATA[
+                                                      '${productCode[deviceName]}/$deviceSerialNumber']![
+                                                  'io$i'] = device;
+                                            }
+
                                             saveGlobalData(globalDATA);
                                             String message2 = jsonEncode(globalDATA[
                                                 '${productCode[deviceName]}/$deviceSerialNumber']);
                                             sendMessagemqtt(topic2, message2);
-                                            printLog('Guarde en io: $data');
                                           },
                                         ),
                                 );

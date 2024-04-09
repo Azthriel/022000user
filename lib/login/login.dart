@@ -29,7 +29,7 @@ class AskLoginPageState extends State<AskLoginPage> {
           children: [
             SizedBox(
               width: double.infinity,
-              height: 200,
+              height: 400,
               child: Image.asset(biocalden
                   ? 'assets/Biocalden/Corte_laser_negro.png'
                   : 'assets/Silema/WB_logo.png'),

@@ -11,9 +11,9 @@ List<String> valores = [];
 
 // FUNCIONES //
 
-void controlOut(bool value, int index) async {
+void controlOut(bool value, int index)  {
   String fun = '$index#${value ? '1' : '0'}';
-  await myDevice.ioUuid.write(fun.codeUnits);
+  myDevice.ioUuid.write(fun.codeUnits);
 
   String fun2 = '$index:${value ? '1' : '0'}';
   deviceSerialNumber = extractSerialNumber(deviceName);
@@ -21,15 +21,18 @@ void controlOut(bool value, int index) async {
   String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
   String message = jsonEncode({'io': fun2});
   sendMessagemqtt(topic, message);
-  valores[index] = fun2;
-  String data = valores.join('/');
-  globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io'] = data;
+  estado[index] = value;
+  for (int i = 0; i < estado.length; i++) {
+    String device =
+        '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i] == true ? '1' : '0'}';
+    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io$i'] =
+        device;
+  }
+
   saveGlobalData(globalDATA);
   String message2 =
       jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
   sendMessagemqtt(topic2, message2);
-
-  printLog('Guarde en IO: $data');
 }
 
 Future<void> changeModes(BuildContext context) {

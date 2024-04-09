@@ -38,60 +38,62 @@ class DrawerDetectorState extends State<DrawerDetector> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: const Color.fromARGB(255, 1, 18, 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 100),
-          SizedBox(
-            height: 50,
-            // width: double.infinity,
-            child:
-                Image.asset('assets/IntelligentGas/IntelligentGasFlyerCL.png'),
-          ),
-          Icon(
-            Icons.lightbulb,
-            size: 200,
-            color: Colors.yellow.withOpacity(_sliderValue / 100),
-          ),
-          const SizedBox(
-            height: 30,
-          ),
-          RotatedBox(
-            quarterTurns: 3,
-            child: _buildCustomSlider(),
-          ),
-          const SizedBox(
-            height: 30,
-          ),
-          Text(
-            'Valor del brillo: ${_sliderValue.toStringAsFixed(0)}',
-            style: const TextStyle(fontSize: 20.0, color: Colors.white),
-          ),
-          const SizedBox(
-            height: 30,
-          ),
-          ElevatedButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all<Color>(
-                    const Color.fromARGB(255, 29, 163, 169)),
-                foregroundColor: MaterialStateProperty.all<Color>(
-                    const Color.fromARGB(255, 255, 255, 255)),
-                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(height: 100),
+            SizedBox(
+              height: 50,
+              // width: double.infinity,
+              child: Image.asset(
+                  'assets/IntelligentGas/IntelligentGasFlyerCL.png'),
+            ),
+            Icon(
+              Icons.lightbulb,
+              size: 200,
+              color: Colors.yellow.withOpacity(_sliderValue / 100),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            RotatedBox(
+              quarterTurns: 3,
+              child: _buildCustomSlider(),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            Text(
+              'Valor del brillo: ${_sliderValue.toStringAsFixed(0)}',
+              style: const TextStyle(fontSize: 20.0, color: Colors.white),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(
+                      const Color.fromARGB(255, 29, 163, 169)),
+                  foregroundColor: MaterialStateProperty.all<Color>(
+                      const Color.fromARGB(255, 255, 255, 255)),
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                    ),
                   ),
                 ),
-              ),
-              onPressed: () {
-                showContactInfo(context);
+                onPressed: () {
+                  showContactInfo(context);
                 },
-              child: const Text('CONTACTANOS')),
-        ],
+                child: const Text('CONTACTANOS')),
+          ],
+        ),
       ),
     );
   }

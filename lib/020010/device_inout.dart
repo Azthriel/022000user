@@ -24,6 +24,9 @@ class IODevicesState extends State<IODevices> {
     subscribeToWifiStatus();
     subToIO();
     processValues(ioValues);
+    notificationMap.putIfAbsent(
+        '${productCode[deviceName]}/${extractSerialNumber(deviceName)}',
+        () => List<bool>.filled(4, false));
   }
 
   void updateWifiValues(List<int> data) {
@@ -99,13 +102,13 @@ class IODevicesState extends State<IODevices> {
 
       printLog(
           'En la posición $i el modo es ${tipo[i]} y su estado es ${estado[i]}');
+      globalDATA
+          .putIfAbsent(
+              '${productCode[deviceName]}/${extractSerialNumber(deviceName)}',
+              () => {})
+          .addAll({'io$i': parts[i]});
     }
 
-    globalDATA
-        .putIfAbsent(
-            '${productCode[deviceName]}/${extractSerialNumber(deviceName)}',
-            () => {})
-        .addAll({'io': utf8.decode(values)});
     saveGlobalData(globalDATA);
     setState(() {});
   }
@@ -187,16 +190,23 @@ class IODevicesState extends State<IODevices> {
                   nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
                   saveNicknamesMap(nicknamesMap);
                   printLog('$nicknamesMap');
-                  if (notificationOn.contains(true)) {
-                    notificationOn.asMap().entries.forEach((entry) {
-                      int index = entry.key;
-                      var element = entry.value;
-                      if (element) {
+                  if (notificationMap[
+                          '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!
+                      .contains(true)) {
+                    for (int index = 0;
+                        index <
+                            notificationMap[
+                                    '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!
+                                .length;
+                        index++) {
+                      var noti = notificationMap[
+                          '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!;
+                      if (noti[index]) {
                         String nick =
-                            '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} ${index + 1}'}';
+                            '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} $index'}';
                         setupIOToken(nick, index);
                       }
-                    });
+                    }
                   }
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -269,8 +279,7 @@ class IODevicesState extends State<IODevices> {
               onPressed: () {
                 setState(() {
                   String newNickname = subNicknameController.text;
-                  subNicknamesMap['$deviceName/-/$index'] =
-                      newNickname;
+                  subNicknamesMap['$deviceName/-/$index'] = newNickname;
                   saveSubNicknamesMap(subNicknamesMap);
                   printLog('$subNicknamesMap');
                   String nick =
@@ -568,8 +577,7 @@ class IODevicesState extends State<IODevices> {
                               child: Row(
                                 children: [
                                   Text(
-                                    subNicknamesMap[
-                                            '$deviceName/-/$index'] ??
+                                    subNicknamesMap['$deviceName/-/$index'] ??
                                         '${tipo[index]} ${index + 1}',
                                     style: const TextStyle(
                                         color: Color(0xff3e3d38),
@@ -625,7 +633,9 @@ class IODevicesState extends State<IODevices> {
                                     const SizedBox(
                                       width: 20,
                                     ),
-                                    notificationOn[index]
+                                    notificationMap[
+                                                '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                            index]
                                         ? const Text(
                                             '¿Desactivar notificaciones?',
                                             style: TextStyle(
@@ -645,7 +655,9 @@ class IODevicesState extends State<IODevices> {
                                     const Spacer(),
                                     IconButton(
                                         onPressed: () {
-                                          if (notificationOn[index]) {
+                                          if (notificationMap[
+                                                  '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                              index]) {
                                             showDialog(
                                               context: context,
                                               barrierDismissible: true,
@@ -669,9 +681,12 @@ class IODevicesState extends State<IODevices> {
                                                         showToast(
                                                             'Notificación desactivada');
                                                         setState(() {
-                                                          notificationOn[
+                                                          notificationMap[
+                                                                  '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
                                                               index] = false;
                                                         });
+                                                        saveNotificationMap(
+                                                            notificationMap);
                                                         Navigator.of(
                                                                 dialogContext)
                                                             .pop();
@@ -694,11 +709,17 @@ class IODevicesState extends State<IODevices> {
                                             setupIOToken(nick, index);
                                             showToast('Notificación activada');
                                             setState(() {
-                                              notificationOn[index] = true;
+                                              notificationMap[
+                                                      '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                  index] = true;
                                             });
+                                            saveNotificationMap(
+                                                notificationMap);
                                           }
                                         },
-                                        icon: notificationOn[index]
+                                        icon: notificationMap[
+                                                    '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                index]
                                             ? const Icon(
                                                 Icons.notifications_active,
                                                 color: Color(0xff4b2427),
@@ -733,10 +754,6 @@ class IODevicesState extends State<IODevices> {
                                     value: estado[index],
                                     onChanged: (value) {
                                       controlOut(value, index);
-                                      printLog(
-                                          '👍${'$deviceName/-/$index'}');
-                                      printLog(
-                                          '👀👀👀: ${subNicknamesMap['$deviceName/-/$index']}');
                                     },
                                   ),
                                 )

@@ -52,13 +52,19 @@ Future<bool> setupMqtt() async {
 
 void mqttonDisconnected() {
   printLog('Desconectado de mqtt');
-  setupMqtt().then((value) {
+  reconnectMqtt();
+}
+
+void reconnectMqtt()async{
+  await setupMqtt().then((value) {
     if (value) {
       for (var topic in topicsToSub) {
         printLog('Subscribiendo a $topic');
         subToTopicMQTT(topic);
       }
       listenToTopics();
+    }else{
+      reconnectMqtt();
     }
   });
 }
