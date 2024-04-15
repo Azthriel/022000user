@@ -55,7 +55,7 @@ void mqttonDisconnected() {
   reconnectMqtt();
 }
 
-void reconnectMqtt()async{
+void reconnectMqtt() async {
   await setupMqtt().then((value) {
     if (value) {
       for (var topic in topicsToSub) {
@@ -63,7 +63,7 @@ void reconnectMqtt()async{
         subToTopicMQTT(topic);
       }
       listenToTopics();
-    }else{
+    } else {
       reconnectMqtt();
     }
   });
@@ -97,6 +97,9 @@ void subToTopicMQTT(String topic) {
 
 void unSubToTopicMQTT(String topic) {
   mqttAWSFlutterClient!.unsubscribe(topic);
+  printLog('Me desuscribo de $topic');
+  topicsToSub.remove(topic);
+  saveTopicList(topicsToSub);
 }
 
 void listenToTopics() {

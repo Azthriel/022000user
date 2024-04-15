@@ -113,6 +113,7 @@ Future<Map<String, String>> loadProductCodesMap() async {
 }
 
 //*-GlobalDATA
+
 Future<void> saveGlobalData(
     Map<String, Map<String, dynamic>> globalData) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();

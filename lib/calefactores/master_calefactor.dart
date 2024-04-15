@@ -256,6 +256,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
                                         ownedDevices.remove(deviceName);
+                                        saveOwnedDevices(ownedDevices);
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
@@ -515,6 +516,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                         myDevice.toolsUuid
                                             .write(mailData.codeUnits);
                                         ownedDevices.remove(deviceName);
+                                        saveOwnedDevices(ownedDevices);
                                         myDevice.device.disconnect();
                                         Navigator.of(dialogContext).pop();
                                       } catch (e, s) {
@@ -559,6 +561,8 @@ void callbackDispatcher() {
     String deviceName = inputData?['deviceName'];
     String sn = extractSerialNumber(deviceName);
 
+    await setupMqtt();
+
     double latitude = await loadLatitude();
     double longitude = await loadLongitud();
     double distanceOn = await loadDistanceON();
@@ -567,7 +571,7 @@ void callbackDispatcher() {
     Position storedLocation = Position(
       latitude: latitude,
       longitude: longitude,
-      timestamp: DateTime.now(), // Esto es solo un marcador de posición
+      timestamp: DateTime.now(),
       accuracy: 0.0,
       altitude: 0.0,
       heading: 0.0,
@@ -614,7 +618,7 @@ void callbackDispatcher() {
       String topic = 'devices_rx/${productCode[deviceName]}/$sn';
       String message = jsonEncode(globalDATA['${productCode[deviceName]}/$sn']);
       sendMessagemqtt(topic, message);
-      //En un futuro acá agrego las notificaciones unu
+      //Ta cerca prendo
     } else if (distance2.round() >= distanceOff && distance1 < distance2) {
       printLog('Usuario lejos, apagando');
       printLog('Usuario cerca, encendiendo');

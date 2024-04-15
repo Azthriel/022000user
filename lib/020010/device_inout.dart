@@ -3,7 +3,6 @@ import 'package:biocalden_smart_life/020010/master_ionout.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class IODevices extends StatefulWidget {
   const IODevices({super.key});
@@ -12,7 +11,7 @@ class IODevices extends StatefulWidget {
 }
 
 class IODevicesState extends State<IODevices> {
-  bool werror = false;
+
   late String nickname;
   var parts = utf8.decode(ioValues).split('/');
 
@@ -364,177 +363,8 @@ class IODevicesState extends State<IODevices> {
                   semanticLabel: 'Icono de wifi',
                 ),
                 onPressed: () {
-                  showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        backgroundColor: const Color(0xff1f1d20),
-                        title: Row(
-                          children: [
-                            const Text.rich(TextSpan(
-                                text: 'Estado de conexión: ',
-                                style: TextStyle(
-                                  color: Color(0xffa79986),
-                                  fontSize: 14,
-                                ))),
-                            Text.rich(
-                              TextSpan(
-                                text: textState,
-                                style: TextStyle(
-                                    color: statusColor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          ],
-                        ),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (werror) ...[
-                                Text.rich(
-                                  TextSpan(
-                                    text: 'Error: $errorMessage',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text.rich(
-                                  TextSpan(
-                                    text: 'Sintax: $errorSintax',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 10),
-                              Row(children: [
-                                const Text.rich(
-                                  TextSpan(
-                                    text: 'Red actual: ',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                                Text.rich(
-                                  TextSpan(
-                                    text: nameOfWifi,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                              const SizedBox(height: 10),
-                              const Text.rich(
-                                TextSpan(
-                                  text: 'Ingrese los datos de WiFi',
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Color(0xffa79986),
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.qr_code),
-                                iconSize: 50,
-                                color: const Color(0xffa79986),
-                                onPressed: () async {
-                                  PermissionStatus permissionStatusC =
-                                      await Permission.camera.request();
-                                  if (!permissionStatusC.isGranted) {
-                                    await Permission.camera.request();
-                                  }
-                                  permissionStatusC =
-                                      await Permission.camera.status;
-                                  if (permissionStatusC.isGranted) {
-                                    openQRScanner(navigatorKey.currentContext!);
-                                  }
-                                },
-                              ),
-                              TextField(
-                                style: const TextStyle(
-                                  color: Color(0xffa79986),
-                                ),
-                                cursorColor: const Color(0xffa79986),
-                                decoration: const InputDecoration(
-                                  hintText: 'Nombre de la red',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xffa79986),
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  wifiName = value;
-                                },
-                              ),
-                              TextField(
-                                style: const TextStyle(
-                                  color: Color(0xffa79986),
-                                ),
-                                cursorColor: const Color(0xffa79986),
-                                decoration: const InputDecoration(
-                                  hintText: 'Contraseña',
-                                  hintStyle: TextStyle(
-                                    color: Color(0xffa79986),
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                      color: Color(0xffa79986),
-                                    ),
-                                  ),
-                                ),
-                                obscureText: true,
-                                onChanged: (value) {
-                                  wifiPassword = value;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            style: const ButtonStyle(
-                              foregroundColor: MaterialStatePropertyAll(
-                                Color(0xffa79986),
-                              ),
-                            ),
-                            child: const Text('Aceptar'),
-                            onPressed: () {
-                              sendWifitoBle();
-                              navigatorKey.currentState?.pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                  wifiText(context);
+                  },
               ),
             ]),
         drawer: const DrawerIO(),

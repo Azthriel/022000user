@@ -159,7 +159,7 @@ class ScanPageState extends State<ScanPage> {
         title: TextField(
           focusNode: searchFocusNode,
           controller: searchController,
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.text,
           style: const TextStyle(
             color: Color.fromARGB(255, 178, 181, 174),
           ),
@@ -210,6 +210,11 @@ class ScanPageState extends State<ScanPage> {
                             asking();
                             previusConnections.clear();
                             ownedDevices.clear();
+                            saveOwnedDevices(ownedDevices);
+                            guardarLista(previusConnections);
+                            for (int i = 0; i < topicsToSub.length ; i++){
+                              unSubToTopicMQTT(topicsToSub[i]);
+                            }
                             Navigator.of(dialogContext).pop();
                           },
                         ),
@@ -255,12 +260,12 @@ class ScanPageState extends State<ScanPage> {
                       padding: EdgeInsets.all(20),
                       child: Center(
                         child: Text(
-                          'Deslice el dedo hacia abajo para buscar nuevos dispositivos',
+                          'Deslice el dedo hacia abajo para buscar nuevos dispositivos cercanos',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 178, 181, 174),
+                            color:  Color.fromARGB(255, 178, 181, 174),
                           ),
                         ),
                       ),
@@ -314,6 +319,7 @@ class ScanPageState extends State<ScanPage> {
                           child: SizedBox(
                             height: 20,
                             width: 20,
+                            // child: Icon(Bio.bio, color: Colors.green)
                             child: Image.asset('assets/Biocalden/B_negra.png'),
                           ),
                         )

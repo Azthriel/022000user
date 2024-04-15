@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/5773/master_detector.dart';
 import 'package:biocalden_smart_life/master.dart';
 
@@ -232,17 +231,17 @@ class DetectorPageState extends State<DetectorPage> {
                 setupToken();
               },
               child: Row(
-                  children: [
-                    Text(nickname),
-                    const SizedBox(
-                      width: 3,
-                    ),
-                    const Icon(
-                      Icons.edit,
-                      size: 20,
-                    )
-                  ],
-                ),
+                children: [
+                  Text(nickname),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  const Icon(
+                    Icons.edit,
+                    size: 20,
+                  )
+                ],
+              ),
             ),
             actions: <Widget>[
               IconButton(
@@ -252,167 +251,7 @@ class DetectorPageState extends State<DetectorPage> {
                   semanticLabel: 'Icono de wifi',
                 ),
                 onPressed: () {
-                  showDialog(
-                    barrierDismissible: true,
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        backgroundColor:
-                            const Color.fromARGB(255, 230, 254, 255),
-                        title: Row(children: [
-                          const Text.rich(TextSpan(
-                              text: 'Estado de conexión: ',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 0, 0, 0),
-                                fontSize: 14,
-                              ))),
-                          Text.rich(TextSpan(
-                              text: textState,
-                              style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold)))
-                        ]),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (werror) ...[
-                                Text.rich(
-                                  TextSpan(
-                                    text: 'Error: $errorMessage',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text.rich(
-                                  TextSpan(
-                                    text: 'Sintax: $errorSintax',
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 10),
-                              Row(children: [
-                                const Text.rich(
-                                  TextSpan(
-                                    text: 'Red actual: ',
-                                    style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                    ),
-                                  ),
-                                ),
-                                Text.rich(
-                                  TextSpan(
-                                    text: nameOfWifi,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      color: Color.fromARGB(255, 29, 163, 169),
-                                    ),
-                                  ),
-                                ),
-                              ]),
-                              const SizedBox(height: 10),
-                              const Text.rich(
-                                TextSpan(
-                                  text: 'Ingrese los datos de WiFi',
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.qr_code),
-                                iconSize: 50,
-                                color: const Color.fromARGB(255, 29, 163, 169),
-                                onPressed: () async {
-                                  PermissionStatus permissionStatusC =
-                                      await Permission.camera.request();
-                                  if (!permissionStatusC.isGranted) {
-                                    await Permission.camera.request();
-                                  }
-                                  permissionStatusC =
-                                      await Permission.camera.status;
-                                  if (permissionStatusC.isGranted) {
-                                    openQRScanner(navigatorKey.currentContext!);
-                                  }
-                                },
-                              ),
-                              TextField(
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 0, 0, 0)),
-                                cursorColor:
-                                    const Color.fromARGB(255, 29, 163, 169),
-                                decoration: const InputDecoration(
-                                  hintText: 'Nombre de la red',
-                                  hintStyle: TextStyle(
-                                      color: Color.fromARGB(255, 0, 0, 0)),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  wifiName = value;
-                                },
-                              ),
-                              TextField(
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 0, 0, 0)),
-                                cursorColor:
-                                    const Color.fromARGB(255, 29, 163, 169),
-                                decoration: const InputDecoration(
-                                  hintText: 'Contraseña',
-                                  hintStyle: TextStyle(
-                                    color: Color.fromARGB(255, 0, 0, 0),
-                                  ),
-                                  enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
-                                  ),
-                                  focusedBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
-                                  ),
-                                ),
-                                obscureText: true,
-                                onChanged: (value) {
-                                  wifiPassword = value;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        actions: [
-                          TextButton(
-                            style: const ButtonStyle(
-                              foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 29, 163, 169),
-                              ),
-                            ),
-                            child: const Text('Aceptar'),
-                            onPressed: () {
-                              sendWifitoBle();
-                              navigatorKey.currentState?.pop();
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  wifiText(context);
                 },
               ),
             ]),
@@ -460,7 +299,7 @@ class DetectorPageState extends State<DetectorPage> {
                     children: [
                       Container(
                         height: 200,
-                        width: (width/2) - 15,
+                        width: (width / 2) - 15,
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 0, 75, 81),
                           borderRadius: BorderRadius.circular(20),
@@ -522,7 +361,7 @@ class DetectorPageState extends State<DetectorPage> {
                       ),
                       Container(
                         height: 200,
-                        width: (width/2) - 15,
+                        width: (width / 2) - 15,
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 0, 75, 81),
                           borderRadius: BorderRadius.circular(20),
@@ -847,7 +686,7 @@ class DetectorPageState extends State<DetectorPage> {
                 ),
                 Container(
                     height: 80,
-                    width: 350,
+                    width: width - 50,
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 0, 75, 81),
                       borderRadius: BorderRadius.circular(20),

@@ -152,6 +152,7 @@ class ControlPageState extends State<ControlPage> {
       printLog('Error al enviar valor a firebase $e $s');
     }
   }
+
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
 
@@ -370,182 +371,7 @@ class ControlPageState extends State<ControlPage> {
                                 semanticLabel: 'Icono de wifi',
                               ),
                               onPressed: () {
-                                showDialog(
-                                  barrierDismissible: true,
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      backgroundColor:
-                                          const Color.fromARGB(255, 37, 34, 35),
-                                      title: Row(children: [
-                                        const Text.rich(TextSpan(
-                                            text: 'Estado de conexión: ',
-                                            style: TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 255, 255, 255),
-                                              fontSize: 14,
-                                            ))),
-                                        Text.rich(TextSpan(
-                                            text: textState,
-                                            style: TextStyle(
-                                                color: statusColor,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold)))
-                                      ]),
-                                      content: SingleChildScrollView(
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (werror) ...[
-                                              Text.rich(TextSpan(
-                                                  text: 'Error: $errorMessage',
-                                                  style: const TextStyle(
-                                                      fontSize: 10,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
-                                              const SizedBox(height: 10),
-                                              Text.rich(
-                                                TextSpan(
-                                                    text:
-                                                        'Sintax: $errorSintax',
-                                                    style: const TextStyle(
-                                                        fontSize: 10,
-                                                        color: Color.fromARGB(
-                                                            255,
-                                                            255,
-                                                            255,
-                                                            255))),
-                                              ),
-                                            ],
-                                            const SizedBox(height: 10),
-                                            Row(children: [
-                                              const Text.rich(TextSpan(
-                                                  text: 'Red actual: ',
-                                                  style: TextStyle(
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
-                                              Text.rich(TextSpan(
-                                                  text: nameOfWifi,
-                                                  style: const TextStyle(
-                                                      fontSize: 20,
-                                                      color: Color.fromARGB(255,
-                                                          255, 255, 255)))),
-                                            ]),
-                                            const SizedBox(height: 10),
-                                            const Text.rich(TextSpan(
-                                                text:
-                                                    'Ingrese los datos de WiFi',
-                                                style: TextStyle(
-                                                    fontSize: 20,
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255),
-                                                    fontWeight:
-                                                        FontWeight.bold))),
-                                            IconButton(
-                                              icon: const Icon(Icons.qr_code),
-                                              iconSize: 50,
-                                              color: const Color.fromARGB(
-                                                  255, 255, 255, 255),
-                                              onPressed: () async {
-                                                PermissionStatus
-                                                    permissionStatusC =
-                                                    await Permission.camera
-                                                        .request();
-                                                if (!permissionStatusC
-                                                    .isGranted) {
-                                                  await Permission.camera
-                                                      .request();
-                                                }
-                                                permissionStatusC =
-                                                    await Permission
-                                                        .camera.status;
-                                                if (permissionStatusC
-                                                    .isGranted) {
-                                                  openQRScanner(navigatorKey
-                                                      .currentContext!);
-                                                }
-                                              },
-                                            ),
-                                            TextField(
-                                              style: const TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255)),
-                                              cursorColor: const Color.fromARGB(
-                                                  255, 189, 189, 189),
-                                              decoration: const InputDecoration(
-                                                hintText: 'Nombre de la red',
-                                                hintStyle: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255)),
-                                                enabledBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color.fromARGB(
-                                                          255, 189, 189, 189)),
-                                                ),
-                                                focusedBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color.fromARGB(
-                                                          255, 189, 189, 189)),
-                                                ),
-                                              ),
-                                              onChanged: (value) {
-                                                wifiName = value;
-                                              },
-                                            ),
-                                            TextField(
-                                              style: const TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 255, 255, 255)),
-                                              cursorColor: const Color.fromARGB(
-                                                  255, 189, 189, 189),
-                                              decoration: const InputDecoration(
-                                                hintText: 'Contraseña',
-                                                hintStyle: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255)),
-                                                enabledBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color.fromARGB(
-                                                          255, 189, 189, 189)),
-                                                ),
-                                                focusedBorder:
-                                                    UnderlineInputBorder(
-                                                  borderSide: BorderSide(
-                                                      color: Color.fromARGB(
-                                                          255, 189, 189, 189)),
-                                                ),
-                                              ),
-                                              obscureText: true,
-                                              onChanged: (value) {
-                                                wifiPassword = value;
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          style: const ButtonStyle(
-                                              foregroundColor:
-                                                  MaterialStatePropertyAll(
-                                                      Color.fromARGB(
-                                                          255, 255, 255, 255))),
-                                          child: const Text('Aceptar'),
-                                          onPressed: () {
-                                            sendWifitoBle();
-                                            navigatorKey.currentState?.pop();
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                                wifiText(context);
                               },
                             ),
                           ]
@@ -601,7 +427,8 @@ class ControlPageState extends State<ControlPage> {
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text.rich(TextSpan(
+                                Text.rich(
+                                  TextSpan(
                                     text: turnOn
                                         ? trueStatus
                                             ? 'Calentando'
@@ -613,7 +440,9 @@ class ControlPageState extends State<ControlPage> {
                                                 ? Colors.amber[600]
                                                 : Colors.green
                                             : Colors.red,
-                                        fontSize: 30))),
+                                        fontSize: 30),
+                                  ),
+                                ),
                                 if (trueStatus) ...[
                                   deviceType == '022000'
                                       ? Icon(Icons.flash_on_rounded,

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,6 +64,7 @@ String currentUserEmail = '';
 String deviceSerialNumber = '';
 late String appName;
 Map<String, List<bool>> notificationMap = {};
+bool werror = false;
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -73,7 +75,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24040802';
+String appVersionNumber = '24041500';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -832,6 +834,147 @@ void setupIOToken(String nick, int index) async {
   });
 }
 
+void wifiText(BuildContext context) {
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xff1f1d20),
+        title: Row(
+          children: [
+            const Text.rich(TextSpan(
+                text: 'Estado de conexión: ',
+                style: TextStyle(
+                  fontSize: 14,
+                ))),
+            Text.rich(
+              TextSpan(
+                text: textState,
+                style: TextStyle(
+                    color: statusColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
+            )
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (werror) ...[
+                Text.rich(
+                  TextSpan(
+                    text: 'Error: $errorMessage',
+                    style: const TextStyle(
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'Sintax: $errorSintax',
+                    style: const TextStyle(
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              Row(children: [
+                const Text.rich(
+                  TextSpan(
+                    text: 'Red actual: ',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text.rich(
+                  TextSpan(
+                    text: nameOfWifi,
+                    style: const TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 10),
+              const Text.rich(
+                TextSpan(
+                  text: 'Ingrese los datos de WiFi',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.qr_code),
+                iconSize: 50,
+                onPressed: () async {
+                  PermissionStatus permissionStatusC =
+                      await Permission.camera.request();
+                  if (!permissionStatusC.isGranted) {
+                    await Permission.camera.request();
+                  }
+                  permissionStatusC = await Permission.camera.status;
+                  if (permissionStatusC.isGranted) {
+                    openQRScanner(navigatorKey.currentContext!);
+                  }
+                },
+              ),
+              TextField(
+                style: const TextStyle(),
+                decoration: const InputDecoration(
+                  hintText: 'Nombre de la red',
+                  hintStyle: TextStyle(),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                ),
+                onChanged: (value) {
+                  wifiName = value;
+                },
+              ),
+              TextField(
+                style: const TextStyle(),
+                decoration: const InputDecoration(
+                  hintText: 'Contraseña',
+                  hintStyle: TextStyle(),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                ),
+                obscureText: true,
+                onChanged: (value) {
+                  wifiPassword = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            style: const ButtonStyle(),
+            child: const Text('Aceptar'),
+            onPressed: () {
+              sendWifitoBle();
+              navigatorKey.currentState?.pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 // CLASES //
 
 //*-BLE-*//caracteristicas y servicios
@@ -1257,9 +1400,6 @@ class MyDrawerState extends State<MyDrawer> {
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
-                                  topicsToSub
-                                      .remove('devices_tx/$equipo/$deviceName');
-                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1335,9 +1475,6 @@ class MyDrawerState extends State<MyDrawer> {
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
-                                  topicsToSub
-                                      .remove('devices_tx/$equipo/$deviceName');
-                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1413,9 +1550,6 @@ class MyDrawerState extends State<MyDrawer> {
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
-                                  topicsToSub
-                                      .remove('devices_tx/$equipo/$deviceName');
-                                  saveTopicList(topicsToSub);
                                 },
                               ),
                             ),
@@ -1491,9 +1625,6 @@ class MyDrawerState extends State<MyDrawer> {
                                 guardarLista(previusConnections);
                                 unSubToTopicMQTT(
                                     'devices_tx/$equipo/$deviceName');
-                                topicsToSub
-                                    .remove('devices_tx/$equipo/$deviceName');
-                                saveTopicList(topicsToSub);
                                 removeTokenFromDatabase(
                                     actualToken, deviceName);
                               },
@@ -1574,9 +1705,6 @@ class MyDrawerState extends State<MyDrawer> {
                                 guardarLista(previusConnections);
                                 unSubToTopicMQTT(
                                     'devices_tx/$equipo/$deviceName');
-                                topicsToSub
-                                    .remove('devices_tx/$equipo/$deviceName');
-                                saveTopicList(topicsToSub);
                                 removeTokenFromDatabase(
                                     actualToken, deviceName);
                               },
@@ -1710,4 +1838,16 @@ class GlobalDataNotifier extends ChangeNotifier {
       notifyListeners(); // Esto notifica a todos los oyentes que algo cambió
     }
   }
+}
+
+//*-ICONS-*// Agrego customs icons
+
+class Bio {
+  Bio._();
+
+  static const _kFontFam = 'Bio';
+  static const String? _kFontPkg = null;
+
+  static const IconData bio =
+      IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }
