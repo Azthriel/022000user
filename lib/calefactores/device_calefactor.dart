@@ -240,7 +240,7 @@ class ControlPageState extends State<ControlPage> {
         Position position = await _determinePosition();
         savePositionLatitude(position.latitude);
         savePositionLongitud(position.longitude);
-        scheduleBackgroundTask(deviceName);
+        scheduleBackgroundTask(deviceName, productCode[deviceName]!);
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
         printLog('Error al setear la ubicación $e');

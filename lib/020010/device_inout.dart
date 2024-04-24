@@ -11,7 +11,6 @@ class IODevices extends StatefulWidget {
 }
 
 class IODevicesState extends State<IODevices> {
-
   late String nickname;
   var parts = utf8.decode(ioValues).split('/');
 
@@ -93,11 +92,15 @@ class IODevicesState extends State<IODevices> {
     valores = parts;
     tipo.clear();
     estado.clear();
+    common.clear();
+    alertIO.clear();
 
     for (int i = 0; i < parts.length; i++) {
       var equipo = parts[i].split(':');
       tipo.add(equipo[0] == '0' ? 'Salida' : 'Entrada');
-      estado.add(equipo[1] == '1');
+      estado.add(equipo[1]);
+      common.add(equipo[2]);
+      alertIO.add(estado[i] != common[i]);
 
       printLog(
           'En la posición $i el modo es ${tipo[i]} y su estado es ${estado[i]}');
@@ -364,7 +367,7 @@ class IODevicesState extends State<IODevices> {
                 ),
                 onPressed: () {
                   wifiText(context);
-                  },
+                },
               ),
             ]),
         drawer: const DrawerIO(),
@@ -446,15 +449,15 @@ class IODevicesState extends State<IODevices> {
                                 const SizedBox(
                                   height: 10,
                                 ),
-                                estado[index]
+                                alertIO[index]
                                     ? const Icon(
                                         Icons.new_releases,
-                                        color: Color(0xff9b9b9b),
+                                        color: Color(0xffcb3234),
                                         size: 80,
                                       )
                                     : const Icon(
                                         Icons.new_releases,
-                                        color: Color(0xffcb3234),
+                                        color: Color(0xff9b9b9b),
                                         size: 80,
                                       ),
                                 Row(
@@ -505,9 +508,9 @@ class IODevicesState extends State<IODevices> {
                                                   actions: [
                                                     TextButton(
                                                       onPressed: () {
-                                                        removeTokenFromDatabase(
+                                                        removeIOTokenFromDatabase(
                                                             actualIOToken,
-                                                            deviceName);
+                                                            deviceName, index.toString());
                                                         showToast(
                                                             'Notificación desactivada');
                                                         setState(() {
@@ -581,7 +584,7 @@ class IODevicesState extends State<IODevices> {
                                     activeTrackColor: const Color(0xff4b2427),
                                     inactiveThumbColor: const Color(0xff4b2427),
                                     inactiveTrackColor: const Color(0xff803e2f),
-                                    value: estado[index],
+                                    value: estado[index] == '1',
                                     onChanged: (value) {
                                       controlOut(value, index);
                                     },

@@ -4,6 +4,16 @@ import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/login/master_login.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+final TextEditingController mailController = TextEditingController();
+final TextEditingController passwordController = TextEditingController();
+final TextEditingController newUserController = TextEditingController();
+final TextEditingController registerpasswordController =
+    TextEditingController();
+final TextEditingController confirmpasswordController = TextEditingController();
+bool isLogin = false;
+FocusNode mailPassReset = FocusNode();
+FocusNode passNode = FocusNode();
+
 class AskLoginPage extends StatefulWidget {
   const AskLoginPage({super.key});
 
@@ -55,15 +65,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class LoginPageState extends State<LoginPage> {
-  final TextEditingController mailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController newUserController = TextEditingController();
-  final TextEditingController registerpasswordController =
-      TextEditingController();
-  final TextEditingController confirmpasswordController =
-      TextEditingController();
-  bool isLogin = false;
-
   @override
   void initState() {
     super.initState();
@@ -177,7 +178,7 @@ class LoginPageState extends State<LoginPage> {
   Future<void> resetPassword(String email) async {
     try {
       final result = await Amplify.Auth.resetPassword(
-        username: email,
+        username: email.trim(),
       );
       return _handleResetPasswordResult(result);
     } on AuthException catch (e) {
@@ -215,6 +216,7 @@ class LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(
                   icon: Icon(Icons.mail),
                   iconColor: Color.fromARGB(255, 178, 181, 174),
+                  hintText: 'Ingrese el código aquí',
                   hintStyle:
                       TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
                 ),
@@ -230,6 +232,7 @@ class LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(
                   icon: Icon(Icons.key),
                   iconColor: Color.fromARGB(255, 178, 181, 174),
+                  hintText: 'Ingrese su nueva contraseña aquí',
                   hintStyle:
                       TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
                 ),
@@ -245,7 +248,7 @@ class LoginPageState extends State<LoginPage> {
               onPressed: () async {
                 try {
                   final result = await Amplify.Auth.confirmResetPassword(
-                      username: mailController.text,
+                      username: mailController.text.trim(),
                       confirmationCode: npcodeController.text,
                       newPassword: npController.text);
                   await _handleResetPasswordResult(result);
@@ -276,16 +279,16 @@ class LoginPageState extends State<LoginPage> {
   Future<void> signIn(String email, String password) async {
     try {
       SignInResult result = await Amplify.Auth.signIn(
-        username: email,
-        password: password,
+        username: email.trim(),
+        password: password.trim(),
       );
       if (result.isSignedIn) {
         printLog('Ingreso exitoso');
         navigatorKey.currentState!.pushReplacementNamed('/scan');
-        // Navegar a la página principal de la aplicación
       }
     } on AuthException catch (e) {
-      safePrint('Error singin user: ${e.message}');
+      showToast('Credenciales incorrectas');
+      printLog('Error singin user: ${e.message}');
       printLog('You could: ${e.recoverySuggestion}');
     }
   }
@@ -363,19 +366,29 @@ class LoginPageState extends State<LoginPage> {
                                       icon: Icons.mail,
                                       pass: false,
                                       controlador: mailController,
+                                      node: mailPassReset,
                                     ),
                                     FieldWidget(
                                       title: "Contraseña",
                                       icon: Icons.key,
                                       pass: true,
                                       controlador: passwordController,
+                                      node: passNode,
                                     ),
                                     SizedBox(
                                         width: double.infinity,
                                         height: 50,
                                         child: TextButton(
-                                            onPressed: () => resetPassword(
-                                                mailController.text),
+                                            onPressed: () {
+                                              if (mailController.text != '') {
+                                                resetPassword(
+                                                    mailController.text);
+                                              } else {
+                                                showToast(
+                                                    'Debes agregar un mail');
+                                                mailPassReset.requestFocus();
+                                              }
+                                            },
                                             child: const TextUtil(
                                               text: '¿Olvidaste tu contraseña?',
                                             ))),
@@ -472,18 +485,21 @@ class LoginPageState extends State<LoginPage> {
                   icon: Icons.mail,
                   pass: false,
                   controlador: newUserController,
+                  node: null,
                 ),
                 FieldWidget(
                   title: "Contraseña",
                   icon: Icons.key,
                   pass: true,
                   controlador: registerpasswordController,
+                  node: null,
                 ),
                 FieldWidget(
                   title: "Confirmar Contraseña",
                   icon: Icons.key,
                   pass: true,
                   controlador: confirmpasswordController,
+                  node: null,
                 ),
                 const SizedBox(
                   height: 20,
@@ -498,8 +514,10 @@ class LoginPageState extends State<LoginPage> {
                         if (registerpasswordController.text ==
                             confirmpasswordController.text) {
                           // registrarUsuario();
-                          signUpUser(newUserController.text,
-                              registerpasswordController.text);
+                          signUpUser(
+                            newUserController.text.trim(),
+                            registerpasswordController.text.trim(),
+                          );
                         } else {
                           showToast('Las contraseñas deben ser idénticas...');
                         }

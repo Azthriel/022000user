@@ -75,7 +75,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24041500';
+String appVersionNumber = '24041901';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -415,7 +415,7 @@ void showPrivacyDialogIfNeeded() async {
             child: ListBody(
               children: <Widget>[
                 Text(
-                  'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de Calefactor Smart, por favor, acepta nuestra política de privacidad.',
+                  'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de $appName, por favor, acepta nuestra política de privacidad.',
                   style: const TextStyle(
                       color: Color.fromARGB(255, 255, 255, 255)),
                 ),
@@ -768,6 +768,7 @@ void saveTokenToDatabase(String token, String device) async {
 
 Future<void> removeTokenFromDatabase(String token, String device) async {
   printLog('Borrando esto: $token');
+  actualToken = '';
   final url = Uri.parse(
       'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeToken');
   final response = await http.post(url,
@@ -810,14 +811,15 @@ void requestPermissionFCM() async {
 
 void setupIOToken(String nick, int index) async {
   String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/$nick/-/$index';
+  String? tokenToSend = '$token/-/$nick';
 
   if (token != null) {
     if (actualIOToken != tokenToSend) {
-      await removeTokenFromDatabase(actualIOToken, deviceName);
+      await removeIOTokenFromDatabase(
+          actualIOToken, deviceName, index.toString());
       actualIOToken = tokenToSend;
       saveTokenIO(actualIOToken);
-      saveTokenToDatabase(tokenToSend, deviceName);
+      saveIOTokenToDatabase(tokenToSend, deviceName, index.toString());
     } else {
       printLog('ioToken ya existente...');
     }
@@ -827,11 +829,64 @@ void setupIOToken(String nick, int index) async {
     String? newtokenToSend = '$newToken/-/$nick/-/$index';
 
     if (actualIOToken != '') {
-      await removeTokenFromDatabase(actualIOToken, deviceName);
+      await removeIOTokenFromDatabase(
+          actualIOToken, deviceName, index.toString());
     }
     actualIOToken = newtokenToSend;
-    saveTokenToDatabase(newtokenToSend, deviceName);
+    saveIOTokenToDatabase(newtokenToSend, deviceName, index.toString());
   });
+}
+
+void saveIOTokenToDatabase(String token, String device, String entry) async {
+  printLog("Voy a mandar: $token");
+  final url = Uri.parse(
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveTokenIO');
+  final response = await http.post(url,
+      body: json.encode({
+        'productCode': productCode[device],
+        'serialNumber': extractSerialNumber(device),
+        'token': token,
+        'entry': entry,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      });
+
+  if (response.statusCode == 200) {
+    // Handle success
+    printLog('Token added successfully');
+  } else {
+    // Handle failure
+    printLog('Failed to add token');
+    printLog(response);
+    printLog(response.body);
+  }
+}
+
+Future<void> removeIOTokenFromDatabase(
+    String token, String device, String entry) async {
+  printLog('Borrando esto: $token');
+  actualIOToken = '';
+  final url = Uri.parse(
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeTokenIO');
+  final response = await http.post(url,
+      body: json.encode({
+        'productCode': productCode[device],
+        'serialNumber': extractSerialNumber(device),
+        'token': token,
+        'entry': entry,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      });
+  if (response.statusCode == 200) {
+    // Handle success
+    printLog('Token removed successfully');
+  } else {
+    // Handle failure
+    printLog('Failed to removed token');
+    printLog(response.body);
+  }
 }
 
 void wifiText(BuildContext context) {
@@ -843,11 +898,15 @@ void wifiText(BuildContext context) {
         backgroundColor: const Color(0xff1f1d20),
         title: Row(
           children: [
-            const Text.rich(TextSpan(
+            const Text.rich(
+              TextSpan(
                 text: 'Estado de conexión: ',
                 style: TextStyle(
                   fontSize: 14,
-                ))),
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+              ),
+            ),
             Text.rich(
               TextSpan(
                 text: textState,
@@ -869,6 +928,7 @@ void wifiText(BuildContext context) {
                     text: 'Error: $errorMessage',
                     style: const TextStyle(
                       fontSize: 10,
+                      color: Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
                 ),
@@ -878,39 +938,49 @@ void wifiText(BuildContext context) {
                     text: 'Sintax: $errorSintax',
                     style: const TextStyle(
                       fontSize: 10,
+                      color: Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
                 ),
               ],
               const SizedBox(height: 10),
-              Row(children: [
-                const Text.rich(
-                  TextSpan(
-                    text: 'Red actual: ',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  const Text.rich(
+                    TextSpan(
+                      text: 'Red actual: ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-                Text.rich(
-                  TextSpan(
-                    text: nameOfWifi,
+                  Text(
+                    nameOfWifi,
                     style: const TextStyle(
                       fontSize: 20,
+                      color: Color.fromARGB(255, 255, 255, 255),
                     ),
                   ),
-                ),
-              ]),
+                ]),
+              ),
               const SizedBox(height: 10),
               const Text.rich(
                 TextSpan(
                   text: 'Ingrese los datos de WiFi',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.qr_code),
+                icon: const Icon(
+                  Icons.qr_code,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
                 iconSize: 50,
                 onPressed: () async {
                   PermissionStatus permissionStatusC =
@@ -925,10 +995,14 @@ void wifiText(BuildContext context) {
                 },
               ),
               TextField(
-                style: const TextStyle(),
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
                 decoration: const InputDecoration(
                   hintText: 'Nombre de la red',
-                  hintStyle: TextStyle(),
+                  hintStyle: TextStyle(
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(),
                   ),
@@ -941,10 +1015,14 @@ void wifiText(BuildContext context) {
                 },
               ),
               TextField(
-                style: const TextStyle(),
+                style: const TextStyle(
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
                 decoration: const InputDecoration(
                   hintText: 'Contraseña',
-                  hintStyle: TextStyle(),
+                  hintStyle: TextStyle(
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(),
                   ),
@@ -963,7 +1041,12 @@ void wifiText(BuildContext context) {
         actions: [
           TextButton(
             style: const ButtonStyle(),
-            child: const Text('Aceptar'),
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
             onPressed: () {
               sendWifitoBle();
               navigatorKey.currentState?.pop();
@@ -1787,7 +1870,7 @@ class MyDrawerState extends State<MyDrawer> {
                                             String topic2 =
                                                 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
                                             String message =
-                                                jsonEncode({'io': fun2});
+                                                jsonEncode({'io$index': fun2});
                                             sendMessagemqtt(topic, message);
                                             estadoDrawer[index] = value;
                                             for (int i = 0;

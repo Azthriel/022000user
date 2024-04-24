@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:biocalden_smart_life/login/login.dart';
 import 'package:flutter/material.dart';
 
 // CLIPPER //
@@ -56,12 +56,15 @@ class FieldWidget extends StatefulWidget {
   final IconData icon;
   final bool pass;
   final TextEditingController controlador;
+  final FocusNode? node;
   const FieldWidget(
       {super.key,
       required this.title,
       required this.icon,
       required this.pass,
-      required this.controlador});
+      required this.controlador,
+      required this.node,
+      });
 
   @override
   FieldState createState() => FieldState();
@@ -79,8 +82,14 @@ class FieldState extends State<FieldWidget> {
           color: Colors.grey.shade300, borderRadius: BorderRadius.circular(25)),
       child: TextFormField(
         controller: widget.controlador,
+        focusNode: widget.node,
         cursorColor: const Color.fromARGB(255, 255, 255, 255),
         obscureText: widget.pass ? _obscureText : false,
+        onFieldSubmitted: (value){
+          if(widget.controlador == mailController){
+            passNode.requestFocus();
+          }
+        },
         decoration: InputDecoration(
             focusColor: const Color.fromARGB(255, 189, 189, 189),
             hoverColor: const Color.fromARGB(255, 189, 189, 189),

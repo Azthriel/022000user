@@ -212,7 +212,7 @@ class ScanPageState extends State<ScanPage> {
                             ownedDevices.clear();
                             saveOwnedDevices(ownedDevices);
                             guardarLista(previusConnections);
-                            for (int i = 0; i < topicsToSub.length ; i++){
+                            for (int i = 0; i < topicsToSub.length; i++) {
                               unSubToTopicMQTT(topicsToSub[i]);
                             }
                             Navigator.of(dialogContext).pop();
@@ -265,7 +265,7 @@ class ScanPageState extends State<ScanPage> {
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color:  Color.fromARGB(255, 178, 181, 174),
+                            color: Color.fromARGB(255, 178, 181, 174),
                           ),
                         ),
                       ),
@@ -440,6 +440,18 @@ class LoadState extends State<LoadingPage> {
         } else {
           deviceOwner = false;
         }
+        globalDATA
+            .putIfAbsent(
+                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                () => {})
+            .addAll({"w_status": turnOn});
+        globalDATA
+            .putIfAbsent(
+                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                () => {})
+            .addAll({"f_status": trueStatus});
+
+        saveGlobalData(globalDATA);
       } else if (deviceType == '015773') {
         //Si soy un detector
         workValues = await myDevice.workUuid.read();
@@ -452,6 +464,24 @@ class LoadState extends State<LoadingPage> {
         promedioppmCO = workValues[17] + (workValues[18] << 8);
         promedioppmCH4 = workValues[19] + (workValues[20] << 8);
         daysToExpire = workValues[21] + (workValues[22] << 8);
+
+        globalDATA
+            .putIfAbsent(
+                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                () => {})
+            .addAll({"ppmCO": ppmCO});
+        globalDATA
+            .putIfAbsent(
+                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                () => {})
+            .addAll({"ppmCH4": ppmCH4});
+        globalDATA
+            .putIfAbsent(
+                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                () => {})
+            .addAll({"alert": workValues[4] == 1});
+
+        saveGlobalData(globalDATA);
 
         setupToken();
       } else if (deviceType == '020010') {

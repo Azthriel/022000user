@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 
 // VARIABLES //
 List<String> tipo = [];
-List<bool> estado = [];
+List<String> estado = [];
+List<bool> alertIO = [];
+List<String> common = [];
 List<String> valores = [];
 
 // FUNCIONES //
 
-void controlOut(bool value, int index)  {
+void controlOut(bool value, int index) {
   String fun = '$index#${value ? '1' : '0'}';
   myDevice.ioUuid.write(fun.codeUnits);
 
@@ -21,10 +23,9 @@ void controlOut(bool value, int index)  {
   String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
   String message = jsonEncode({'io': fun2});
   sendMessagemqtt(topic, message);
-  estado[index] = value;
+  estado[index] = value ? '1' : '0';
   for (int i = 0; i < estado.length; i++) {
-    String device =
-        '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i] == true ? '1' : '0'}';
+    String device = '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}';
     globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io$i'] =
         device;
   }
@@ -48,55 +49,56 @@ Future<void> changeModes(BuildContext context) {
           style:
               TextStyle(color: Color(0xffa79986), fontWeight: FontWeight.bold),
         ),
-        content: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < parts.length; i++) ...[
-              Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xff4b2427),
-                  borderRadius: BorderRadius.circular(20),
-                  border: const Border(
-                    bottom: BorderSide(color: Color(0xffa79986), width: 1),
-                    right: BorderSide(color: Color(0xffa79986), width: 1),
-                    left: BorderSide(color: Color(0xffa79986), width: 1),
-                    top: BorderSide(color: Color(0xffa79986), width: 1),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var i = 0; i < parts.length; i++) ...[
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xff4b2427),
+                    borderRadius: BorderRadius.circular(20),
+                    border: const Border(
+                      bottom: BorderSide(color: Color(0xffa79986), width: 1),
+                      right: BorderSide(color: Color(0xffa79986), width: 1),
+                      left: BorderSide(color: Color(0xffa79986), width: 1),
+                      top: BorderSide(color: Color(0xffa79986), width: 1),
+                    ),
                   ),
-                ),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        subNicknamesMap['$deviceName/-/${parts[i]}'] ??
-                            '${tipo[i]} ${i + 1}',
-                        style: const TextStyle(
-                            color: Color(0xffa79986),
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      tipo[i] == 'Entrada'
-                          ? const Text(
-                              '    ¿Cambiar de entrada a salida?    ',
-                              style: TextStyle(
-                                color: Color(0xffa79986),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          subNicknamesMap['$deviceName/-/${parts[i]}'] ??
+                              '${tipo[i]} ${i + 1}',
+                          style: const TextStyle(
+                              color: Color(0xffa79986),
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        tipo[i] == 'Entrada'
+                            ? const Text(
+                                '    ¿Cambiar de entrada a salida?    ',
+                                style: TextStyle(
+                                  color: Color(0xffa79986),
+                                ),
+                              )
+                            : const Text(
+                                '    ¿Cambiar de salida a entrada?    ',
+                                style: TextStyle(
+                                  color: Color(0xffa79986),
+                                ),
                               ),
-                            )
-                          : const Text(
-                              '    ¿Cambiar de salida a entrada?    ',
-                              style: TextStyle(
-                                color: Color(0xffa79986),
-                              ),
-                            ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      TextButton(
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        TextButton(
                           onPressed: () {
                             String fun =
                                 '${command(deviceType)}[13]($i#${tipo[i] == 'Entrada' ? '0' : '1'})';
@@ -109,16 +111,59 @@ Future<void> changeModes(BuildContext context) {
                             style: TextStyle(
                               color: Color(0xffa79986),
                             ),
-                          )),
-                    ],
+                          ),
+                        ),
+                        tipo[i] == 'Entrada'
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    width: 30,
+                                  ),
+                                  const Text(
+                                    'Estado común: ',
+                                    style: TextStyle(
+                                      color: Color(0xffa79986),
+                                    ),
+                                  ),
+                                  Text(
+                                    common[i],
+                                    style: const TextStyle(
+                                        color: Color(0xffa79986),
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    onPressed: () {
+                                      String data =
+                                          '${command(deviceType)}[14]($i#${common[i] == '1' ? '0' : '1'})';
+                                      printLog(data);
+                                      myDevice.toolsUuid.write(data.codeUnits);
+                                      Navigator.of(dialogContext).pop();
+                                    },
+                                    icon: const Icon(
+                                      Icons.change_circle_outlined,
+                                      color: Color(0xffa79986),
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                ],
+                              )
+                            : const SizedBox(
+                                height: 0,
+                              ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 10,
-              ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
         actions: <Widget>[
           TextButton(

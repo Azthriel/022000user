@@ -109,7 +109,7 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      title: 'Biocalden Smart Life',
+      title: biocalden ? 'Biocalden Smart Life' : 'Silema calefactores',
       theme: ThemeData(
         primaryColor: const Color.fromARGB(255, 30, 36, 43),
         primaryColorLight: const Color.fromARGB(255, 178, 181, 174),

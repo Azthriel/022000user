@@ -21,6 +21,7 @@ bool deviceOwner = false;
 bool trueStatus = false;
 bool userConnected = false;
 
+
 late List<String> pikachu;
 
 // FUNCIONES //
@@ -558,87 +559,106 @@ class SilemaDrawerState extends State<SilemaDrawer> {
 
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
-    String deviceName = inputData?['deviceName'];
-    String sn = extractSerialNumber(deviceName);
+    try {
+      String deviceName = inputData?['deviceName'];
+      String productCode = inputData?['productCode'];
+      String sn = extractSerialNumber(deviceName);
 
-    await setupMqtt();
+      await setupMqtt();
 
-    double latitude = await loadLatitude();
-    double longitude = await loadLongitud();
-    double distanceOn = await loadDistanceON();
-    double distanceOff = await loadDistanceOFF();
+      double latitude = await loadLatitude();
+      double longitude = await loadLongitud();
+      double distanceOn = await loadDistanceON();
+      double distanceOff = await loadDistanceOFF();
+      globalDATA = await loadGlobalData();
 
-    Position storedLocation = Position(
-      latitude: latitude,
-      longitude: longitude,
-      timestamp: DateTime.now(),
-      accuracy: 0.0,
-      altitude: 0.0,
-      heading: 0.0,
-      speed: 0.0,
-      speedAccuracy: 0.0,
-      floor: 0,
-      isMocked: false,
-      altitudeAccuracy: 0.0,
-      headingAccuracy: 0.0,
-    );
+      Position storedLocation = Position(
+        latitude: latitude,
+        longitude: longitude,
+        timestamp: DateTime.now(),
+        accuracy: 0.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        floor: 0,
+        isMocked: false,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
 
-    printLog('Distancia guardada $storedLocation');
+      printLog('Distancia guardada $storedLocation');
 
-    Position currentPosition1 = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    printLog('$currentPosition1');
+      Position currentPosition1 = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      printLog('$currentPosition1');
 
-    double distance1 = Geolocator.distanceBetween(
-      currentPosition1.latitude,
-      currentPosition1.longitude,
-      storedLocation.latitude,
-      storedLocation.longitude,
-    );
-    printLog('$distance1');
+      double distance1 = Geolocator.distanceBetween(
+        currentPosition1.latitude,
+        currentPosition1.longitude,
+        storedLocation.latitude,
+        storedLocation.longitude,
+      );
+      printLog('Distancia 1 : $distance1 metros');
 
-    await Future.delayed(const Duration(minutes: 2));
+      printLog('Esperando dos minutos');
+      await Future.delayed(const Duration(minutes: 2));
 
-    Position currentPosition2 = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    printLog('$currentPosition1');
+      Position currentPosition2 = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      printLog('$currentPosition2');
 
-    double distance2 = Geolocator.distanceBetween(
-      currentPosition2.latitude,
-      currentPosition2.longitude,
-      storedLocation.latitude,
-      storedLocation.longitude,
-    );
-    printLog('$distance2');
+      double distance2 = Geolocator.distanceBetween(
+        currentPosition2.latitude,
+        currentPosition2.longitude,
+        storedLocation.latitude,
+        storedLocation.longitude,
+      );
+      printLog('Distancia 2 : $distance2 metros');
 
-    if (distance2.round() <= distanceOn && distance1 > distance2) {
-      printLog('Usuario cerca, encendiendo');
-      globalDATA['${productCode[deviceName]}/$deviceSerialNumber']![
-          'w_status'] = true;
-      String topic = 'devices_rx/${productCode[deviceName]}/$sn';
-      String message = jsonEncode(globalDATA['${productCode[deviceName]}/$sn']);
-      sendMessagemqtt(topic, message);
-      //Ta cerca prendo
-    } else if (distance2.round() >= distanceOff && distance1 < distance2) {
-      printLog('Usuario lejos, apagando');
-      printLog('Usuario cerca, encendiendo');
-      globalDATA['${productCode[deviceName]}/$deviceSerialNumber']![
-          'w_status'] = true;
-      String topic = 'devices_rx/${productCode[deviceName]}/$sn';
-      String message = jsonEncode(globalDATA['${productCode[deviceName]}/$sn']);
-      sendMessagemqtt(topic, message);
-      //Estas re lejos apago el calefactor
+      if (distance2 <= distanceOn && distance1 > distance2) {
+        printLog('Usuario cerca, encendiendo');
+        globalDATA
+            .putIfAbsent('$productCode/$deviceSerialNumber', () => {})
+            .addAll({"w_status": true});
+        saveGlobalData(globalDATA);
+        String topic = 'devices_rx/$productCode/$sn';
+        String topic2 = 'devices_tx/$productCode/$sn';
+        String message = jsonEncode({"w_status": true});
+        sendMessagemqtt(topic, message);
+        sendMessagemqtt(topic2, message);
+        //Ta cerca prendo
+      } else if (distance2 >= distanceOff && distance1 < distance2) {
+        printLog('Usuario lejos, apagando');
+        globalDATA
+            .putIfAbsent('$productCode/$deviceSerialNumber', () => {})
+            .addAll({"w_status": false});
+        saveGlobalData(globalDATA);
+        String topic = 'devices_rx/$productCode/$sn';
+        String topic2 = 'devices_tx/$productCode/$sn';
+        String message = jsonEncode({"w_status": false});
+        sendMessagemqtt(topic, message);
+        sendMessagemqtt(topic2, message);
+        //Estas re lejos apago el calefactor
+      } else {
+        printLog('Ningun caso unu');
+      }
+      return Future.value(true);
+    } catch (e, s) {
+      printLog('Error en segundo plano $e');
+      printLog(s);
+      return Future.value(false);
     }
-    return Future.value(true);
   });
 }
 
-void scheduleBackgroundTask(String deviceName) {
+void scheduleBackgroundTask(String deviceName, String productCode) {
   Workmanager().registerPeriodicTask(
     'ControldeDistancia', // ID único para la tarea
     "checkLocationTask", // Nombre de la tarea
     inputData: {
       'deviceName': deviceName,
+      'productCode': productCode,
     },
     frequency:
         const Duration(minutes: 15), // Ajusta la frecuencia según sea necesario
