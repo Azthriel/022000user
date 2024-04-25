@@ -1,7 +1,7 @@
 name: biocalden_smart_life
 description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 2.3.3+13
+version: 2.3.4+14
 
 environment:
   sdk: '>=3.2.2 <4.0.0'

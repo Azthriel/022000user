@@ -215,6 +215,8 @@ class ScanPageState extends State<ScanPage> {
                             for (int i = 0; i < topicsToSub.length; i++) {
                               unSubToTopicMQTT(topicsToSub[i]);
                             }
+                            topicsToSub.clear();
+                            saveTopicList(topicsToSub);
                             Navigator.of(dialogContext).pop();
                           },
                         ),
