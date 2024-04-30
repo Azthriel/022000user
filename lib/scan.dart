@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
@@ -191,11 +191,57 @@ class ScanPageState extends State<ScanPage> {
                   builder: (BuildContext dialogContext) {
                     return AlertDialog(
                       backgroundColor: const Color.fromARGB(255, 30, 36, 43),
-                      title: const Text(
-                        '¿Estas seguro que quieres cerrar sesión?',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 178, 181, 174),
-                        ),
+                      title: const Row(
+                        children: [
+                          Text(
+                            'Mi perfil:',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 178, 181, 174),
+                            ),
+                          ),
+                          Spacer(),
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Color.fromARGB(255, 178, 181, 174),
+                            child: Icon(Icons.person,
+                                color: Color.fromARGB(255, 30, 36, 43)),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                        ],
+                      ),
+                      content: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Cuenta conectada:',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 178, 181, 174),
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Text(
+                            currentUserEmail,
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 178, 181, 174),
+                            ),
+                          ),
+                          const Text(
+                            'Cantidad de equipos registrados:',
+                            style: TextStyle(
+                              color: Color.fromARGB(255, 178, 181, 174),
+                              fontWeight: FontWeight.bold
+                            ),
+                          ),
+                          Text(
+                            previusConnections.length.toString(),
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 178, 181, 174),
+                            ),
+                          ),
+                        ],
                       ),
                       actions: <Widget>[
                         TextButton(
@@ -225,10 +271,8 @@ class ScanPageState extends State<ScanPage> {
                   },
                 );
               },
-              icon: const Icon(
-                Icons.exit_to_app,
-                color: Color.fromARGB(255, 156, 157, 152),
-              ))
+              icon: const Icon(Icons.person,
+                  color: Color.fromARGB(255, 156, 157, 152)))
         ],
       ),
       drawer: MyDrawer(userMail: currentUserEmail),
@@ -427,15 +471,19 @@ class LoadState extends State<LoadingPage> {
           printLog('Mando owner');
           String mailData = '${command(deviceType)}[5]($userEmail)';
           myDevice.toolsUuid.write(mailData.codeUnits);
-          distOffValue = await loadDistanceOFF();
-          distOnValue = await loadDistanceON();
+          var mapOFF = await loadDistanceOFF();
+          distOffValue = mapOFF[deviceName] ?? 100.0;
+          var mapON = await loadDistanceON();
+          distOnValue = mapON[deviceName] ?? 3000.0;
           isTaskScheduled = await loadControlValue();
           ownedDevices.add(deviceName);
           saveOwnedDevices(ownedDevices);
         } else if (parts[4] == userEmail) {
           deviceOwner = true;
-          distOffValue = await loadDistanceOFF();
-          distOnValue = await loadDistanceON();
+          var mapOFF = await loadDistanceOFF();
+          distOffValue = mapOFF[deviceName] ?? 100.0;
+          var mapON = await loadDistanceON();
+          distOnValue = mapON[deviceName] ?? 3000.0;
           isTaskScheduled = await loadControlValue();
           ownedDevices.add(deviceName);
           saveOwnedDevices(ownedDevices);

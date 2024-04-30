@@ -56,5 +56,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
         <!-- Provide required visibility configuration for API level 30 and above -->
+        <service
+        android:name="com.ekasetiawans.flutter_background_service.FlutterBackgroundService"
+        android:permission="android.permission.FOREGROUND_SERVICE"
+        android:exported="false"/>
     </application>
 </manifest>

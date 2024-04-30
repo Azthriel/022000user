@@ -2,9 +2,10 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:biocalden_smart_life/master.dart';
@@ -229,19 +230,29 @@ class RadiadorPageState extends State<RadiadorPage> {
     );
   }
 
-  void controlTask(bool value) async {
+  void controlTask(bool value, String device) async {
     setState(() {
-      isTaskScheduled = value;
+      isTaskScheduled.addAll({device: value});
     });
-    if (isTaskScheduled) {
+    if (isTaskScheduled[device]!) {
       // Programar la tarea.
       try {
         showToast('Recuerda tener la ubicación encendida.');
-
+        List<String> deviceControl = await loadDevicesForDistanceControl();
+        deviceControl.add(deviceName);
+        saveDevicesForDistanceControl(deviceControl);
         Position position = await _determinePosition();
-        savePositionLatitude(position.latitude);
-        savePositionLongitud(position.longitude);
-        scheduleBackgroundTask(deviceName, productCode[deviceName]!);
+        Map<String, double> maplatitude = await loadLatitude();
+        maplatitude.addAll({deviceName: position.latitude});
+        savePositionLatitude(maplatitude);
+        Map<String, double> maplongitude = await loadLongitud();
+        maplongitude.addAll({deviceName: position.longitude});
+        savePositionLongitud(maplongitude);
+
+        if (deviceControl.length == 1) {
+          final backService = FlutterBackgroundService();
+          await backService.startService();
+        }
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
         printLog('Error al setear la ubicación $e');
@@ -249,7 +260,20 @@ class RadiadorPageState extends State<RadiadorPage> {
     } else {
       // Cancelar la tarea.
       showToast('Se cancelo el control por distancia');
-      cancelPeriodicTask();
+      List<String> deviceControl = await loadDevicesForDistanceControl();
+      deviceControl.remove(deviceName);
+      saveDevicesForDistanceControl(deviceControl);
+      Map<String, double> maplatitude = await loadLatitude();
+      maplatitude.remove(deviceName);
+      savePositionLatitude(maplatitude);
+      Map<String, double> maplongitude = await loadLongitud();
+      maplongitude.remove(deviceName);
+      savePositionLongitud(maplongitude);
+
+      if (deviceControl.isEmpty) {
+        final backService = FlutterBackgroundService();
+        backService.invoke("stopService");
+      }
     }
   }
 
@@ -535,12 +559,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           const Color.fromARGB(255, 72, 72, 72),
                                       inactiveTrackColor: const Color.fromARGB(
                                           255, 189, 189, 189),
-                                      value: isTaskScheduled,
+                                      value: isTaskScheduled[deviceName] ?? false,
                                       onChanged: (value) {
                                         verifyPermission().then((result) {
                                           if (result == true) {
-                                            saveControlValue(value);
-                                            controlTask(value);
+                                            isTaskScheduled.addAll({deviceName: value});
+                                            saveControlValue(isTaskScheduled);
+                                            controlTask(value, deviceName);
                                           } else {
                                             showToast(
                                                 'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
@@ -552,7 +577,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   ),
                                 ]),
                             const SizedBox(height: 25),
-                            if (isTaskScheduled) ...[
+                            if (isTaskScheduled[deviceName] ?? false) ...[
                               const Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -600,9 +625,12 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       distOffValue = value;
                                     });
                                   },
-                                  onChangeEnd: (value) {
+                                  onChangeEnd: (value) async {
                                     printLog('Valor enviado: ${value.round()}');
-                                    saveDistanceOFF(value);
+                                    Map<String, double> mapOFF =
+                                        await loadDistanceOFF();
+                                    mapOFF.addAll({deviceName: value});
+                                    saveDistanceOFF(mapOFF);
                                   },
                                   min: 100,
                                   max: 300,
@@ -656,9 +684,12 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       distOnValue = value;
                                     });
                                   },
-                                  onChangeEnd: (value) {
+                                  onChangeEnd: (value) async {
                                     printLog('Valor enviado: ${value.round()}');
-                                    saveDistanceON(value);
+                                    Map<String, double> mapON =
+                                        await loadDistanceON();
+                                    mapON.addAll({deviceName: value});
+                                    saveDistanceON(mapON);
                                   },
                                   min: 3000,
                                   max: 5000,

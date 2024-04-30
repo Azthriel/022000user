@@ -39,28 +39,6 @@ Future<List<String>> loadTopicList() async {
   return prefs.getStringList('Topics') ?? [];
 }
 
-//*-Position
-
-Future<void> savePositionLatitude(double latitude) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setDouble('latitude', latitude);
-}
-
-Future<void> savePositionLongitud(double longitud) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setDouble('longitud', longitud);
-}
-
-Future<double> loadLatitude() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('latitude') ?? 0;
-}
-
-Future<double> loadLongitud() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('longitud') ?? 0;
-}
-
 //*-Nicknames
 
 Future<void> saveNicknamesMap(Map<String, String> nicknamesMap) async {
@@ -139,41 +117,95 @@ Future<Map<String, Map<String, dynamic>>> loadGlobalData() async {
 
 //*-Distancias de control
 
-Future<void> saveDistanceON(double distanceON) async {
+Future<void> saveDistanceON(Map<String, double> distanceONMap) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setDouble('distanceON', distanceON);
+  String distanceON = json.encode(distanceONMap);
+  await prefs.setString('distanceON', distanceON);
 }
 
-Future<double> loadDistanceON() async {
+Future<Map<String, double>> loadDistanceON() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('distanceON') ?? 3000;
+  String? distanceONString = prefs.getString('distanceON');
+  if (distanceONString != null) {
+    return Map<String, double>.from(json.decode(distanceONString));
+  }
+  return {};
 }
 
-Future<void> saveDistanceOFF(double distanceOFF) async {
+Future<void> saveDistanceOFF(Map<String, double> distanceOFFMap) async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setDouble('distanceOFF', distanceOFF);
+  String distanceOFF = json.encode(distanceOFFMap);
+  await prefs.setString('distanceOFF', distanceOFF);
 }
 
-Future<double> loadDistanceOFF() async {
+Future<Map<String, double>> loadDistanceOFF() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
-  return prefs.getDouble('distanceOFF') ?? 100;
+  String? distanceOFFString = prefs.getString('distanceOFF');
+  if (distanceOFFString != null) {
+    return Map<String, double>.from(json.decode(distanceOFFString));
+  }
+  return {};
+}
+
+//*-Position
+
+Future<void> savePositionLatitude(Map<String, double> latitudeMap) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String latitude = json.encode(latitudeMap);
+  await prefs.setString('latitude', latitude);
+}
+
+Future<Map<String, double>> loadLatitude() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? latitude = prefs.getString('latitude');
+  if (latitude != null) {
+    return Map<String, double>.from(json.decode(latitude));
+  }
+  return {};
+}
+
+Future<void> savePositionLongitud(Map<String, double> longitudMap) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String longitud = json.encode(longitudMap);
+  await prefs.setString('longitud', longitud);
+}
+
+Future<Map<String, double>> loadLongitud() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? longitud = prefs.getString('longitud');
+  if (longitud != null) {
+    return Map<String, double>.from(json.decode(longitud));
+  }
+  return {};
 }
 
 //*-Control de distancia
 
-Future<void> saveControlValue(bool control) async {
+Future<void> saveControlValue(Map<String, bool> taskMap) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('ControlValue', control);
+  String taskMapString = json.encode(taskMap);
+  await prefs.setString('taskMap', taskMapString);
 }
 
-Future<bool> loadControlValue() async {
+Future<Map<String, bool>> loadControlValue() async {
   final prefs = await SharedPreferences.getInstance();
-  bool? controlValue = prefs.getBool('ControlValue');
-  if (controlValue != null) {
-    return controlValue;
-  } else {
-    return false;
+  String? taskMapString = prefs.getString('taskMap');
+  if (taskMapString != null) {
+    return Map<String, bool>.from(json.decode(taskMapString));
   }
+  return {}; // Devuelve un mapa vacío si no hay nada almacenado
+}
+
+//*-DevicesForDistanceControl
+
+Future<void> saveDevicesForDistanceControl(List<String> devices) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setStringList('DevicesForDistanceControl', devices);
+}
+
+Future<List<String>> loadDevicesForDistanceControl() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getStringList('DevicesForDistanceControl') ?? [];
 }
 
 //*-NotificationOn List

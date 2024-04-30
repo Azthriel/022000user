@@ -46,7 +46,8 @@ app.*.map.json
 
 /assets/cert/
 
-/lib/mqtt/mqtt_certificates.dart
+/lib/aws/mqtt/mqtt_certificates.dart
+/lib/aws/dynamo/dynamo_certificates.dart
 
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend

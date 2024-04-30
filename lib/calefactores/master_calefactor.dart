@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:biocalden_smart_life/master.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
 
 // VARIABLES //
 
@@ -16,11 +16,10 @@ bool alreadySubTools = false;
 double distOnValue = 0.0;
 double distOffValue = 0.0;
 bool turnOn = false;
-bool isTaskScheduled = false;
+Map<String, bool> isTaskScheduled = {};
 bool deviceOwner = false;
 bool trueStatus = false;
 bool userConnected = false;
-
 
 late List<String> pikachu;
 
@@ -557,20 +556,56 @@ class SilemaDrawerState extends State<SilemaDrawer> {
 
 //BACKGROUND //
 
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    try {
-      String deviceName = inputData?['deviceName'];
-      String productCode = inputData?['productCode'];
-      String sn = extractSerialNumber(deviceName);
+Future<void> initializeService() async {
+  final backService = FlutterBackgroundService();
+  await backService.configure(
+    iosConfiguration: IosConfiguration(onBackground: onStart, autoStart: true),
+    androidConfiguration: AndroidConfiguration(
+      onStart: onStart,
+      autoStart: true,
+      isForegroundMode: false,
+    ),
+  );
+}
 
-      await setupMqtt();
+bool onStart(ServiceInstance backService) {
+  WidgetsFlutterBinding.ensureInitialized();
+  final backService = FlutterBackgroundService();
+  late bool function;
 
-      double latitude = await loadLatitude();
-      double longitude = await loadLongitud();
-      double distanceOn = await loadDistanceON();
-      double distanceOff = await loadDistanceOFF();
-      globalDATA = await loadGlobalData();
+  Timer.periodic(const Duration(minutes: 2), (timer) async {
+    bool running = await backService.isRunning();
+    if (!running) {
+      timer.cancel();
+      backService.invoke("stopService");
+    }
+
+    await backFunction().then((value) => function = value);
+  });
+
+  return function;
+}
+
+Future<bool> backFunction() async {
+  try {
+    await setupMqtt();
+    List<String> devicesStored = await loadDevicesForDistanceControl();
+    Map<String, String> products = await loadProductCodesMap();
+    globalDATA = await loadGlobalData();
+    Map<String, double> latitudes = await loadLatitude();
+    Map<String, double> longitudes = await loadLongitud();
+    Map<String, double> distancesOn = await loadDistanceON();
+    Map<String, double> distancesOff = await loadDistanceOFF();
+
+    for (int index = 0; index < devicesStored.length; index++) {
+      String name = devicesStored[index];
+      String productCode = products[name]!;
+      String sn = extractSerialNumber(name);
+
+      double latitude = latitudes[name]!;
+      double longitude = longitudes[name]!;
+      double distanceOn = distancesOn[name]!;
+      double distanceOff = distancesOff[name]!;
 
       Position storedLocation = Position(
         latitude: latitude,
@@ -587,7 +622,7 @@ void callbackDispatcher() {
         headingAccuracy: 0.0,
       );
 
-      printLog('Distancia guardada $storedLocation');
+      printLog('Ubicación guardada $storedLocation');
 
       Position currentPosition1 = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -619,7 +654,7 @@ void callbackDispatcher() {
       if (distance2 <= distanceOn && distance1 > distance2) {
         printLog('Usuario cerca, encendiendo');
         globalDATA
-            .putIfAbsent('$productCode/$deviceSerialNumber', () => {})
+            .putIfAbsent('$productCode/$sn', () => {})
             .addAll({"w_status": true});
         saveGlobalData(globalDATA);
         String topic = 'devices_rx/$productCode/$sn';
@@ -631,7 +666,7 @@ void callbackDispatcher() {
       } else if (distance2 >= distanceOff && distance1 < distance2) {
         printLog('Usuario lejos, apagando');
         globalDATA
-            .putIfAbsent('$productCode/$deviceSerialNumber', () => {})
+            .putIfAbsent('$productCode/$sn', () => {})
             .addAll({"w_status": false});
         saveGlobalData(globalDATA);
         String topic = 'devices_rx/$productCode/$sn';
@@ -643,28 +678,20 @@ void callbackDispatcher() {
       } else {
         printLog('Ningun caso unu');
       }
-      return Future.value(true);
-    } catch (e, s) {
-      printLog('Error en segundo plano $e');
-      printLog(s);
-      return Future.value(false);
     }
-  });
+
+    return Future.value(true);
+  } catch (e, s) {
+    printLog('Error en segundo plano $e');
+    printLog(s);
+    return Future.value(false);
+  }
 }
 
-void scheduleBackgroundTask(String deviceName, String productCode) {
-  Workmanager().registerPeriodicTask(
-    'ControldeDistancia', // ID único para la tarea
-    "checkLocationTask", // Nombre de la tarea
-    inputData: {
-      'deviceName': deviceName,
-      'productCode': productCode,
-    },
-    frequency:
-        const Duration(minutes: 15), // Ajusta la frecuencia según sea necesario
-  );
-}
+// START SERVICE //
+// final backService = FlutterBackgroundService();
+// await backService.startService();
 
-void cancelPeriodicTask() {
-  Workmanager().cancelByUniqueName('ControldeDistancia');
-}
+// STOP SERVICE //
+// final backService = FlutterBackgroundService();
+// backService.invoke("stopService");

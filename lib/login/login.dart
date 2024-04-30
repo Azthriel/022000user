@@ -153,7 +153,7 @@ class LoginPageState extends State<LoginPage> {
                   // the sign up is complete.
                   await _handleSignUpResult(result);
                 } on AuthException catch (e) {
-                  safePrint('Error confirming user: ${e.message}');
+                  printLog('Error confirming user: ${e.message}');
                   printLog('You could: ${e.recoverySuggestion}');
                   if (e.message.contains('Password not long enough')) {
                     showToast('La contraseña debe tener minimo 8 caracteres');
@@ -164,7 +164,7 @@ class LoginPageState extends State<LoginPage> {
                       .contains('Invalid verification code provided')) {
                     showToast('Código de confirmación incorrecto');
                   } else {
-                    showToast('Error al cambiar contraseña');
+                    showToast('Error al verificar usuario');
                   }
                 }
               },
@@ -182,8 +182,9 @@ class LoginPageState extends State<LoginPage> {
       );
       return _handleResetPasswordResult(result);
     } on AuthException catch (e) {
-      safePrint('Error resetting password: ${e.message}');
+      printLog('Error resetting password: ${e.message}');
       showToast('Error intentando reestablecer contraseña');
+      showToast('Asegurate que el mail exista');
     }
   }
 
@@ -249,13 +250,23 @@ class LoginPageState extends State<LoginPage> {
                 try {
                   final result = await Amplify.Auth.confirmResetPassword(
                       username: mailController.text.trim(),
-                      confirmationCode: npcodeController.text,
-                      newPassword: npController.text);
+                      confirmationCode: npcodeController.text.trim(),
+                      newPassword: npController.text.trim());
                   await _handleResetPasswordResult(result);
                 } on AuthException catch (e) {
-                  safePrint('Error confirming user: ${e.message}');
+                  printLog('Error confirming user: ${e.message}');
                   printLog('You could: ${e.recoverySuggestion}');
-                  showToast('Código de confirmación incorrecto');
+                  if (e.message.contains('Password not long enough')) {
+                    showToast('La contraseña debe tener minimo 8 caracteres');
+                  } else if (e.message
+                      .contains('Password must have numeric characters')) {
+                    showToast('La contraseña debe contener al menos un número');
+                  } else if (e.message
+                      .contains('Invalid verification code provided')) {
+                    showToast('Código de confirmación incorrecto');
+                  } else {
+                    showToast('Error al verificar usuario');
+                  }
                 }
               },
             ),
@@ -271,7 +282,7 @@ class LoginPageState extends State<LoginPage> {
         final codeDeliveryDetails = result.nextStep.codeDeliveryDetails!;
         _handleCodeDeliveryNewPass(codeDeliveryDetails);
       case AuthResetPasswordStep.done:
-        safePrint('Successfully reset password');
+        printLog('Successfully reset password');
         navigatorKey.currentState!.pushReplacementNamed('/scan');
     }
   }

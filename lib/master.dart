@@ -4,8 +4,9 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -16,11 +17,11 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:http/http.dart' as http;
 
 //!-----DATA MASTER-----!\\
 Map<String, Map<String, dynamic>> globalDATA = {};
 //!-----DATA MASTER-----!\\
+final dio = Dio();
 List<String> topicsToSub = [];
 Map<String, String> productCode = {};
 List<String> ownedDevices = [];
@@ -75,7 +76,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24042400';
+String appVersionNumber = '24042901';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -743,17 +744,18 @@ void setupToken() async {
 
 void saveTokenToDatabase(String token, String device) async {
   printLog("Voy a mandar: $token");
-  final url = Uri.parse(
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken');
-  final response = await http.post(url,
-      body: json.encode({
+  const url =
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken';
+  final response = await dio.post(
+    url,
+    data: json.encode(
+      {
         'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      });
+      },
+    ),
+  );
 
   if (response.statusCode == 200) {
     // Handle success
@@ -762,31 +764,32 @@ void saveTokenToDatabase(String token, String device) async {
     // Handle failure
     printLog('Failed to add token');
     printLog(response);
-    printLog(response.body);
+    printLog(response.data.toString());
   }
 }
 
 Future<void> removeTokenFromDatabase(String token, String device) async {
   printLog('Borrando esto: $token');
   actualToken = '';
-  final url = Uri.parse(
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeToken');
-  final response = await http.post(url,
-      body: json.encode({
+  const url =
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeToken';
+  final response = await dio.post(
+    url,
+    data: json.encode(
+      {
         'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      });
+      },
+    ),
+  );
   if (response.statusCode == 200) {
     // Handle success
     printLog('Token removed successfully');
   } else {
     // Handle failure
     printLog('Failed to removed token');
-    printLog(response.body);
+    printLog(response.data);
   }
 }
 
@@ -839,18 +842,19 @@ void setupIOToken(String nick, int index) async {
 
 void saveIOTokenToDatabase(String token, String device, String entry) async {
   printLog("Voy a mandar: $token");
-  final url = Uri.parse(
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveTokenIO');
-  final response = await http.post(url,
-      body: json.encode({
+  const url =
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveTokenIO';
+  final response = await dio.post(
+    url,
+    data: json.encode(
+      {
         'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
         'entry': entry,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      });
+      },
+    ),
+  );
 
   if (response.statusCode == 200) {
     // Handle success
@@ -859,7 +863,7 @@ void saveIOTokenToDatabase(String token, String device, String entry) async {
     // Handle failure
     printLog('Failed to add token');
     printLog(response);
-    printLog(response.body);
+    printLog(response.data);
   }
 }
 
@@ -867,25 +871,26 @@ Future<void> removeIOTokenFromDatabase(
     String token, String device, String entry) async {
   printLog('Borrando esto: $token');
   actualIOToken = '';
-  final url = Uri.parse(
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeTokenIO');
-  final response = await http.post(url,
-      body: json.encode({
+  const url =
+      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeTokenIO';
+  final response = await dio.post(
+    url,
+    data: json.encode(
+      {
         'productCode': productCode[device],
         'serialNumber': extractSerialNumber(device),
         'token': token,
         'entry': entry,
-      }),
-      headers: {
-        'Content-Type': 'application/json',
-      });
+      },
+    ),
+  );
   if (response.statusCode == 200) {
     // Handle success
     printLog('Token removed successfully');
   } else {
     // Handle failure
     printLog('Failed to removed token');
-    printLog(response.body);
+    printLog(response.data);
   }
 }
 

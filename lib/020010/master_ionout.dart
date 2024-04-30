@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:flutter/material.dart';
 

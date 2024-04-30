@@ -2,7 +2,7 @@
 
 import 'package:biocalden_smart_life/020010/device_inout.dart';
 import 'package:biocalden_smart_life/firebase_options.dart';
-import 'package:biocalden_smart_life/mqtt/mqtt.dart';
+import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +14,6 @@ import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/scan.dart';
 import 'package:biocalden_smart_life/calefactores/device_silema.dart';
 import 'package:provider/provider.dart';
-import 'package:workmanager/workmanager.dart';
 import 'calefactores/master_calefactor.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
@@ -26,7 +25,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
+  await initializeService();
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);
