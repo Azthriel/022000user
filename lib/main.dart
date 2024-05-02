@@ -14,7 +14,6 @@ import 'package:biocalden_smart_life/master.dart';
 import 'package:biocalden_smart_life/scan.dart';
 import 'package:biocalden_smart_life/calefactores/device_silema.dart';
 import 'package:provider/provider.dart';
-import 'calefactores/master_calefactor.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
@@ -25,7 +24,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await initializeService();
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);

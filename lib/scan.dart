@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:biocalden_smart_life/aws/dynamo/dynamo.dart';
+import 'package:biocalden_smart_life/aws/dynamo/dynamo_certificates.dart';
 import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:easy_refresh/easy_refresh.dart';
@@ -218,9 +220,8 @@ class ScanPageState extends State<ScanPage> {
                           const Text(
                             'Cuenta conectada:',
                             style: TextStyle(
-                              color: Color.fromARGB(255, 178, 181, 174),
-                              fontWeight: FontWeight.bold
-                            ),
+                                color: Color.fromARGB(255, 178, 181, 174),
+                                fontWeight: FontWeight.bold),
                           ),
                           Text(
                             currentUserEmail,
@@ -231,9 +232,8 @@ class ScanPageState extends State<ScanPage> {
                           const Text(
                             'Cantidad de equipos registrados:',
                             style: TextStyle(
-                              color: Color.fromARGB(255, 178, 181, 174),
-                              fontWeight: FontWeight.bold
-                            ),
+                                color: Color.fromARGB(255, 178, 181, 174),
+                                fontWeight: FontWeight.bold),
                           ),
                           Text(
                             previusConnections.length.toString(),
@@ -263,6 +263,8 @@ class ScanPageState extends State<ScanPage> {
                             }
                             topicsToSub.clear();
                             saveTopicList(topicsToSub);
+                            saveDevicesForDistanceControl([]);
+                            backTimer?.cancel();
                             Navigator.of(dialogContext).pop();
                           },
                         ),
@@ -443,6 +445,9 @@ class LoadState extends State<LoadingPage> {
             'devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
       }
       deviceSerialNumber = extractSerialNumber(deviceName);
+
+      await queryItems(service, productCode[deviceName]!, deviceSerialNumber);
+
       //Si es un calefactor
       if (deviceType == '022000' ||
           deviceType == '027000' ||

@@ -241,6 +241,8 @@ class RadiadorPageState extends State<RadiadorPage> {
         List<String> deviceControl = await loadDevicesForDistanceControl();
         deviceControl.add(deviceName);
         saveDevicesForDistanceControl(deviceControl);
+        printLog(
+            'Hay ${deviceControl.length} equipos con el control x distancia');
         Position position = await _determinePosition();
         Map<String, double> maplatitude = await loadLatitude();
         maplatitude.addAll({deviceName: position.latitude});
@@ -250,8 +252,10 @@ class RadiadorPageState extends State<RadiadorPage> {
         savePositionLongitud(maplongitude);
 
         if (deviceControl.length == 1) {
+          await initializeService();
           final backService = FlutterBackgroundService();
           await backService.startService();
+          printLog('Servicio iniciado a las ${DateTime.now()}');
         }
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
@@ -263,6 +267,8 @@ class RadiadorPageState extends State<RadiadorPage> {
       List<String> deviceControl = await loadDevicesForDistanceControl();
       deviceControl.remove(deviceName);
       saveDevicesForDistanceControl(deviceControl);
+      printLog(
+          'Quedan ${deviceControl.length} equipos con el control x distancia');
       Map<String, double> maplatitude = await loadLatitude();
       maplatitude.remove(deviceName);
       savePositionLatitude(maplatitude);
@@ -273,6 +279,8 @@ class RadiadorPageState extends State<RadiadorPage> {
       if (deviceControl.isEmpty) {
         final backService = FlutterBackgroundService();
         backService.invoke("stopService");
+        backTimer?.cancel();
+        printLog('Servicio apagado');
       }
     }
   }
@@ -559,11 +567,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           const Color.fromARGB(255, 72, 72, 72),
                                       inactiveTrackColor: const Color.fromARGB(
                                           255, 189, 189, 189),
-                                      value: isTaskScheduled[deviceName] ?? false,
+                                      value:
+                                          isTaskScheduled[deviceName] ?? false,
                                       onChanged: (value) {
                                         verifyPermission().then((result) {
                                           if (result == true) {
-                                            isTaskScheduled.addAll({deviceName: value});
+                                            isTaskScheduled
+                                                .addAll({deviceName: value});
                                             saveControlValue(isTaskScheduled);
                                             controlTask(value, deviceName);
                                           } else {

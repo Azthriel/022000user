@@ -556,39 +556,48 @@ class SilemaDrawerState extends State<SilemaDrawer> {
 
 //BACKGROUND //
 
+Timer? backTimer;
+
 Future<void> initializeService() async {
-  final backService = FlutterBackgroundService();
-  await backService.configure(
-    iosConfiguration: IosConfiguration(onBackground: onStart, autoStart: true),
-    androidConfiguration: AndroidConfiguration(
-      onStart: onStart,
-      autoStart: true,
-      isForegroundMode: false,
-    ),
-  );
+  try {
+    final backService = FlutterBackgroundService();
+    await backService.configure(
+      iosConfiguration:
+          IosConfiguration(onBackground: onStart, autoStart: true),
+      androidConfiguration: AndroidConfiguration(
+        initialNotificationTitle: 'Estamos midiendo tu ubicación',
+        initialNotificationContent:
+            'Esto es para poder controlar tus dispositivos smart',
+        onStart: onStart,
+        autoStart: true,
+        isForegroundMode: true,
+      ),
+    );
+    printLog('Se inició piola');
+  } catch (e, s) {
+    printLog('Error al inicializar servicio $e');
+    printLog('$s');
+  }
 }
 
-bool onStart(ServiceInstance backService) {
+bool onStart(ServiceInstance service) {
   WidgetsFlutterBinding.ensureInitialized();
-  final backService = FlutterBackgroundService();
-  late bool function;
+  setupMqtt();
 
-  Timer.periodic(const Duration(minutes: 2), (timer) async {
-    bool running = await backService.isRunning();
-    if (!running) {
-      timer.cancel();
-      backService.invoke("stopService");
-    }
-
-    await backFunction().then((value) => function = value);
+  service.on('stopService').listen((event) {
+    service.stopSelf();
   });
 
-  return function;
+  backTimer = Timer.periodic(const Duration(minutes: 2), (timer) async {
+    await backFunction();
+  });
+
+  return true;
 }
 
 Future<bool> backFunction() async {
+  printLog('Entre a hacer locuritas. ${DateTime.now()}');
   try {
-    await setupMqtt();
     List<String> devicesStored = await loadDevicesForDistanceControl();
     Map<String, String> products = await loadProductCodesMap();
     globalDATA = await loadGlobalData();
@@ -636,8 +645,8 @@ Future<bool> backFunction() async {
       );
       printLog('Distancia 1 : $distance1 metros');
 
-      printLog('Esperando dos minutos');
-      await Future.delayed(const Duration(minutes: 2));
+      printLog('Esperando 30 segundos ${DateTime.now()}');
+      await Future.delayed(const Duration(seconds: 30));
 
       Position currentPosition2 = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high);
@@ -651,7 +660,7 @@ Future<bool> backFunction() async {
       );
       printLog('Distancia 2 : $distance2 metros');
 
-      if (distance2 <= distanceOn && distance1 > distance2) {
+      if (distance2 <= distanceOn && distance1 > distance2 && distance2 >= 100) {
         printLog('Usuario cerca, encendiendo');
         globalDATA
             .putIfAbsent('$productCode/$sn', () => {})
@@ -676,7 +685,7 @@ Future<bool> backFunction() async {
         sendMessagemqtt(topic2, message);
         //Estas re lejos apago el calefactor
       } else {
-        printLog('Ningun caso unu');
+        printLog('Ningun caso');
       }
     }
 

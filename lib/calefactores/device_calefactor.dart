@@ -240,6 +240,8 @@ class ControlPageState extends State<ControlPage> {
         List<String> deviceControl = await loadDevicesForDistanceControl();
         deviceControl.add(deviceName);
         saveDevicesForDistanceControl(deviceControl);
+        printLog(
+            'Hay ${deviceControl.length} equipos con el control x distancia');
         Position position = await _determinePosition();
         Map<String, double> maplatitude = await loadLatitude();
         maplatitude.addAll({deviceName: position.latitude});
@@ -249,8 +251,10 @@ class ControlPageState extends State<ControlPage> {
         savePositionLongitud(maplongitude);
 
         if (deviceControl.length == 1) {
+          await initializeService();
           final backService = FlutterBackgroundService();
           await backService.startService();
+          printLog('Servicio iniciado a las ${DateTime.now()}');
         }
       } catch (e) {
         showToast('Error al iniciar control por distancia.');
@@ -262,6 +266,8 @@ class ControlPageState extends State<ControlPage> {
       List<String> deviceControl = await loadDevicesForDistanceControl();
       deviceControl.remove(deviceName);
       saveDevicesForDistanceControl(deviceControl);
+      printLog(
+          'Quedan ${deviceControl.length} equipos con el control x distancia');
       Map<String, double> maplatitude = await loadLatitude();
       maplatitude.remove(deviceName);
       savePositionLatitude(maplatitude);
@@ -272,6 +278,8 @@ class ControlPageState extends State<ControlPage> {
       if (deviceControl.isEmpty) {
         final backService = FlutterBackgroundService();
         backService.invoke("stopService");
+        backTimer?.cancel();
+        printLog('Servicio apagado');
       }
     }
   }
