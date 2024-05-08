@@ -1,6 +1,6 @@
 import 'package:aws_dynamodb_api/dynamodb-2012-08-10.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '/master.dart';
+import '/stored_data.dart';
 
 Future<void> queryItems(DynamoDB service, String pc, String sn) async {
   try {
@@ -65,3 +65,4 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
     printLog('Error durante la consulta: $e');
   }
 }
+

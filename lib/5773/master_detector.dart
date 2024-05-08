@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:biocalden_smart_life/master.dart';
+import '/master.dart';
 
 // VARIABLES //
 

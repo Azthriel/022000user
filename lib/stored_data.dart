@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:biocalden_smart_life/master.dart';
+import 'master.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // MASTERLOAD \\
@@ -124,12 +124,22 @@ Future<void> saveDistanceON(Map<String, double> distanceONMap) async {
 }
 
 Future<Map<String, double>> loadDistanceON() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? distanceONString = prefs.getString('distanceON');
-  if (distanceONString != null) {
-    return Map<String, double>.from(json.decode(distanceONString));
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? distanceONString = prefs.getString('distanceON');
+    if (distanceONString != null) {
+      printLog(
+          'On cargo chido ${Map<String, double>.from(json.decode(distanceONString))}');
+      return Map<String, double>.from(json.decode(distanceONString));
+    }
+
+    return Map<String, double>.from({});
+  } catch (e, s) {
+    printLog('Error cargando data:');
+    printLog(e);
+    printLog(s);
+    return Map<String, double>.from({});
   }
-  return {};
 }
 
 Future<void> saveDistanceOFF(Map<String, double> distanceOFFMap) async {
@@ -139,12 +149,21 @@ Future<void> saveDistanceOFF(Map<String, double> distanceOFFMap) async {
 }
 
 Future<Map<String, double>> loadDistanceOFF() async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? distanceOFFString = prefs.getString('distanceOFF');
-  if (distanceOFFString != null) {
-    return Map<String, double>.from(json.decode(distanceOFFString));
+  try {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? distanceOFFString = prefs.getString('distanceOFF');
+    if (distanceOFFString != null) {
+      printLog(
+          'OFF cargo chido ${Map<String, double>.from(json.decode(distanceOFFString))}');
+      return Map<String, double>.from(json.decode(distanceOFFString));
+    }
+    return Map<String, double>.from({});
+  } catch (e, s) {
+    printLog('Error cargando data:');
+    printLog(e);
+    printLog(s);
+    return Map<String, double>.from({});
   }
-  return {};
 }
 
 //*-Position
@@ -276,5 +295,27 @@ Future<String> loadTokenIO() async {
     return token;
   } else {
     return '';
+  }
+}
+
+//*-Fecha reinicio
+
+Future<void> guardarFecha(String device) async {
+  DateTime now = DateTime.now();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('year$device', now.year);
+  await prefs.setInt('month$device', now.month);
+  await prefs.setInt('day$device', now.day);
+}
+
+Future<DateTime?> cargarFechaGuardada(String device) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  int? year = prefs.getInt('year$device');
+  int? month = prefs.getInt('month$device');
+  int? day = prefs.getInt('day$device');
+  if (year != null && month != null && day != null) {
+    return DateTime(year, month, day);
+  } else {
+    return null;
   }
 }

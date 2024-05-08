@@ -1,12 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '/master.dart';
 
 // VARIABLES //
 
@@ -25,18 +21,14 @@ late List<String> pikachu;
 
 // FUNCIONES //
 
-void gamerMode(int fun) {
-  String data = '${command(deviceType)}[11]($fun)';
-  myDevice.toolsUuid.write(data.codeUnits);
-}
-
 // CLASES //
 
 //*-Drawer-*//Menú lateral con dispositivos
 
 class DeviceDrawer extends StatefulWidget {
   final bool night;
-  const DeviceDrawer({super.key, required this.night});
+  final String device;
+  const DeviceDrawer({super.key, required this.night, required this.device});
 
   @override
   DeviceDrawerState createState() => DeviceDrawerState();
@@ -54,32 +46,13 @@ class DeviceDrawerState extends State<DeviceDrawer> {
   @override
   void initState() {
     super.initState();
-    cargarFechaGuardada();
+    timeData();
     nightState = widget.night;
     printLog('NightMode status: $nightState');
   }
 
-  Future<void> guardarFecha() async {
-    DateTime now = DateTime.now();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('year', now.year);
-    await prefs.setInt('month', now.month);
-    await prefs.setInt('day', now.day);
-    setState(() {
-      fechaSeleccionada = now;
-    });
-  }
-
-  Future<void> cargarFechaGuardada() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? year = prefs.getInt('year');
-    int? month = prefs.getInt('month');
-    int? day = prefs.getInt('day');
-    if (year != null && month != null && day != null) {
-      setState(() {
-        fechaSeleccionada = DateTime(year, month, day);
-      });
-    }
+  void timeData() async {
+    fechaSeleccionada = await cargarFechaGuardada(widget.device);
   }
 
   void makeCompute() async {
@@ -172,7 +145,8 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             foregroundColor: MaterialStatePropertyAll(
                                 Color.fromARGB(255, 255, 255, 255))),
                         onPressed: () {
-                          guardarFecha();
+                          guardarFecha(widget.device).then(
+                              (value) => fechaSeleccionada = DateTime.now());
                           String data = '${command(deviceType)}[10](0)';
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
@@ -200,7 +174,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       icon: nightState
                           ? const Icon(Icons.nightlight,
                               color: Colors.white, size: 40)
-                          : const Icon(Icons.wb_sunny,
+                          : const Icon(Icons.light_mode,
                               color: Colors.white, size: 40),
                     ),
                     const SizedBox(height: 20),
@@ -298,7 +272,8 @@ class DeviceDrawerState extends State<DeviceDrawer> {
 
 class SilemaDrawer extends StatefulWidget {
   final bool night;
-  const SilemaDrawer({super.key, required this.night});
+  final String device;
+  const SilemaDrawer({super.key, required this.night, required this.device});
 
   @override
   SilemaDrawerState createState() => SilemaDrawerState();
@@ -316,32 +291,13 @@ class SilemaDrawerState extends State<SilemaDrawer> {
   @override
   void initState() {
     super.initState();
-    cargarFechaGuardada();
+    timeData();
     nightState = widget.night;
     printLog('NightMode status: $nightState');
   }
 
-  Future<void> guardarFecha() async {
-    DateTime now = DateTime.now();
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('year', now.year);
-    await prefs.setInt('month', now.month);
-    await prefs.setInt('day', now.day);
-    setState(() {
-      fechaSeleccionada = now;
-    });
-  }
-
-  Future<void> cargarFechaGuardada() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    int? year = prefs.getInt('year');
-    int? month = prefs.getInt('month');
-    int? day = prefs.getInt('day');
-    if (year != null && month != null && day != null) {
-      setState(() {
-        fechaSeleccionada = DateTime(year, month, day);
-      });
-    }
+  void timeData() async {
+    fechaSeleccionada = await cargarFechaGuardada(widget.device);
   }
 
   void makeCompute() async {
@@ -434,7 +390,8 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                             foregroundColor: MaterialStatePropertyAll(
                                 Color.fromARGB(255, 255, 255, 255))),
                         onPressed: () {
-                          guardarFecha();
+                          guardarFecha(widget.device).then(
+                              (value) => fechaSeleccionada = DateTime.now());
                           String data = '${command(deviceType)}[10](0)';
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
@@ -464,7 +421,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                       icon: nightState
                           ? const Icon(Icons.nightlight,
                               color: Color.fromARGB(255, 0, 0, 0), size: 40)
-                          : const Icon(Icons.wb_sunny,
+                          : const Icon(Icons.light_mode,
                               color: Color.fromARGB(255, 0, 0, 0), size: 40),
                     ),
                     const SizedBox(height: 20),
@@ -553,154 +510,3 @@ class SilemaDrawerState extends State<SilemaDrawer> {
         ));
   }
 }
-
-//BACKGROUND //
-
-Timer? backTimer;
-
-Future<void> initializeService() async {
-  try {
-    final backService = FlutterBackgroundService();
-    await backService.configure(
-      iosConfiguration:
-          IosConfiguration(onBackground: onStart, autoStart: true),
-      androidConfiguration: AndroidConfiguration(
-        initialNotificationTitle: 'Estamos midiendo tu ubicación',
-        initialNotificationContent:
-            'Esto es para poder controlar tus dispositivos smart',
-        onStart: onStart,
-        autoStart: true,
-        isForegroundMode: true,
-      ),
-    );
-    printLog('Se inició piola');
-  } catch (e, s) {
-    printLog('Error al inicializar servicio $e');
-    printLog('$s');
-  }
-}
-
-bool onStart(ServiceInstance service) {
-  WidgetsFlutterBinding.ensureInitialized();
-  setupMqtt();
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-
-  backTimer = Timer.periodic(const Duration(minutes: 2), (timer) async {
-    await backFunction();
-  });
-
-  return true;
-}
-
-Future<bool> backFunction() async {
-  printLog('Entre a hacer locuritas. ${DateTime.now()}');
-  try {
-    List<String> devicesStored = await loadDevicesForDistanceControl();
-    Map<String, String> products = await loadProductCodesMap();
-    globalDATA = await loadGlobalData();
-    Map<String, double> latitudes = await loadLatitude();
-    Map<String, double> longitudes = await loadLongitud();
-    Map<String, double> distancesOn = await loadDistanceON();
-    Map<String, double> distancesOff = await loadDistanceOFF();
-
-    for (int index = 0; index < devicesStored.length; index++) {
-      String name = devicesStored[index];
-      String productCode = products[name]!;
-      String sn = extractSerialNumber(name);
-
-      double latitude = latitudes[name]!;
-      double longitude = longitudes[name]!;
-      double distanceOn = distancesOn[name]!;
-      double distanceOff = distancesOff[name]!;
-
-      Position storedLocation = Position(
-        latitude: latitude,
-        longitude: longitude,
-        timestamp: DateTime.now(),
-        accuracy: 0.0,
-        altitude: 0.0,
-        heading: 0.0,
-        speed: 0.0,
-        speedAccuracy: 0.0,
-        floor: 0,
-        isMocked: false,
-        altitudeAccuracy: 0.0,
-        headingAccuracy: 0.0,
-      );
-
-      printLog('Ubicación guardada $storedLocation');
-
-      Position currentPosition1 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      printLog('$currentPosition1');
-
-      double distance1 = Geolocator.distanceBetween(
-        currentPosition1.latitude,
-        currentPosition1.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      printLog('Distancia 1 : $distance1 metros');
-
-      printLog('Esperando 30 segundos ${DateTime.now()}');
-      await Future.delayed(const Duration(seconds: 30));
-
-      Position currentPosition2 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      printLog('$currentPosition2');
-
-      double distance2 = Geolocator.distanceBetween(
-        currentPosition2.latitude,
-        currentPosition2.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      printLog('Distancia 2 : $distance2 metros');
-
-      if (distance2 <= distanceOn && distance1 > distance2 && distance2 >= 100) {
-        printLog('Usuario cerca, encendiendo');
-        globalDATA
-            .putIfAbsent('$productCode/$sn', () => {})
-            .addAll({"w_status": true});
-        saveGlobalData(globalDATA);
-        String topic = 'devices_rx/$productCode/$sn';
-        String topic2 = 'devices_tx/$productCode/$sn';
-        String message = jsonEncode({"w_status": true});
-        sendMessagemqtt(topic, message);
-        sendMessagemqtt(topic2, message);
-        //Ta cerca prendo
-      } else if (distance2 >= distanceOff && distance1 < distance2) {
-        printLog('Usuario lejos, apagando');
-        globalDATA
-            .putIfAbsent('$productCode/$sn', () => {})
-            .addAll({"w_status": false});
-        saveGlobalData(globalDATA);
-        String topic = 'devices_rx/$productCode/$sn';
-        String topic2 = 'devices_tx/$productCode/$sn';
-        String message = jsonEncode({"w_status": false});
-        sendMessagemqtt(topic, message);
-        sendMessagemqtt(topic2, message);
-        //Estas re lejos apago el calefactor
-      } else {
-        printLog('Ningun caso');
-      }
-    }
-
-    return Future.value(true);
-  } catch (e, s) {
-    printLog('Error en segundo plano $e');
-    printLog(s);
-    return Future.value(false);
-  }
-}
-
-// START SERVICE //
-// final backService = FlutterBackgroundService();
-// await backService.startService();
-
-// STOP SERVICE //
-// final backService = FlutterBackgroundService();
-// backService.invoke("stopService");

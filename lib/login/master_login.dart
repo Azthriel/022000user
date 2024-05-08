@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:biocalden_smart_life/login/login.dart';
+import '/login/login.dart';
 import 'package:flutter/material.dart';
 
 // CLIPPER //

@@ -2,14 +2,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '/aws/mqtt/mqtt.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
-import 'package:biocalden_smart_life/master.dart';
+import '/calefactores/master_calefactor.dart';
+import '/master.dart';
 
 //CONTROL TAB // On Off y set temperatura
 
@@ -336,6 +338,7 @@ class ControlPageState extends State<ControlPage> {
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return PopScope(
         canPop: false,
         onPopInvoked: (didPop) {
@@ -394,26 +397,22 @@ class ControlPageState extends State<ControlPage> {
                 ),
                 actions: userConnected
                     ? null
-                    : deviceOwner
-                        ? <Widget>[
-                            IconButton(
-                              icon: Icon(
-                                wifiIcon,
-                                size: 24.0,
-                                semanticLabel: 'Icono de wifi',
-                              ),
-                              onPressed: () {
-                                wifiText(context);
-                              },
-                            ),
-                          ]
-                        : null),
+                    : <Widget>[
+                        IconButton(
+                          icon: Icon(
+                            wifiIcon,
+                            size: 24.0,
+                            semanticLabel: 'Icono de wifi',
+                          ),
+                          onPressed: () {
+                            wifiText(context);
+                          },
+                        ),
+                      ]),
             drawer: userConnected
                 ? null
                 : deviceOwner
-                    ? DeviceDrawer(
-                        night: nightMode,
-                      )
+                    ? DeviceDrawer(night: nightMode, device: deviceName)
                     : null,
             body: SingleChildScrollView(
               child: Center(
@@ -529,31 +528,41 @@ class ControlPageState extends State<ControlPage> {
                             ],
                           ),
                           if (deviceOwner) ...[
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 50.0,
-                                thumbColor: Colors.white,
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 0.0,
+                            SizedBox(
+                              width: width - 50,
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 50.0,
+                                  trackShape:
+                                      const RoundedRectSliderTrackShape(),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                      overlayRadius: 0.0),
+                                  thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 26.0,
+                                      disabledThumbRadius: 26.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0),
                                 ),
-                              ),
-                              child: Slider(
-                                activeColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
-                                inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
-                                value: tempValue,
-                                onChanged: (value) {
-                                  setState(() {
-                                    tempValue = value;
-                                  });
-                                },
-                                onChangeEnd: (value) {
-                                  printLog('$value');
-                                  sendTemperature(value.round());
-                                },
-                                min: 10,
-                                max: 40,
+                                child: Slider(
+                                  activeColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  thumbColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  value: tempValue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      tempValue = value;
+                                    });
+                                  },
+                                  onChangeEnd: (value) {
+                                    printLog('$value');
+                                    sendTemperature(value.round());
+                                  },
+                                  min: 10,
+                                  max: 40,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -629,8 +638,10 @@ class ControlPageState extends State<ControlPage> {
                                   trackHeight: 30.0,
                                   thumbColor: Colors.white,
                                   thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 0.0,
-                                  ),
+                                      enabledThumbRadius: 16.0,
+                                      disabledThumbRadius: 16.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0),
                                 ),
                                 child: Slider(
                                   activeColor:
@@ -687,8 +698,10 @@ class ControlPageState extends State<ControlPage> {
                                   trackHeight: 30.0,
                                   thumbColor: Colors.white,
                                   thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 0.0,
-                                  ),
+                                      enabledThumbRadius: 16.0,
+                                      disabledThumbRadius: 16.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0),
                                 ),
                                 child: Slider(
                                   activeColor:
@@ -734,17 +747,50 @@ class ControlPageState extends State<ControlPage> {
                               icon: nightMode
                                   ? const Icon(Icons.nightlight,
                                       color: Colors.white, size: 50)
-                                  : const Icon(Icons.wb_sunny,
+                                  : const Icon(Icons.light_mode,
                                       color: Colors.white, size: 50),
                             ),
                             const SizedBox(
                               height: 20,
                             ),
                             const Text(
-                                'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 25, color: Colors.white)),
+                              'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                              textAlign: TextAlign.center,
+                              style:
+                                  TextStyle(fontSize: 25, color: Colors.white),
+                            ),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              style: const ButtonStyle(
+                                backgroundColor: MaterialStatePropertyAll(
+                                  Color.fromARGB(255, 189, 189, 189),
+                                ),
+                                foregroundColor: MaterialStatePropertyAll(
+                                  Color.fromARGB(255, 255, 255, 255),
+                                ),
+                              ),
+                              onPressed: () async {
+                                var phoneNumber = '5491162232619';
+                                var message = '''
+                                    Hola, te hablo en relación a mi equipo $deviceName.
+                                    Este mismo me dice que no soy administrador.
+                                    Datos del equipo:
+                                    Código de producto: ${productCode[deviceName]}
+                                    Número de serie: ${extractSerialNumber(deviceName)}
+                                    Administrador actúal: ${utf8.decode(infoValues).split(':')[4]}
+                                  ''';
+                                var whatsappUrl =
+                                    "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                                Uri uri = Uri.parse(whatsappUrl);
+
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                } else {
+                                  showToast('No se pudo abrir WhatsApp');
+                                }
+                              },
+                              child: const Text('Servicio técnico'),
+                            ),
                           ],
                         ],
                       ),

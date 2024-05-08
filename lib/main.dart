@@ -1,18 +1,18 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'package:biocalden_smart_life/020010/device_inout.dart';
-import 'package:biocalden_smart_life/firebase_options.dart';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '020010/device_inout.dart';
+import 'firebase_options.dart';
+import 'aws/mqtt/mqtt.dart';
+import 'stored_data.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:biocalden_smart_life/5773/device_detector.dart';
-import 'package:biocalden_smart_life/calefactores/device_calefactor.dart';
-import 'package:biocalden_smart_life/login/login.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/scan.dart';
-import 'package:biocalden_smart_life/calefactores/device_silema.dart';
+import '5773/device_detector.dart';
+import 'calefactores/device_calefactor.dart';
+import 'login/login.dart';
+import 'master.dart';
+import 'scan.dart';
+import 'calefactores/device_silema.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
@@ -167,6 +167,13 @@ class PermissionHandlerState extends State<PermissionHandler> {
       await Permission.location.request();
     }
     permissionStatus3 = await Permission.location.status;
+
+    // var permissionStatus4 = await Permission.scheduleExactAlarm.request();
+
+    // if (!permissionStatus4.isGranted) {
+    //   await Permission.scheduleExactAlarm.request();
+    // }
+    // permissionStatus4 = await Permission.scheduleExactAlarm.status;
 
     requestPermissionFCM();
 

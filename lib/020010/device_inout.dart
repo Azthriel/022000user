@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:biocalden_smart_life/020010/master_ionout.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '/020010/master_ionout.dart';
+import '/master.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
 
 class IODevices extends StatefulWidget {

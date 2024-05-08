@@ -2,14 +2,16 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '/aws/mqtt/mqtt.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/calefactores/master_calefactor.dart';
+import '/master.dart';
+import '/calefactores/master_calefactor.dart';
 
 //CONTROL TAB // On Off y set temperatura
 
@@ -393,26 +395,22 @@ class RadiadorPageState extends State<RadiadorPage> {
                 ),
                 actions: userConnected
                     ? null
-                    : deviceOwner
-                        ? <Widget>[
-                            IconButton(
-                              icon: Icon(
-                                wifiIcon,
-                                size: 24.0,
-                                semanticLabel: 'Icono de wifi',
-                              ),
-                              onPressed: () {
-                                wifiText(context);
-                              },
-                            ),
-                          ]
-                        : null),
+                    : <Widget>[
+                        IconButton(
+                          icon: Icon(
+                            wifiIcon,
+                            size: 24.0,
+                            semanticLabel: 'Icono de wifi',
+                          ),
+                          onPressed: () {
+                            wifiText(context);
+                          },
+                        ),
+                      ]),
             drawer: userConnected
                 ? null
                 : deviceOwner
-                    ? SilemaDrawer(
-                        night: nightMode,
-                      )
+                    ? SilemaDrawer(night: nightMode, device: deviceName)
                     : null,
             body: SingleChildScrollView(
               child: Center(
@@ -525,8 +523,10 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 thumbColor:
                                     const Color.fromARGB(255, 72, 72, 72),
                                 thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 0.0,
-                                ),
+                                    enabledThumbRadius: 26.0,
+                                    disabledThumbRadius: 26.0,
+                                    elevation: 0.0,
+                                    pressedElevation: 0.0),
                               ),
                               child: Slider(
                                 activeColor:
@@ -616,13 +616,14 @@ class RadiadorPageState extends State<RadiadorPage> {
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  trackHeight: 30.0,
-                                  thumbColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
-                                  thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 0.0,
-                                  ),
-                                ),
+                                    trackHeight: 30.0,
+                                    thumbColor:
+                                        const Color.fromARGB(255, 72, 72, 72),
+                                    thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 16.0,
+                                        disabledThumbRadius: 16.0,
+                                        elevation: 0.0,
+                                        pressedElevation: 0.0)),
                                 child: Slider(
                                   activeColor:
                                       const Color.fromARGB(255, 72, 72, 72),
@@ -675,13 +676,14 @@ class RadiadorPageState extends State<RadiadorPage> {
                               ),
                               SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  trackHeight: 30.0,
-                                  thumbColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
-                                  thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 0.0,
-                                  ),
-                                ),
+                                    trackHeight: 30.0,
+                                    thumbColor:
+                                        const Color.fromARGB(255, 72, 72, 72),
+                                    thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 16.0,
+                                        disabledThumbRadius: 16.0,
+                                        elevation: 0.0,
+                                        pressedElevation: 0.0)),
                                 child: Slider(
                                   activeColor:
                                       const Color.fromARGB(255, 72, 72, 72),
@@ -728,7 +730,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   ? const Icon(Icons.nightlight,
                                       color: Color.fromARGB(255, 0, 0, 0),
                                       size: 50)
-                                  : const Icon(Icons.wb_sunny,
+                                  : const Icon(Icons.light_mode,
                                       color: Color.fromARGB(255, 0, 0, 0),
                                       size: 50),
                             ),
@@ -736,11 +738,45 @@ class RadiadorPageState extends State<RadiadorPage> {
                               height: 20,
                             ),
                             const Text(
-                                'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 25,
-                                    color: Color.fromARGB(255, 0, 0, 0))),
+                              'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 25,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              style: const ButtonStyle(
+                                backgroundColor: MaterialStatePropertyAll(
+                                  Color.fromARGB(255, 72, 72, 72),
+                                ),
+                                foregroundColor: MaterialStatePropertyAll(
+                                  Color.fromARGB(255, 255, 255, 255),
+                                ),
+                              ),
+                              onPressed: () async {
+                                var phoneNumber = '5491162232619';
+                                var message = '''
+                                    Hola, te hablo en relación a mi equipo $deviceName.
+                                    Este mismo me dice que no soy administrador.
+                                    Datos del equipo:
+                                    Código de producto: ${productCode[deviceName]}
+                                    Número de serie: ${extractSerialNumber(deviceName)}
+                                    Administrador actúal: ${utf8.decode(infoValues).split(':')[4]}
+                                  ''';
+                                var whatsappUrl =
+                                    "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                                Uri uri = Uri.parse(whatsappUrl);
+
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri);
+                                } else {
+                                  showToast('No se pudo abrir WhatsApp');
+                                }
+                              },
+                              child: const Text('Servicio técnico'),
+                            ),
                           ],
                         ],
                       ),

@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <queries>
         <!-- If your application checks for inAppBrowserView launch mode support -->
         <intent>
@@ -60,6 +61,7 @@
         <service
         android:name="com.ekasetiawans.flutter_background_service.FlutterBackgroundService"
         android:permission="android.permission.FOREGROUND_SERVICE"
+        android:foregroundServiceType="location"
         android:exported="false"/>
     </application>
 </manifest>

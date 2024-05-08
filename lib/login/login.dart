@@ -1,7 +1,7 @@
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/login/master_login.dart';
+import '/master.dart';
+import '/login/master_login.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 final TextEditingController mailController = TextEditingController();

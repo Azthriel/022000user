@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:biocalden_smart_life/master.dart';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '/master.dart';
+import '/aws/mqtt/mqtt.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
 
 // VARIABLES //

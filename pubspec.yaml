@@ -1,7 +1,7 @@
 name: biocalden_smart_life
 description: "Biocalden."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 2.3.5+15
+version: 2.3.8+17
 
 environment:
   sdk: '>=3.3.1 <4.0.0'
@@ -31,6 +31,7 @@ dependencies:
   aws_dynamodb_api: ^2.0.0
   dio: ^5.4.3+1
   flutter_background_service: ^5.0.5
+  flutter_local_notifications: ^17.1.1
 
 
 dev_dependencies:

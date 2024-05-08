@@ -4,11 +4,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
+import 'aws/mqtt/mqtt.dart';
 import 'package:biocalden_smart_life/stored_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -66,6 +68,8 @@ String deviceSerialNumber = '';
 late String appName;
 Map<String, List<bool>> notificationMap = {};
 bool werror = false;
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -76,7 +80,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24050200';
+String appVersionNumber = '24050803';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -87,8 +91,8 @@ bool biocalden = true;
 
 void printLog(var text) {
   if (xDebugMode) {
-    // ignore: avoid_print
-    print('PrintData: $text');
+  // ignore: avoid_print
+  print('PrintData: $text');
   }
 }
 
@@ -173,6 +177,14 @@ void sendReportError(String cuerpo) async {
   } catch (error) {
     printLog('Error al enviar el correo: $error');
   }
+}
+
+void handleManualError(String e, String s) {
+  String data = '''
+Error: $e
+Stacktrace: $s
+  ''';
+  _sendWhatsAppMessage('5491161437533', data);
 }
 
 String getWifiErrorSintax(int errorCode) {
@@ -1063,6 +1075,225 @@ void wifiText(BuildContext context) {
   );
 }
 
+//BACKGROUND //
+
+Timer? backTimer;
+
+Future<void> initializeService() async {
+  try {
+    final backService = FlutterBackgroundService();
+
+    AndroidNotificationChannel channel = const AndroidNotificationChannel(
+        'my_foreground',
+        'Control por distancia',
+        description:
+            'Notificaciones del control por distancia',
+        importance: Importance.high,
+        enableLights: true);
+
+    final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+        FlutterLocalNotificationsPlugin();
+
+    if (Platform.isIOS || Platform.isAndroid) {
+      await flutterLocalNotificationsPlugin.initialize(
+        const InitializationSettings(
+          iOS: DarwinInitializationSettings(),
+          android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        ),
+      );
+    }
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
+    await backService.configure(
+      iosConfiguration:
+          IosConfiguration(onBackground: onStart, autoStart: true),
+      androidConfiguration: AndroidConfiguration(
+        notificationChannelId: 'my_foreground',
+        foregroundServiceNotificationId: 888,
+        initialNotificationTitle: 'Estamos midiendo tu ubicación',
+        initialNotificationContent:
+            'Esto es para poder controlar tus dispositivos smart',
+        onStart: onStart,
+        autoStart: true,
+        isForegroundMode: true,
+      ),
+    );
+    printLog('Se inició piola');
+  } catch (e, s) {
+    printLog('Error al inicializar servicio $e');
+    printLog('$s');
+  }
+}
+
+@pragma('vm:entry-point')
+bool onStart(ServiceInstance service) {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  setupMqtt();
+
+  service.on('stopService').listen((event) {
+    service.stopSelf();
+  });
+
+  backTimer = Timer.periodic(const Duration(minutes: 2), (timer) async {
+    await backFunction();
+  });
+
+  return true;
+}
+
+Future<bool> backFunction() async {
+  printLog('Entre a hacer locuritas. ${DateTime.now()}');
+  // showNotification('Entre a la función', '${DateTime.now()}');
+  try {
+    List<String> devicesStored = await loadDevicesForDistanceControl();
+    Map<String, String> products = await loadProductCodesMap();
+    globalDATA = await loadGlobalData();
+    Map<String, double> latitudes = await loadLatitude();
+    Map<String, double> longitudes = await loadLongitud();
+    Map<String, double> distancesOn = await loadDistanceON();
+    Map<String, double> distancesOff = await loadDistanceOFF();
+
+    for (int index = 0; index < devicesStored.length; index++) {
+      String name = devicesStored[index];
+      String productCode = products[name]!;
+      String sn = extractSerialNumber(name);
+
+      double latitude = latitudes[name]!;
+      double longitude = longitudes[name]!;
+      double distanceOn = distancesOn[name] ?? 3000.0;
+      double distanceOff = distancesOff[name] ?? 100.0;
+
+      Position storedLocation = Position(
+        latitude: latitude,
+        longitude: longitude,
+        timestamp: DateTime.now(),
+        accuracy: 0.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        floor: 0,
+        isMocked: false,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
+
+      printLog('Ubicación guardada $storedLocation');
+
+      // showNotification('Ubicación guardada', '$storedLocation');
+
+      Position currentPosition1 = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      printLog('$currentPosition1');
+
+      double distance1 = Geolocator.distanceBetween(
+        currentPosition1.latitude,
+        currentPosition1.longitude,
+        storedLocation.latitude,
+        storedLocation.longitude,
+      );
+      printLog('Distancia 1 : $distance1 metros');
+
+      // showNotification('Distancia 1', '$distance1 metros');
+
+      printLog('Esperando 30 segundos ${DateTime.now()}');
+
+      // showNotification('Esperando 30 segundos', '${DateTime.now()}');
+
+      await Future.delayed(const Duration(seconds: 30));
+
+      Position currentPosition2 = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      printLog('$currentPosition2');
+
+      double distance2 = Geolocator.distanceBetween(
+        currentPosition2.latitude,
+        currentPosition2.longitude,
+        storedLocation.latitude,
+        storedLocation.longitude,
+      );
+      printLog('Distancia 2 : $distance2 metros');
+
+      // showNotification('Distancia 2', '$distance2 metros');
+
+      if (distance2 <= distanceOn &&
+          distance1 > distance2 &&
+          distance2 >= 100) {
+        printLog('Usuario cerca, encendiendo');
+
+        showNotification('Encendimos el calefactor',
+            'Te acercaste a menos de $distanceOn metros');
+
+        globalDATA
+            .putIfAbsent('$productCode/$sn', () => {})
+            .addAll({"w_status": true});
+        saveGlobalData(globalDATA);
+        String topic = 'devices_rx/$productCode/$sn';
+        String topic2 = 'devices_tx/$productCode/$sn';
+        String message = jsonEncode({"w_status": true});
+        sendMessagemqtt(topic, message);
+        sendMessagemqtt(topic2, message);
+        //Ta cerca prendo
+      } else if (distance2 >= distanceOff && distance1 < distance2) {
+        printLog('Usuario lejos, apagando');
+
+        showNotification('Apagamos el calefactor',
+            'Te alejaste a más de $distanceOff metros');
+
+        globalDATA
+            .putIfAbsent('$productCode/$sn', () => {})
+            .addAll({"w_status": false});
+        saveGlobalData(globalDATA);
+        String topic = 'devices_rx/$productCode/$sn';
+        String topic2 = 'devices_tx/$productCode/$sn';
+        String message = jsonEncode({"w_status": false});
+        sendMessagemqtt(topic, message);
+        sendMessagemqtt(topic2, message);
+        //Estas re lejos apago el calefactor
+      } else {
+        printLog('Ningun caso');
+
+        showNotification('No se cumplio ningún caso', 'No hicimos nada');
+      }
+    }
+
+    return Future.value(true);
+  } catch (e, s) {
+    printLog('Error en segundo plano $e');
+    printLog(s);
+
+    // showNotification('Error en segundo plano $e', '$e');
+
+    return Future.value(false);
+  }
+}
+
+void showNotification(String title, String body) async {
+  try {
+    await flutterLocalNotificationsPlugin.show(
+      888,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'my_foreground',
+          'Control por distancia',
+          icon: '@mipmap/ic_launcher',
+          ongoing: false,
+        ),
+      ),
+    );
+  } catch (e, s) {
+    printLog('Error enviando notif: $e');
+    printLog(s);
+  }
+}
+
 // CLASES //
 
 //*-BLE-*//caracteristicas y servicios
@@ -1926,16 +2157,4 @@ class GlobalDataNotifier extends ChangeNotifier {
       notifyListeners(); // Esto notifica a todos los oyentes que algo cambió
     }
   }
-}
-
-//*-ICONS-*// Agrego customs icons
-
-class Bio {
-  Bio._();
-
-  static const _kFontFam = 'Bio';
-  static const String? _kFontPkg = null;
-
-  static const IconData bio =
-      IconData(0xe800, fontFamily: _kFontFam, fontPackage: _kFontPkg);
 }

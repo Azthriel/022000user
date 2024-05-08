@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:biocalden_smart_life/stored_data.dart';
+import '/stored_data.dart';
 import 'package:flutter/material.dart';
-import 'package:biocalden_smart_life/5773/master_detector.dart';
-import 'package:biocalden_smart_life/master.dart';
+import '/5773/master_detector.dart';
+import '/master.dart';
 
 class DetectorPage extends StatefulWidget {
   const DetectorPage({super.key});

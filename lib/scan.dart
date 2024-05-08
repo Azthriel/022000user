@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:biocalden_smart_life/aws/dynamo/dynamo.dart';
-import 'package:biocalden_smart_life/aws/dynamo/dynamo_certificates.dart';
-import 'package:biocalden_smart_life/aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import 'aws/dynamo/dynamo.dart';
+import 'aws/dynamo/dynamo_certificates.dart';
+import 'aws/mqtt/mqtt.dart';
+import 'stored_data.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:biocalden_smart_life/5773/master_detector.dart';
-import 'package:biocalden_smart_life/master.dart';
+import '5773/master_detector.dart';
+import 'master.dart';
 import 'calefactores/master_calefactor.dart';
 
 class ScanPage extends StatefulWidget {
@@ -548,7 +548,7 @@ class LoadState extends State<LoadingPage> {
     } catch (e, stackTrace) {
       printLog('Error en la precarga $e $stackTrace');
       showToast('Error en la precarga');
-      // handleManualError(e, stackTrace);
+      // handleManualError('$e', '$stackTrace');
       return Future.value(false);
     }
   }
