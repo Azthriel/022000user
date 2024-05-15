@@ -263,7 +263,6 @@ class ScanPageState extends State<ScanPage> {
                             }
                             topicsToSub.clear();
                             saveTopicList(topicsToSub);
-                            saveDevicesForDistanceControl([]);
                             backTimer?.cancel();
                             Navigator.of(dialogContext).pop();
                           },
@@ -455,9 +454,12 @@ class LoadState extends State<LoadingPage> {
         varsValues = await myDevice.varsUuid.read();
         var parts2 = utf8.decode(varsValues).split(':');
         printLog('$parts2');
-        turnOn = parts2[1] == '1';
-        trueStatus = parts2[3] == '1';
-        nightMode = parts2[4] == '1';
+        var list = await loadDevicesForDistanceControl();
+        canControlDistance = list.contains(deviceName) ? true : parts2[0] == '0';
+        printLog('Puede utilizar el control por distancia: $canControlDistance');
+        turnOn = parts2[2] == '1';
+        trueStatus = parts2[4] == '1';
+        nightMode = parts2[5] == '1';
         printLog('Estado: $turnOn');
 
         var parts3 = utf8.decode(toolsValues).split(':');
@@ -468,33 +470,18 @@ class LoadState extends State<LoadingPage> {
         userConnected = users > 1;
         lastUser = users;
 
-        String userEmail = currentUserEmail;
-        var parts = utf8.decode(infoValues).split(':');
-        printLog('Actual: $userEmail... Deberia ser: ${parts[4]}');
-        if (parts[4] == 'NA') {
-          deviceOwner = true;
-          printLog('Mando owner');
-          String mailData = '${command(deviceType)}[5]($userEmail)';
-          myDevice.toolsUuid.write(mailData.codeUnits);
+        deviceOwner = true;
+        ownedDevices.add(deviceName);
+        saveOwnedDevices(ownedDevices); //TODO: Modificar y agregar owners a dynamo
+
+        if (canControlDistance) {
           var mapOFF = await loadDistanceOFF();
           distOffValue = mapOFF[deviceName] ?? 100.0;
           var mapON = await loadDistanceON();
           distOnValue = mapON[deviceName] ?? 3000.0;
           isTaskScheduled = await loadControlValue();
-          ownedDevices.add(deviceName);
-          saveOwnedDevices(ownedDevices);
-        } else if (parts[4] == userEmail) {
-          deviceOwner = true;
-          var mapOFF = await loadDistanceOFF();
-          distOffValue = mapOFF[deviceName] ?? 100.0;
-          var mapON = await loadDistanceON();
-          distOnValue = mapON[deviceName] ?? 3000.0;
-          isTaskScheduled = await loadControlValue();
-          ownedDevices.add(deviceName);
-          saveOwnedDevices(ownedDevices);
-        } else {
-          deviceOwner = false;
         }
+
         globalDATA
             .putIfAbsent(
                 '${command(deviceType)}/${extractSerialNumber(deviceName)}',

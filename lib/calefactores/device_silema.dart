@@ -32,7 +32,7 @@ class RadiadorPageState extends State<RadiadorPage> {
     super.initState();
     printLog(parts2);
     nickname = nicknamesMap[deviceName] ?? deviceName;
-    tempValue = double.parse(parts2[0]);
+    tempValue = double.parse(parts2[1]);
 
     printLog('Valor temp: $tempValue');
     printLog('¿Encendido? $turnOn');
@@ -240,6 +240,8 @@ class RadiadorPageState extends State<RadiadorPage> {
       // Programar la tarea.
       try {
         showToast('Recuerda tener la ubicación encendida.');
+        String data = '${command(deviceType)}[5](1)';
+        myDevice.toolsUuid.write(data.codeUnits);
         List<String> deviceControl = await loadDevicesForDistanceControl();
         deviceControl.add(deviceName);
         saveDevicesForDistanceControl(deviceControl);
@@ -254,9 +256,9 @@ class RadiadorPageState extends State<RadiadorPage> {
         savePositionLongitud(maplongitude);
 
         if (deviceControl.length == 1) {
-          await initializeService();
           final backService = FlutterBackgroundService();
           await backService.startService();
+          backService.invoke('distanceControl');
           printLog('Servicio iniciado a las ${DateTime.now()}');
         }
       } catch (e) {
@@ -266,6 +268,8 @@ class RadiadorPageState extends State<RadiadorPage> {
     } else {
       // Cancelar la tarea.
       showToast('Se cancelo el control por distancia');
+      String data = '${command(deviceType)}[5](0)';
+      myDevice.toolsUuid.write(data.codeUnits);
       List<String> deviceControl = await loadDevicesForDistanceControl();
       deviceControl.remove(deviceName);
       saveDevicesForDistanceControl(deviceControl);
@@ -339,448 +343,433 @@ class RadiadorPageState extends State<RadiadorPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) {
-              return AlertDialog(
-                backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-                content: Row(
-                  children: [
-                    const CircularProgressIndicator(
-                        color: Color.fromARGB(255, 0, 0, 0)),
-                    Container(
-                        margin: const EdgeInsets.only(left: 15),
-                        child: const Text(
-                          "Desconectando...",
-                          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-                        )),
-                  ],
-                ),
-              );
-            },
-          );
-          Future.delayed(const Duration(seconds: 2), () async {
-            printLog('aca estoy');
-            await myDevice.device.disconnect();
-            navigatorKey.currentState?.pop();
-            navigatorKey.currentState?.pushReplacementNamed('/scan');
-          });
+      canPop: false,
+      onPopInvoked: (didPop) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              content: Row(
+                children: [
+                  const CircularProgressIndicator(
+                      color: Color.fromARGB(255, 0, 0, 0)),
+                  Container(
+                      margin: const EdgeInsets.only(left: 15),
+                      child: const Text(
+                        "Desconectando...",
+                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                      )),
+                ],
+              ),
+            );
+          },
+        );
+        Future.delayed(const Duration(seconds: 2), () async {
+          printLog('aca estoy');
+          await myDevice.device.disconnect();
+          navigatorKey.currentState?.pop();
+          navigatorKey.currentState?.pushReplacementNamed('/scan');
+        });
 
-          return; // Retorna según la lógica de tu app
-        },
-        child: Scaffold(
-            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-            appBar: AppBar(
-                backgroundColor: Colors.transparent,
-                foregroundColor: const Color.fromARGB(255, 0, 0, 0),
-                title: GestureDetector(
-                  onTap: () async {
-                    await _showEditNicknameDialog(context);
-                  },
-                  child: Row(
-                    children: [
-                      Text(nickname),
-                      const SizedBox(
-                        width: 3,
-                      ),
-                      const Icon(
-                        Icons.edit,
-                        size: 20,
-                      )
-                    ],
+        return; // Retorna según la lógica de tu app
+      },
+      child: Scaffold(
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+            title: GestureDetector(
+              onTap: () async {
+                await _showEditNicknameDialog(context);
+              },
+              child: Row(
+                children: [
+                  Text(nickname),
+                  const SizedBox(
+                    width: 3,
                   ),
-                ),
-                actions: userConnected
-                    ? null
-                    : <Widget>[
-                        IconButton(
-                          icon: Icon(
-                            wifiIcon,
-                            size: 24.0,
-                            semanticLabel: 'Icono de wifi',
-                          ),
-                          onPressed: () {
-                            wifiText(context);
-                          },
-                        ),
-                      ]),
-            drawer: userConnected
+                  const Icon(
+                    Icons.edit,
+                    size: 20,
+                  )
+                ],
+              ),
+            ),
+            actions: userConnected
                 ? null
-                : deviceOwner
-                    ? SilemaDrawer(night: nightMode, device: deviceName)
-                    : null,
-            body: SingleChildScrollView(
-              child: Center(
-                child: userConnected
-                    ? const Center(
-                        child: Column(
+                : <Widget>[
+                    IconButton(
+                      icon: Icon(
+                        wifiIcon,
+                        size: 24.0,
+                        semanticLabel: 'Icono de wifi',
+                      ),
+                      onPressed: () {
+                        wifiText(context);
+                      },
+                    ),
+                  ]),
+        drawer: userConnected
+            ? null
+            : deviceOwner
+                ? SilemaDrawer(night: nightMode, device: deviceName)
+                : null,
+        body: SingleChildScrollView(
+          child: Center(
+            child: userConnected
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 50,
+                        ),
+                        Text('Actualmente hay un usuario usando el radiador',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 28,
+                                color: Color.fromARGB(255, 0, 0, 0))),
+                        Text('Espere a que se desconecte para poder usarla',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                fontSize: 28,
+                                color: Color.fromARGB(255, 0, 0, 0))),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        CircularProgressIndicator(
+                          color: Color.fromARGB(255, 0, 0, 0),
+                        ),
+                      ],
+                    ),
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 30),
+                      deviceOwner
+                          ? const SizedBox(height: 0)
+                          : const Text('Estado:',
+                              style: TextStyle(
+                                  fontSize: 30,
+                                  color: Color.fromARGB(255, 0, 0, 0))),
+                      Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SizedBox(
-                              height: 50,
-                            ),
-                            Text(
-                                'Actualmente hay un usuario usando el radiador',
-                                textAlign: TextAlign.center,
+                            Text.rich(TextSpan(
+                                text: turnOn
+                                    ? trueStatus
+                                        ? 'Calentando'
+                                        : 'Encendido'
+                                    : 'Apagado',
                                 style: TextStyle(
-                                    fontSize: 28,
-                                    color: Color.fromARGB(255, 0, 0, 0))),
-                            Text('Espere a que se desconecte para poder usarla',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 28,
-                                    color: Color.fromARGB(255, 0, 0, 0))),
-                            SizedBox(
-                              height: 20,
-                            ),
-                            CircularProgressIndicator(
-                              color: Color.fromARGB(255, 0, 0, 0),
-                            ),
-                          ],
+                                    color: turnOn
+                                        ? trueStatus
+                                            ? Colors.amber[600]
+                                            : Colors.green
+                                        : Colors.red,
+                                    fontSize: 30))),
+                            if (trueStatus) ...[
+                              Icon(Icons.flash_on_rounded,
+                                  size: 30, color: Colors.amber[600]),
+                            ]
+                          ]),
+                      if (deviceOwner) ...[
+                        const SizedBox(height: 30),
+                        Transform.scale(
+                          scale: 3.0,
+                          child: Switch(
+                            activeColor:
+                                const Color.fromARGB(255, 189, 189, 189),
+                            activeTrackColor:
+                                const Color.fromARGB(255, 72, 72, 72),
+                            inactiveThumbColor:
+                                const Color.fromARGB(255, 72, 72, 72),
+                            inactiveTrackColor:
+                                const Color.fromARGB(255, 189, 189, 189),
+                            value: turnOn,
+                            onChanged: (value) {
+                              turnDeviceOn(value);
+                              setState(() {
+                                turnOn = value;
+                              });
+                            },
+                          ),
                         ),
-                      )
-                    : Column(
+                      ],
+                      const SizedBox(height: 50),
+                      const Text('Temperatura de corte:',
+                          style: TextStyle(
+                              fontSize: 25,
+                              color: Color.fromARGB(255, 0, 0, 0))),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const SizedBox(height: 30),
-                          deviceOwner
-                              ? const SizedBox(height: 0)
-                              : const Text('Estado:',
-                                  style: TextStyle(
-                                      fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0))),
+                          Text.rich(TextSpan(
+                              text: tempValue.round().toString(),
+                              style: const TextStyle(
+                                  fontSize: 30,
+                                  color: Color.fromARGB(255, 0, 0, 0)))),
+                          const Text.rich(TextSpan(
+                              text: '°C',
+                              style: TextStyle(
+                                  fontSize: 30,
+                                  color: Color.fromARGB(255, 0, 0, 0)))),
+                        ],
+                      ),
+                      if (deviceOwner) ...[
+                        SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            trackHeight: 50.0,
+                            thumbColor: const Color.fromARGB(255, 72, 72, 72),
+                            thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 26.0,
+                                disabledThumbRadius: 26.0,
+                                elevation: 0.0,
+                                pressedElevation: 0.0),
+                          ),
+                          child: Slider(
+                            activeColor: const Color.fromARGB(255, 72, 72, 72),
+                            inactiveColor:
+                                const Color.fromARGB(255, 189, 189, 189),
+                            value: tempValue,
+                            onChanged: (value) {
+                              setState(() {
+                                tempValue = value;
+                              });
+                            },
+                            onChangeEnd: (value) {
+                              printLog('$value');
+                              sendTemperature(value.round());
+                            },
+                            min: 10,
+                            max: 40,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        if (canControlDistance) ...[
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text.rich(TextSpan(
-                                    text: turnOn
-                                        ? trueStatus
-                                            ? 'Calentando'
-                                            : 'Encendido'
-                                        : 'Apagado',
+                                const Text('Activar control\n por distancia:',
                                     style: TextStyle(
-                                        color: turnOn
-                                            ? trueStatus
-                                                ? Colors.amber[600]
-                                                : Colors.green
-                                            : Colors.red,
-                                        fontSize: 30))),
-                                if (trueStatus) ...[
-                                  Icon(Icons.flash_on_rounded,
-                                      size: 30, color: Colors.amber[600]),
-                                ]
+                                        fontSize: 25,
+                                        color: Color.fromARGB(255, 0, 0, 0))),
+                                const SizedBox(width: 30),
+                                Transform.scale(
+                                  scale: 1.5,
+                                  child: Switch(
+                                    activeColor: const Color.fromARGB(
+                                        255, 189, 189, 189),
+                                    activeTrackColor:
+                                        const Color.fromARGB(255, 72, 72, 72),
+                                    inactiveThumbColor:
+                                        const Color.fromARGB(255, 72, 72, 72),
+                                    inactiveTrackColor: const Color.fromARGB(
+                                        255, 189, 189, 189),
+                                    value: isTaskScheduled[deviceName] ?? false,
+                                    onChanged: (value) {
+                                      verifyPermission().then((result) {
+                                        if (result == true) {
+                                          isTaskScheduled
+                                              .addAll({deviceName: value});
+                                          saveControlValue(isTaskScheduled);
+                                          controlTask(value, deviceName);
+                                        } else {
+                                          showToast(
+                                              'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
+                                          openAppSettings();
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
                               ]),
-                          if (deviceOwner) ...[
-                            const SizedBox(height: 30),
-                            Transform.scale(
-                              scale: 3.0,
-                              child: Switch(
-                                activeColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
-                                activeTrackColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
-                                inactiveThumbColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
-                                inactiveTrackColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
-                                value: turnOn,
-                                onChanged: (value) {
-                                  turnDeviceOn(value);
-                                  setState(() {
-                                    turnOn = value;
-                                  });
-                                },
-                              ),
+                          const SizedBox(height: 25),
+                          if (isTaskScheduled[deviceName] ?? false) ...[
+                            const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Distancia de apagado',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          color: Color.fromARGB(255, 0, 0, 0)))
+                                ]),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text.rich(TextSpan(
+                                    text: distOffValue.round().toString(),
+                                    style: const TextStyle(
+                                        fontSize: 30,
+                                        color: Color.fromARGB(255, 0, 0, 0)))),
+                                const Text.rich(TextSpan(
+                                    text: 'Metros',
+                                    style: TextStyle(
+                                        fontSize: 30,
+                                        color: Color.fromARGB(255, 0, 0, 0)))),
+                              ],
                             ),
-                          ],
-                          const SizedBox(height: 50),
-                          const Text('Temperatura de corte:',
-                              style: TextStyle(
-                                  fontSize: 25,
-                                  color: Color.fromARGB(255, 0, 0, 0))),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text.rich(TextSpan(
-                                  text: tempValue.round().toString(),
-                                  style: const TextStyle(
-                                      fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0)))),
-                              const Text.rich(TextSpan(
-                                  text: '°C',
-                                  style: TextStyle(
-                                      fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0)))),
-                            ],
-                          ),
-                          if (deviceOwner) ...[
                             SliderTheme(
                               data: SliderTheme.of(context).copyWith(
-                                trackHeight: 50.0,
-                                thumbColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 26.0,
-                                    disabledThumbRadius: 26.0,
-                                    elevation: 0.0,
-                                    pressedElevation: 0.0),
-                              ),
+                                  trackHeight: 30.0,
+                                  thumbColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
+                                  thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 16.0,
+                                      disabledThumbRadius: 16.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0)),
                               child: Slider(
                                 activeColor:
                                     const Color.fromARGB(255, 72, 72, 72),
                                 inactiveColor:
                                     const Color.fromARGB(255, 189, 189, 189),
-                                value: tempValue,
+                                value: distOffValue,
+                                divisions: 20,
                                 onChanged: (value) {
                                   setState(() {
-                                    tempValue = value;
+                                    distOffValue = value;
                                   });
                                 },
-                                onChangeEnd: (value) {
-                                  printLog('$value');
-                                  sendTemperature(value.round());
+                                onChangeEnd: (value) async {
+                                  printLog('Valor enviado: ${value.round()}');
+                                  Map<String, double> mapOFF =
+                                      await loadDistanceOFF();
+                                  mapOFF.addAll({deviceName: value});
+                                  saveDistanceOFF(mapOFF);
                                 },
-                                min: 10,
-                                max: 40,
+                                min: 100,
+                                max: 300,
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            Row(
+                            const SizedBox(height: 0),
+                            const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text('Activar control\n por distancia:',
+                                  Text('Distancia de encendido',
                                       style: TextStyle(
-                                          fontSize: 25,
-                                          color: Color.fromARGB(255, 0, 0, 0))),
-                                  const SizedBox(width: 30),
-                                  Transform.scale(
-                                    scale: 1.5,
-                                    child: Switch(
-                                      activeColor: const Color.fromARGB(
-                                          255, 189, 189, 189),
-                                      activeTrackColor:
-                                          const Color.fromARGB(255, 72, 72, 72),
-                                      inactiveThumbColor:
-                                          const Color.fromARGB(255, 72, 72, 72),
-                                      inactiveTrackColor: const Color.fromARGB(
-                                          255, 189, 189, 189),
-                                      value:
-                                          isTaskScheduled[deviceName] ?? false,
-                                      onChanged: (value) {
-                                        verifyPermission().then((result) {
-                                          if (result == true) {
-                                            isTaskScheduled
-                                                .addAll({deviceName: value});
-                                            saveControlValue(isTaskScheduled);
-                                            controlTask(value, deviceName);
-                                          } else {
-                                            showToast(
-                                                'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
-                                            openAppSettings();
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ),
+                                          fontSize: 20,
+                                          color: Color.fromARGB(255, 0, 0, 0)))
                                 ]),
-                            const SizedBox(height: 25),
-                            if (isTaskScheduled[deviceName] ?? false) ...[
-                              const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Distancia de apagado',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color:
-                                                Color.fromARGB(255, 0, 0, 0)))
-                                  ]),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text.rich(TextSpan(
-                                      text: distOffValue.round().toString(),
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          color:
-                                              Color.fromARGB(255, 0, 0, 0)))),
-                                  const Text.rich(TextSpan(
-                                      text: 'Metros',
-                                      style: TextStyle(
-                                          fontSize: 30,
-                                          color:
-                                              Color.fromARGB(255, 0, 0, 0)))),
-                                ],
-                              ),
-                              SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 30.0,
-                                    thumbColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
-                                    thumbShape: const RoundSliderThumbShape(
-                                        enabledThumbRadius: 16.0,
-                                        disabledThumbRadius: 16.0,
-                                        elevation: 0.0,
-                                        pressedElevation: 0.0)),
-                                child: Slider(
-                                  activeColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
-                                  inactiveColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
-                                  value: distOffValue,
-                                  divisions: 20,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      distOffValue = value;
-                                    });
-                                  },
-                                  onChangeEnd: (value) async {
-                                    printLog('Valor enviado: ${value.round()}');
-                                    Map<String, double> mapOFF =
-                                        await loadDistanceOFF();
-                                    mapOFF.addAll({deviceName: value});
-                                    saveDistanceOFF(mapOFF);
-                                  },
-                                  min: 100,
-                                  max: 300,
-                                ),
-                              ),
-                              const SizedBox(height: 0),
-                              const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text('Distancia de encendido',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            color:
-                                                Color.fromARGB(255, 0, 0, 0)))
-                                  ]),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text.rich(TextSpan(
-                                      text: distOnValue.round().toString(),
-                                      style: const TextStyle(
-                                          fontSize: 30,
-                                          color:
-                                              Color.fromARGB(255, 0, 0, 0)))),
-                                  const Text.rich(TextSpan(
-                                      text: 'Metros',
-                                      style: TextStyle(
-                                          fontSize: 30,
-                                          color:
-                                              Color.fromARGB(255, 0, 0, 0)))),
-                                ],
-                              ),
-                              SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 30.0,
-                                    thumbColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
-                                    thumbShape: const RoundSliderThumbShape(
-                                        enabledThumbRadius: 16.0,
-                                        disabledThumbRadius: 16.0,
-                                        elevation: 0.0,
-                                        pressedElevation: 0.0)),
-                                child: Slider(
-                                  activeColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
-                                  inactiveColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
-                                  value: distOnValue,
-                                  divisions: 20,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      distOnValue = value;
-                                    });
-                                  },
-                                  onChangeEnd: (value) async {
-                                    printLog('Valor enviado: ${value.round()}');
-                                    Map<String, double> mapON =
-                                        await loadDistanceON();
-                                    mapON.addAll({deviceName: value});
-                                    saveDistanceON(mapON);
-                                  },
-                                  min: 3000,
-                                  max: 5000,
-                                ),
-                              ),
-                            ]
-                          ] else ...[
-                            const SizedBox(height: 30),
-                            const Text('Modo actual: ',
-                                style: TextStyle(
-                                    fontSize: 25,
-                                    color: Color.fromARGB(255, 0, 0, 0))),
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  nightMode = !nightMode;
-                                  printLog('Estado: $nightMode');
-                                  int fun = nightMode ? 1 : 0;
-                                  String data =
-                                      '${command(deviceType)}[9]($fun)';
-                                  printLog(data);
-                                  myDevice.toolsUuid.write(data.codeUnits);
-                                });
-                              },
-                              icon: nightMode
-                                  ? const Icon(Icons.nightlight,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                      size: 50)
-                                  : const Icon(Icons.light_mode,
-                                      color: Color.fromARGB(255, 0, 0, 0),
-                                      size: 50),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text.rich(TextSpan(
+                                    text: distOnValue.round().toString(),
+                                    style: const TextStyle(
+                                        fontSize: 30,
+                                        color: Color.fromARGB(255, 0, 0, 0)))),
+                                const Text.rich(TextSpan(
+                                    text: 'Metros',
+                                    style: TextStyle(
+                                        fontSize: 30,
+                                        color: Color.fromARGB(255, 0, 0, 0)))),
+                              ],
                             ),
-                            const SizedBox(
-                              height: 20,
+                            SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 30.0,
+                                  thumbColor:
+                                      const Color.fromARGB(255, 72, 72, 72),
+                                  thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 16.0,
+                                      disabledThumbRadius: 16.0,
+                                      elevation: 0.0,
+                                      pressedElevation: 0.0)),
+                              child: Slider(
+                                activeColor:
+                                    const Color.fromARGB(255, 72, 72, 72),
+                                inactiveColor:
+                                    const Color.fromARGB(255, 189, 189, 189),
+                                value: distOnValue,
+                                divisions: 20,
+                                onChanged: (value) {
+                                  setState(() {
+                                    distOnValue = value;
+                                  });
+                                },
+                                onChangeEnd: (value) async {
+                                  printLog('Valor enviado: ${value.round()}');
+                                  Map<String, double> mapON =
+                                      await loadDistanceON();
+                                  mapON.addAll({deviceName: value});
+                                  saveDistanceON(mapON);
+                                },
+                                min: 3000,
+                                max: 5000,
+                              ),
                             ),
-                            const Text(
-                              'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
+                          ]
+                        ]
+                      ] else ...[
+                        const SizedBox(height: 30),
+                        const Text('Modo actual: ',
+                            style: TextStyle(
                                 fontSize: 25,
-                                color: Color.fromARGB(255, 0, 0, 0),
-                              ),
+                                color: Color.fromARGB(255, 0, 0, 0))),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              nightMode = !nightMode;
+                              printLog('Estado: $nightMode');
+                              int fun = nightMode ? 1 : 0;
+                              String data = '${command(deviceType)}[9]($fun)';
+                              printLog(data);
+                              myDevice.toolsUuid.write(data.codeUnits);
+                            });
+                          },
+                          icon: nightMode
+                              ? const Icon(Icons.nightlight,
+                                  color: Color.fromARGB(255, 0, 0, 0), size: 50)
+                              : const Icon(Icons.light_mode,
+                                  color: Color.fromARGB(255, 0, 0, 0),
+                                  size: 50),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        const Text(
+                          'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 25,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 72, 72, 72),
                             ),
-                            const SizedBox(height: 10),
-                            ElevatedButton(
-                              style: const ButtonStyle(
-                                backgroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 72, 72, 72),
-                                ),
-                                foregroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 255, 255, 255),
-                                ),
-                              ),
-                              onPressed: () async {
-                                var phoneNumber = '5491162232619';
-                                var message = '''
-                                    Hola, te hablo en relación a mi equipo $deviceName.
-                                    Este mismo me dice que no soy administrador.
-                                    Datos del equipo:
-                                    Código de producto: ${productCode[deviceName]}
-                                    Número de serie: ${extractSerialNumber(deviceName)}
-                                    Administrador actúal: ${utf8.decode(infoValues).split(':')[4]}
-                                  ''';
-                                var whatsappUrl =
-                                    "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
-                                Uri uri = Uri.parse(whatsappUrl);
-
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri);
-                                } else {
-                                  showToast('No se pudo abrir WhatsApp');
-                                }
-                              },
-                              child: const Text('Servicio técnico'),
+                            foregroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 255, 255, 255),
                             ),
-                          ],
-                        ],
-                      ),
-              ),
-            )));
+                          ),
+                          onPressed: () async {
+                            var phoneNumber = '5491162232619';
+                            var message =
+                                'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${productCode[deviceName]}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
+                            var whatsappUrl =
+                                "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                            Uri uri = Uri.parse(whatsappUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            } else {
+                              showToast('No se pudo abrir WhatsApp');
+                            }
+                          },
+                          child: const Text('Servicio técnico'),
+                        ),
+                      ],
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
   }
 }

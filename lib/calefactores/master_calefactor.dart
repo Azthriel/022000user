@@ -16,7 +16,8 @@ Map<String, bool> isTaskScheduled = {};
 bool deviceOwner = false;
 bool trueStatus = false;
 bool userConnected = false;
-
+late bool nightMode;
+late bool canControlDistance;
 late List<String> pikachu;
 
 // FUNCIONES //
@@ -65,7 +66,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
       List<int> list = await myDevice.varsUuid.read();
       var parts = utf8.decode(list).split(':');
 
-      result = double.parse(parts[2]) * 2 * double.parse(costController.text);
+      result = double.parse(parts[3]) * 2 * double.parse(costController.text);
 
       await Future.delayed(const Duration(seconds: 1));
       setState(() {
@@ -178,75 +179,75 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                               color: Colors.white, size: 40),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                        style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
-                            foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
-                        onPressed: () {
-                          showDialog<void>(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 37, 34, 35),
-                                title: const Text(
-                                  '¿Dejar de ser administrador del calefactor?',
-                                  style: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
-                                ),
-                                content: const Text(
-                                  'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
-                                  style: TextStyle(
-                                      color:
-                                          Color.fromARGB(255, 255, 255, 255)),
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(
-                                                    255, 255, 255, 255))),
-                                    child: const Text('Cancelar'),
-                                    onPressed: () {
-                                      Navigator.of(dialogContext).pop();
-                                    },
-                                  ),
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(
-                                                    255, 255, 255, 255))),
-                                    child: const Text('Aceptar'),
-                                    onPressed: () async {
-                                      try {
-                                        String mailData =
-                                            '${command(deviceType)}[5](NA)';
-                                        myDevice.toolsUuid
-                                            .write(mailData.codeUnits);
-                                        ownedDevices.remove(deviceName);
-                                        saveOwnedDevices(ownedDevices);
-                                        myDevice.device.disconnect();
-                                        Navigator.of(dialogContext).pop();
-                                      } catch (e, s) {
-                                        printLog(
-                                            'Error al borrar owner $e Trace: $s');
-                                        showToast(
-                                            'Error al borrar el administrador.');
-                                      }
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        child: const Text('Dejar de ser administrador')),
+                    // ElevatedButton(
+                    //     style: const ButtonStyle(
+                    //         backgroundColor: MaterialStatePropertyAll(
+                    //             Color.fromARGB(255, 189, 189, 189)),
+                    //         foregroundColor: MaterialStatePropertyAll(
+                    //             Color.fromARGB(255, 255, 255, 255))),
+                    //     onPressed: () {
+                    //       showDialog<void>(
+                    //         context: context,
+                    //         barrierDismissible: false,
+                    //         builder: (BuildContext dialogContext) {
+                    //           return AlertDialog(
+                    //             backgroundColor:
+                    //                 const Color.fromARGB(255, 37, 34, 35),
+                    //             title: const Text(
+                    //               '¿Dejar de ser administrador del calefactor?',
+                    //               style: TextStyle(
+                    //                   color:
+                    //                       Color.fromARGB(255, 255, 255, 255)),
+                    //             ),
+                    //             content: const Text(
+                    //               'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
+                    //               style: TextStyle(
+                    //                   color:
+                    //                       Color.fromARGB(255, 255, 255, 255)),
+                    //             ),
+                    //             actions: <Widget>[
+                    //               TextButton(
+                    //                 style: const ButtonStyle(
+                    //                     foregroundColor:
+                    //                         MaterialStatePropertyAll(
+                    //                             Color.fromARGB(
+                    //                                 255, 255, 255, 255))),
+                    //                 child: const Text('Cancelar'),
+                    //                 onPressed: () {
+                    //                   Navigator.of(dialogContext).pop();
+                    //                 },
+                    //               ),
+                    //               TextButton(
+                    //                 style: const ButtonStyle(
+                    //                     foregroundColor:
+                    //                         MaterialStatePropertyAll(
+                    //                             Color.fromARGB(
+                    //                                 255, 255, 255, 255))),
+                    //                 child: const Text('Aceptar'),
+                    //                 onPressed: () async {
+                    //                   try {
+                    //                     String mailData =
+                    //                         '${command(deviceType)}[5](NA)';
+                    //                     myDevice.toolsUuid
+                    //                         .write(mailData.codeUnits);
+                    //                     ownedDevices.remove(deviceName);
+                    //                     saveOwnedDevices(ownedDevices);
+                    //                     myDevice.device.disconnect();
+                    //                     Navigator.of(dialogContext).pop();
+                    //                   } catch (e, s) {
+                    //                     printLog(
+                    //                         'Error al borrar owner $e Trace: $s');
+                    //                     showToast(
+                    //                         'Error al borrar el administrador.');
+                    //                   }
+                    //                 },
+                    //               ),
+                    //             ],
+                    //           );
+                    //         },
+                    //       );
+                    //     },
+                    //     child: const Text('Dejar de ser administrador')),
                   ],
                 ),
               ),
@@ -310,7 +311,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
       List<int> list = await myDevice.varsUuid.read();
       var parts = utf8.decode(list).split(':');
 
-      result = double.parse(parts[2]) * 2 * double.parse(costController.text);
+      result = double.parse(parts[3]) * 2 * double.parse(costController.text);
 
       await Future.delayed(const Duration(seconds: 1));
       setState(() {
@@ -425,71 +426,71 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                               color: Color.fromARGB(255, 0, 0, 0), size: 40),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                        style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 72, 72, 72)),
-                            foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
-                        onPressed: () {
-                          showDialog<void>(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext dialogContext) {
-                              return AlertDialog(
-                                backgroundColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
-                                title: const Text(
-                                  '¿Dejar de ser administrador del calefactor?',
-                                  style: TextStyle(
-                                      color: Color.fromARGB(255, 0, 0, 0)),
-                                ),
-                                content: const Text(
-                                  'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
-                                  style: TextStyle(
-                                      color: Color.fromARGB(255, 0, 0, 0)),
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(255, 0, 0, 0))),
-                                    child: const Text('Cancelar'),
-                                    onPressed: () {
-                                      Navigator.of(dialogContext).pop();
-                                    },
-                                  ),
-                                  TextButton(
-                                    style: const ButtonStyle(
-                                        foregroundColor:
-                                            MaterialStatePropertyAll(
-                                                Color.fromARGB(255, 0, 0, 0))),
-                                    child: const Text('Aceptar'),
-                                    onPressed: () async {
-                                      try {
-                                        String mailData =
-                                            '${command(deviceType)}[5](NA)';
-                                        myDevice.toolsUuid
-                                            .write(mailData.codeUnits);
-                                        ownedDevices.remove(deviceName);
-                                        saveOwnedDevices(ownedDevices);
-                                        myDevice.device.disconnect();
-                                        Navigator.of(dialogContext).pop();
-                                      } catch (e, s) {
-                                        printLog(
-                                            'Error al borrar owner $e Trace: $s');
-                                        showToast(
-                                            'Error al borrar el administrador.');
-                                      }
-                                    },
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                        child: const Text('Dejar de ser administrador')),
+                    // ElevatedButton(
+                    //     style: const ButtonStyle(
+                    //         backgroundColor: MaterialStatePropertyAll(
+                    //             Color.fromARGB(255, 72, 72, 72)),
+                    //         foregroundColor: MaterialStatePropertyAll(
+                    //             Color.fromARGB(255, 255, 255, 255))),
+                    //     onPressed: () {
+                    //       showDialog<void>(
+                    //         context: context,
+                    //         barrierDismissible: false,
+                    //         builder: (BuildContext dialogContext) {
+                    //           return AlertDialog(
+                    //             backgroundColor:
+                    //                 const Color.fromARGB(255, 255, 255, 255),
+                    //             title: const Text(
+                    //               '¿Dejar de ser administrador del calefactor?',
+                    //               style: TextStyle(
+                    //                   color: Color.fromARGB(255, 0, 0, 0)),
+                    //             ),
+                    //             content: const Text(
+                    //               'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
+                    //               style: TextStyle(
+                    //                   color: Color.fromARGB(255, 0, 0, 0)),
+                    //             ),
+                    //             actions: <Widget>[
+                    //               TextButton(
+                    //                 style: const ButtonStyle(
+                    //                     foregroundColor:
+                    //                         MaterialStatePropertyAll(
+                    //                             Color.fromARGB(255, 0, 0, 0))),
+                    //                 child: const Text('Cancelar'),
+                    //                 onPressed: () {
+                    //                   Navigator.of(dialogContext).pop();
+                    //                 },
+                    //               ),
+                    //               TextButton(
+                    //                 style: const ButtonStyle(
+                    //                     foregroundColor:
+                    //                         MaterialStatePropertyAll(
+                    //                             Color.fromARGB(255, 0, 0, 0))),
+                    //                 child: const Text('Aceptar'),
+                    //                 onPressed: () async {
+                    //                   try {
+                    //                     String mailData =
+                    //                         '${command(deviceType)}[5](NA)';
+                    //                     myDevice.toolsUuid
+                    //                         .write(mailData.codeUnits);
+                    //                     ownedDevices.remove(deviceName);
+                    //                     saveOwnedDevices(ownedDevices);
+                    //                     myDevice.device.disconnect();
+                    //                     Navigator.of(dialogContext).pop();
+                    //                   } catch (e, s) {
+                    //                     printLog(
+                    //                         'Error al borrar owner $e Trace: $s');
+                    //                     showToast(
+                    //                         'Error al borrar el administrador.');
+                    //                   }
+                    //                 },
+                    //               ),
+                    //             ],
+                    //           );
+                    //         },
+                    //       );
+                    //     },
+                    //     child: const Text('Dejar de ser administrador')),
                   ],
                 ),
               ),

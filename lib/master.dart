@@ -5,7 +5,7 @@ import 'dart:math';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'aws/mqtt/mqtt.dart';
-import 'package:biocalden_smart_life/stored_data.dart';
+import 'stored_data.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
@@ -53,7 +53,6 @@ bool alreadyLog = false;
 int wrongPass = 0;
 Timer? locationTimer;
 Timer? bluetoothTimer;
-late bool nightMode;
 int lastUser = 0;
 List<String> previusConnections = [];
 Map<String, String> nicknamesMap = {};
@@ -80,7 +79,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24050803';
+String appVersionNumber = '24051501';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -91,8 +90,8 @@ bool biocalden = true;
 
 void printLog(var text) {
   if (xDebugMode) {
-  // ignore: avoid_print
-  print('PrintData: $text');
+    // ignore: avoid_print
+    print('PrintData: $text');
   }
 }
 
@@ -1083,12 +1082,10 @@ Future<void> initializeService() async {
   try {
     final backService = FlutterBackgroundService();
 
-    AndroidNotificationChannel channel = const AndroidNotificationChannel(
-        'my_foreground',
-        'Control por distancia',
-        description:
-            'Notificaciones del control por distancia',
-        importance: Importance.high,
+    AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'my_foreground', 'Eventos',
+        description: 'Notificaciones de eventos en $appName',
+        importance: Importance.low,
         enableLights: true);
 
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -1114,9 +1111,9 @@ Future<void> initializeService() async {
       androidConfiguration: AndroidConfiguration(
         notificationChannelId: 'my_foreground',
         foregroundServiceNotificationId: 888,
-        initialNotificationTitle: 'Estamos midiendo tu ubicación',
+        initialNotificationTitle: 'Eventos $appName',
         initialNotificationContent:
-            'Esto es para poder controlar tus dispositivos smart',
+            'Utilizamos este servicio para ejecutar tareas en la app\nTal como el control por distancia, entre otras...',
         onStart: onStart,
         autoStart: true,
         isForegroundMode: true,
@@ -1139,8 +1136,12 @@ bool onStart(ServiceInstance service) {
     service.stopSelf();
   });
 
-  backTimer = Timer.periodic(const Duration(minutes: 2), (timer) async {
-    await backFunction();
+  service.on('distanceControl').listen((event) {
+    showNotification('Se inició el control por distancia',
+        'Recuerde tener la ubicación del telefono encendida');
+    backTimer = Timer.periodic(const Duration(minutes: 2), (timer) async {
+      await backFunction();
+    });
   });
 
   return true;
@@ -1201,64 +1202,66 @@ Future<bool> backFunction() async {
 
       // showNotification('Distancia 1', '$distance1 metros');
 
-      printLog('Esperando 30 segundos ${DateTime.now()}');
+      if (distance1 > 100.0) {
+        printLog('Esperando 30 segundos ${DateTime.now()}');
 
-      // showNotification('Esperando 30 segundos', '${DateTime.now()}');
+        // showNotification('Esperando 30 segundos', '${DateTime.now()}');
 
-      await Future.delayed(const Duration(seconds: 30));
+        await Future.delayed(const Duration(seconds: 30));
 
-      Position currentPosition2 = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      printLog('$currentPosition2');
+        Position currentPosition2 = await Geolocator.getCurrentPosition(
+            desiredAccuracy: LocationAccuracy.high);
+        printLog('$currentPosition2');
 
-      double distance2 = Geolocator.distanceBetween(
-        currentPosition2.latitude,
-        currentPosition2.longitude,
-        storedLocation.latitude,
-        storedLocation.longitude,
-      );
-      printLog('Distancia 2 : $distance2 metros');
+        double distance2 = Geolocator.distanceBetween(
+          currentPosition2.latitude,
+          currentPosition2.longitude,
+          storedLocation.latitude,
+          storedLocation.longitude,
+        );
+        printLog('Distancia 2 : $distance2 metros');
 
-      // showNotification('Distancia 2', '$distance2 metros');
+        // showNotification('Distancia 2', '$distance2 metros');
 
-      if (distance2 <= distanceOn &&
-          distance1 > distance2 &&
-          distance2 >= 100) {
-        printLog('Usuario cerca, encendiendo');
+        if (distance2 <= distanceOn && distance1 > distance2) {
+          printLog('Usuario cerca, encendiendo');
 
-        showNotification('Encendimos el calefactor',
-            'Te acercaste a menos de $distanceOn metros');
+          showNotification('Encendimos el calefactor',
+              'Te acercaste a menos de $distanceOn metros');
 
-        globalDATA
-            .putIfAbsent('$productCode/$sn', () => {})
-            .addAll({"w_status": true});
-        saveGlobalData(globalDATA);
-        String topic = 'devices_rx/$productCode/$sn';
-        String topic2 = 'devices_tx/$productCode/$sn';
-        String message = jsonEncode({"w_status": true});
-        sendMessagemqtt(topic, message);
-        sendMessagemqtt(topic2, message);
-        //Ta cerca prendo
-      } else if (distance2 >= distanceOff && distance1 < distance2) {
-        printLog('Usuario lejos, apagando');
+          globalDATA
+              .putIfAbsent('$productCode/$sn', () => {})
+              .addAll({"w_status": true});
+          saveGlobalData(globalDATA);
+          String topic = 'devices_rx/$productCode/$sn';
+          String topic2 = 'devices_tx/$productCode/$sn';
+          String message = jsonEncode({"w_status": true});
+          sendMessagemqtt(topic, message);
+          sendMessagemqtt(topic2, message);
+          //Ta cerca prendo
+        } else if (distance2 >= distanceOff && distance1 < distance2) {
+          printLog('Usuario lejos, apagando');
 
-        showNotification('Apagamos el calefactor',
-            'Te alejaste a más de $distanceOff metros');
+          showNotification('Apagamos el calefactor',
+              'Te alejaste a más de $distanceOff metros');
 
-        globalDATA
-            .putIfAbsent('$productCode/$sn', () => {})
-            .addAll({"w_status": false});
-        saveGlobalData(globalDATA);
-        String topic = 'devices_rx/$productCode/$sn';
-        String topic2 = 'devices_tx/$productCode/$sn';
-        String message = jsonEncode({"w_status": false});
-        sendMessagemqtt(topic, message);
-        sendMessagemqtt(topic2, message);
-        //Estas re lejos apago el calefactor
+          globalDATA
+              .putIfAbsent('$productCode/$sn', () => {})
+              .addAll({"w_status": false});
+          saveGlobalData(globalDATA);
+          String topic = 'devices_rx/$productCode/$sn';
+          String topic2 = 'devices_tx/$productCode/$sn';
+          String message = jsonEncode({"w_status": false});
+          sendMessagemqtt(topic, message);
+          sendMessagemqtt(topic2, message);
+          //Estas re lejos apago el calefactor
+        } else {
+          printLog('Ningun caso');
+
+          // showNotification('No se cumplio ningún caso', 'No hicimos nada');
+        }
       } else {
-        printLog('Ningun caso');
-
-        showNotification('No se cumplio ningún caso', 'No hicimos nada');
+        printLog('Esta en home');
       }
     }
 
@@ -1282,7 +1285,7 @@ void showNotification(String title, String body) async {
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'my_foreground',
-          'Control por distancia',
+          'Eventos',
           icon: '@mipmap/ic_launcher',
           ongoing: false,
         ),

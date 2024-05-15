@@ -20,10 +20,12 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'amplifyconfiguration.dart';
 
 Future<void> main() async {
+  appName = biocalden ? 'Biocalden Smart Life' : 'Silema calefactores';
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await initializeService();
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);
@@ -78,7 +80,6 @@ class MyAppState extends State<MyApp> {
     super.initState();
     loadValues();
     _configureAmplify();
-    appName = biocalden ? 'Biocalden Smart Life' : 'Silema calefactores';
     setupMqtt().then((value) {
       if (value) {
         for (var topic in topicsToSub) {
