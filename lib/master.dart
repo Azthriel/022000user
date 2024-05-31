@@ -23,6 +23,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 //!-----DATA MASTER-----!\\
 Map<String, Map<String, dynamic>> globalDATA = {};
 //!-----DATA MASTER-----!\\
+late bool android;
 final dio = Dio();
 List<String> topicsToSub = [];
 Map<String, String> productCode = {};
@@ -79,7 +80,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24051501';
+String appVersionNumber = '24053100';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -442,7 +443,7 @@ void showPrivacyDialogIfNeeded() async {
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
                 Uri uri = Uri.parse(biocalden
-                    ? 'https://calefactorescalden.com.ar/privacidad/'
+                    ? 'https://biocalden.com.ar/privacidad/'
                     : 'https://silema.com.ar/privacidad/');
                 if (await canLaunchUrl(uri)) {
                   await launchUrl(uri);
@@ -912,27 +913,30 @@ void wifiText(BuildContext context) {
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: const Color(0xff1f1d20),
-        title: Row(
-          children: [
-            const Text.rich(
-              TextSpan(
-                text: 'Estado de conexión: ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color.fromARGB(255, 255, 255, 255),
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Estado de conexión: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                  ),
                 ),
               ),
-            ),
-            Text.rich(
-              TextSpan(
-                text: textState,
-                style: TextStyle(
-                    color: statusColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold),
-              ),
-            )
-          ],
+              Text.rich(
+                TextSpan(
+                  text: textState,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          ),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -1325,7 +1329,7 @@ class MyDevice {
 
       List<BluetoothService> services =
           await device.discoverServices(timeout: 3);
-      printLog('Los servicios: $services');
+      // printLog('Los servicios: $services');
 
       BluetoothService infoService = services.firstWhere(
           (s) => s.uuid == Guid('6a3253b4-48bc-4e97-bacd-325a1d142038'));
@@ -1667,21 +1671,28 @@ class MyDrawerState extends State<MyDrawer> {
                       decoration: BoxDecoration(
                           // color: Colors.blue,
                           ),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Mis equipos\nregistrados:',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 178, 181, 174),
-                                fontSize: 24,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Mis equipos\nregistrados:',
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  fontSize: 24,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 80),
-                            Icon(Icons.wifi,
-                                color: Color.fromARGB(
-                                    255, 178, 181, 174)) //(255, 156, 157, 152)
-                          ]));
+                              SizedBox(width: 80),
+                              Icon(
+                                Icons.wifi,
+                                color: Color.fromARGB(255, 178, 181, 174),
+                              )
+                            ],
+                          ),
+                        ],
+                      ));
                 }
 
                 String deviceName = previusConnections[index - 1];
@@ -1699,6 +1710,7 @@ class MyDrawerState extends State<MyDrawer> {
                     Map<String, dynamic> deviceDATA = globalDATA[
                         '$equipo/${extractSerialNumber(deviceName)}']!;
                     printLog(deviceDATA);
+                    bool online = deviceDATA['cstate'] ?? false;
                     if (equipo == '022000_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
                       bool heaterOn = deviceDATA['f_status'] ?? false;
@@ -1726,11 +1738,55 @@ class MyDrawerState extends State<MyDrawer> {
                               ),
                             ),
                           ),
-                          title: Text(nicknamesMap[deviceName] ?? deviceName,
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                ),
+                                online
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● CONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● DESCONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ]),
                           subtitle: estado
                               ? Row(
                                   children: [
@@ -1801,11 +1857,55 @@ class MyDrawerState extends State<MyDrawer> {
                               ),
                             ),
                           ),
-                          title: Text(nicknamesMap[deviceName] ?? deviceName,
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                ),
+                                online
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● CONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● DESCONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ]),
                           subtitle: estado
                               ? Row(
                                   children: [
@@ -1876,11 +1976,55 @@ class MyDrawerState extends State<MyDrawer> {
                               ),
                             ),
                           ),
-                          title: Text(nicknamesMap[deviceName] ?? deviceName,
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold)),
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                ),
+                                online
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● CONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● DESCONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ]),
                           subtitle: estado
                               ? Row(
                                   children: [
@@ -1953,11 +2097,50 @@ class MyDrawerState extends State<MyDrawer> {
                             ),
                           ),
                         ),
-                        title: Text(nicknamesMap[deviceName] ?? deviceName,
-                            style: const TextStyle(
-                                color: Color.fromARGB(255, 178, 181, 174),
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold)),
+                        title: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(nicknamesMap[deviceName] ?? deviceName,
+                                      style: const TextStyle(
+                                          color: Color.fromARGB(
+                                              255, 178, 181, 174),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold))
+                                ],
+                              ),
+                              online
+                                  ? const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '● CONECTADO',
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '● DESCONECTADO',
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ]),
                         subtitle: Text.rich(
                           TextSpan(children: [
                             const TextSpan(
@@ -2033,11 +2216,50 @@ class MyDrawerState extends State<MyDrawer> {
                             ),
                           ),
                         ),
-                        title: Text(nicknamesMap[deviceName] ?? deviceName,
-                            style: const TextStyle(
-                                color: Color.fromARGB(255, 178, 181, 174),
-                                fontSize: 15,
-                                fontWeight: FontWeight.bold)),
+                        title: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Text(nicknamesMap[deviceName] ?? deviceName,
+                                      style: const TextStyle(
+                                          color: Color.fromARGB(
+                                              255, 178, 181, 174),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold))
+                                ],
+                              ),
+                              online
+                                  ? const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '● CONECTADO',
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '● DESCONECTADO',
+                                          textAlign: TextAlign.start,
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ]),
                         subtitle: SizedBox(
                             height: 80,
                             child: PageView.builder(

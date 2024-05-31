@@ -57,14 +57,16 @@ class FieldWidget extends StatefulWidget {
   final bool pass;
   final TextEditingController controlador;
   final FocusNode? node;
-  const FieldWidget(
-      {super.key,
-      required this.title,
-      required this.icon,
-      required this.pass,
-      required this.controlador,
-      required this.node,
-      });
+  final TextInputType keyboard;
+  const FieldWidget({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.pass,
+    required this.controlador,
+    required this.node,
+    required this.keyboard,
+  });
 
   @override
   FieldState createState() => FieldState();
@@ -81,12 +83,13 @@ class FieldState extends State<FieldWidget> {
       decoration: BoxDecoration(
           color: Colors.grey.shade300, borderRadius: BorderRadius.circular(25)),
       child: TextFormField(
+        keyboardType: widget.keyboard,
         controller: widget.controlador,
         focusNode: widget.node,
         cursorColor: const Color.fromARGB(255, 255, 255, 255),
         obscureText: widget.pass ? _obscureText : false,
-        onFieldSubmitted: (value){
-          if(widget.controlador == mailController){
+        onFieldSubmitted: (value) {
+          if (widget.controlador == mailController) {
             passNode.requestFocus();
           }
         },

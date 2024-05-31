@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
 import '020010/device_inout.dart';
 import 'firebase_options.dart';
 import 'aws/mqtt/mqtt.dart';
@@ -25,7 +26,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await initializeService();
+
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);
@@ -78,6 +79,7 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    android = Platform.isIOS;
     loadValues();
     _configureAmplify();
     setupMqtt().then((value) {
@@ -168,13 +170,6 @@ class PermissionHandlerState extends State<PermissionHandler> {
       await Permission.location.request();
     }
     permissionStatus3 = await Permission.location.status;
-
-    // var permissionStatus4 = await Permission.scheduleExactAlarm.request();
-
-    // if (!permissionStatus4.isGranted) {
-    //   await Permission.scheduleExactAlarm.request();
-    // }
-    // permissionStatus4 = await Permission.scheduleExactAlarm.status;
 
     requestPermissionFCM();
 

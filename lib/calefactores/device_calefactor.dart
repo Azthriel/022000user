@@ -255,6 +255,7 @@ class ControlPageState extends State<ControlPage> {
         savePositionLongitud(maplongitude);
 
         if (deviceControl.length == 1) {
+          await initializeService();
           final backService = FlutterBackgroundService();
           await backService.startService();
           backService.invoke('distanceControl');
@@ -268,7 +269,7 @@ class ControlPageState extends State<ControlPage> {
       // Cancelar la tarea.
       showToast('Se cancelo el control por distancia');
       String data = '${command(deviceType)}[5](0)';
-        myDevice.toolsUuid.write(data.codeUnits);
+      myDevice.toolsUuid.write(data.codeUnits);
       List<String> deviceControl = await loadDevicesForDistanceControl();
       deviceControl.remove(deviceName);
       saveDevicesForDistanceControl(deviceControl);

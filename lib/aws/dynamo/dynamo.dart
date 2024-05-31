@@ -12,8 +12,10 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
         ':sk': AttributeValue(s: sn),
       },
     );
-    printLog('Items encontrados');
+
     if (response.items != null) {
+      printLog('Items encontrados');
+      printLog(response.items);
       for (var item in response.items!) {
         for (var key in item.keys) {
           var value = item[key];
@@ -60,9 +62,10 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
         }
         printLog("--- Fin de un item ---");
       }
+    } else {
+      printLog('Dispositivo no encontrado');
     }
   } catch (e) {
     printLog('Error durante la consulta: $e');
   }
 }
-

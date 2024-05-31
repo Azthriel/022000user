@@ -33,7 +33,7 @@ Future<bool> setupMqtt() async {
 
     // Configuración de las credenciales
     mqttAWSFlutterClient!.setProtocolV311();
-    mqttAWSFlutterClient!.keepAlivePeriod = 3;
+    mqttAWSFlutterClient!.keepAlivePeriod = 30;
     try {
       await mqttAWSFlutterClient!.connect();
       printLog('Usuario conectado a mqtt');

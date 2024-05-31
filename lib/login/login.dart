@@ -350,6 +350,7 @@ class LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                const SizedBox(height: 10),
                 ///AnimatedContainer to handle animation of size of the container basically height only
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 400),
@@ -374,6 +375,7 @@ class LoginPageState extends State<LoginPage> {
                                     /// Custom FieldWidget
                                     FieldWidget(
                                       title: "Email",
+                                      keyboard: TextInputType.emailAddress,
                                       icon: Icons.mail,
                                       pass: false,
                                       controlador: mailController,
@@ -381,6 +383,7 @@ class LoginPageState extends State<LoginPage> {
                                     ),
                                     FieldWidget(
                                       title: "Contraseña",
+                                      keyboard: TextInputType.text,
                                       icon: Icons.key,
                                       pass: true,
                                       controlador: passwordController,
@@ -493,6 +496,7 @@ class LoginPageState extends State<LoginPage> {
                 /// Custom FieldWidget
                 FieldWidget(
                   title: "Email",
+                  keyboard: TextInputType.emailAddress,
                   icon: Icons.mail,
                   pass: false,
                   controlador: newUserController,
@@ -500,6 +504,7 @@ class LoginPageState extends State<LoginPage> {
                 ),
                 FieldWidget(
                   title: "Contraseña",
+                  keyboard: TextInputType.text,
                   icon: Icons.key,
                   pass: true,
                   controlador: registerpasswordController,
@@ -507,6 +512,7 @@ class LoginPageState extends State<LoginPage> {
                 ),
                 FieldWidget(
                   title: "Confirmar Contraseña",
+                  keyboard: TextInputType.text,
                   icon: Icons.key,
                   pass: true,
                   controlador: confirmpasswordController,

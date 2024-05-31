@@ -15,7 +15,10 @@ class DetectorPageState extends State<DetectorPage> {
   bool werror = false;
   bool alert = false;
   String _textToShow = 'AIRE PURO';
-  bool online = true;
+  bool online =
+      globalDATA['${command(deviceType)}/${extractSerialNumber(deviceName)}']![
+              'cstate'] ??
+          false;
 
   @override
   void initState() {
@@ -187,6 +190,7 @@ class DetectorPageState extends State<DetectorPage> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.height;
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) {
@@ -285,7 +289,7 @@ class DetectorPageState extends State<DetectorPage> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                             color: alert ? Colors.white : Colors.green,
-                            fontSize: 60),
+                            fontSize: height * 0.05),
                       ),
                     )),
                 const SizedBox(
@@ -298,7 +302,7 @@ class DetectorPageState extends State<DetectorPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        height: 200,
+                        height: 220,
                         width: (width / 2) - 15,
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 0, 75, 81),
@@ -360,7 +364,7 @@ class DetectorPageState extends State<DetectorPage> {
                         width: 5,
                       ),
                       Container(
-                        height: 200,
+                        height: 220,
                         width: (width / 2) - 15,
                         decoration: BoxDecoration(
                           color: const Color.fromARGB(255, 0, 75, 81),
@@ -685,7 +689,7 @@ class DetectorPageState extends State<DetectorPage> {
                   height: 15,
                 ),
                 Container(
-                    height: 80,
+                    height: 150,
                     width: width - 50,
                     decoration: BoxDecoration(
                       color: const Color.fromARGB(255, 0, 75, 81),
@@ -705,27 +709,30 @@ class DetectorPageState extends State<DetectorPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Estado: ',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 30,
-                              ),
-                            ),
-                            Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Estado: ',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    color: online ? Colors.green : Colors.red,
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold))
-                          ],
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 25,
+                                ),
+                              ),
+                              Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: online ? Colors.green : Colors.red,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold))
+                            ],
+                          ),
                         ),
                         Text(
-                          'El certificado del sensor caduca en: $daysToExpire dias',
+                          'El certificado del sensor\n caduca en: $daysToExpire dias',
                           style: const TextStyle(
                               fontSize: 15.0, color: Colors.white),
                         ),
