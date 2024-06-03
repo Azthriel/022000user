@@ -80,7 +80,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24053100';
+String appVersionNumber = '24060300';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -1741,20 +1741,24 @@ class MyDrawerState extends State<MyDrawer> {
                           title: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          nicknamesMap[deviceName] ??
-                                              deviceName,
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold))
-                                    ],
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                            nicknamesMap[deviceName] ??
+                                                deviceName,
+                                            style: const TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold))
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 online
@@ -1860,20 +1864,24 @@ class MyDrawerState extends State<MyDrawer> {
                           title: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          nicknamesMap[deviceName] ??
-                                              deviceName,
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold))
-                                    ],
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                            nicknamesMap[deviceName] ??
+                                                deviceName,
+                                            style: const TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold))
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 online
@@ -1979,20 +1987,24 @@ class MyDrawerState extends State<MyDrawer> {
                           title: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                          nicknamesMap[deviceName] ??
-                                              deviceName,
-                                          style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.bold))
-                                    ],
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                            nicknamesMap[deviceName] ??
+                                                deviceName,
+                                            style: const TextStyle(
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.bold))
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 online
@@ -2100,16 +2112,24 @@ class MyDrawerState extends State<MyDrawer> {
                         title: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(nicknamesMap[deviceName] ?? deviceName,
-                                      style: const TextStyle(
-                                          color: Color.fromARGB(
-                                              255, 178, 181, 174),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold))
-                                ],
+                              Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                ),
                               ),
                               online
                                   ? const Row(
@@ -2186,10 +2206,12 @@ class MyDrawerState extends State<MyDrawer> {
                       var partes = io.split('/');
                       List<String> tipoDrawer = [];
                       List<bool> estadoDrawer = [];
+                      List<String> comunDrawer = [];
                       for (int i = 0; i < partes.length; i++) {
                         var equipo = partes[i].split(':');
                         tipoDrawer.add(equipo[0] == '0' ? 'Salida' : 'Entrada');
                         estadoDrawer.add(equipo[1] == '1');
+                        comunDrawer.add(equipo[2]);
                       }
                       return ListTile(
                         leading: SizedBox(
@@ -2219,16 +2241,24 @@ class MyDrawerState extends State<MyDrawer> {
                         title: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  Text(nicknamesMap[deviceName] ?? deviceName,
-                                      style: const TextStyle(
-                                          color: Color.fromARGB(
-                                              255, 178, 181, 174),
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold))
-                                ],
+                              Align(
+                                alignment: AlignmentDirectional.centerStart,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold))
+                                    ],
+                                  ),
+                                ),
                               ),
                               online
                                   ? const Row(
@@ -2279,35 +2309,93 @@ class MyDrawerState extends State<MyDrawer> {
                                         fontWeight: FontWeight.bold),
                                     textAlign: TextAlign.start,
                                   ),
-                                  subtitle: entradaDrawer
-                                      ? estadoDrawer[index]
-                                          ? const Text('Cerrado',
-                                              style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: 15))
-                                          : const Text('Abierto',
-                                              style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 15))
-                                      : estadoDrawer[index]
-                                          ? const Text('Encendido',
-                                              style: TextStyle(
-                                                  color: Colors.green,
-                                                  fontSize: 15))
-                                          : const Text('Apagado',
-                                              style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 15)),
+                                  subtitle: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      entradaDrawer
+                                          ? estadoDrawer[index]
+                                              ? comunDrawer[index] == '1'
+                                                  ? const Text('Cerrado',
+                                                      style: TextStyle(
+                                                          color: Colors.green,
+                                                          fontSize: 15))
+                                                  : const Text('Abierto',
+                                                      style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 15))
+                                              : comunDrawer[index] == '1'
+                                                  ? const Text('Abierto',
+                                                      style: TextStyle(
+                                                          color: Colors.red,
+                                                          fontSize: 15))
+                                                  : const Text('Cerrado',
+                                                      style: TextStyle(
+                                                          color: Colors.green,
+                                                          fontSize: 15))
+                                          : estadoDrawer[index]
+                                              ? const Text('Encendido',
+                                                  style: TextStyle(
+                                                      color: Colors.green,
+                                                      fontSize: 15))
+                                              : const Text('Apagado',
+                                                  style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: 15)),
+                                      const SizedBox(width: 10),
+                                      index == 0
+                                          ? const Icon(
+                                              Icons.keyboard_double_arrow_right_rounded,
+                                              size: 30,
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                            )
+                                          : const SizedBox(width: 0),
+                                      index == 1
+                                          ? const Icon(
+                                              Icons.compare_arrows,
+                                              size: 30,
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                            )
+                                          : const SizedBox(width: 0),
+                                      index == 2
+                                          ? const Icon(
+                                              Icons.compare_arrows,
+                                              size: 30,
+                                              color: Color.fromARGB(
+                                                  255, 178, 181, 174),
+                                            )
+                                          : const SizedBox(width: 0),
+                                      index == 3
+                                          ? const Icon(
+                                                Icons.keyboard_double_arrow_left_rounded,
+                                                size: 30,
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                              )
+                                          : const SizedBox(width: 0),
+                                    ],
+                                  ),
                                   trailing: entradaDrawer
                                       ? estadoDrawer[index]
-                                          ? const Icon(
-                                              Icons.new_releases,
-                                              color: Color(0xff9b9b9b),
-                                            )
-                                          : const Icon(
-                                              Icons.new_releases,
-                                              color: Color(0xffcb3234),
-                                            )
+                                          ? comunDrawer[index] == '1'
+                                              ? const Icon(
+                                                  Icons.new_releases,
+                                                  color: Color(0xff9b9b9b),
+                                                )
+                                              : const Icon(
+                                                  Icons.new_releases,
+                                                  color: Color(0xffcb3234),
+                                                )
+                                          : comunDrawer[index] == '1'
+                                              ? const Icon(
+                                                  Icons.new_releases,
+                                                  color: Color(0xffcb3234),
+                                                )
+                                              : const Icon(
+                                                  Icons.new_releases,
+                                                  color: Color(0xff9b9b9b),
+                                                )
                                       : Switch(
                                           activeColor: const Color.fromARGB(
                                               255, 156, 157, 152),

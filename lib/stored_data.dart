@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '/aws/dynamo/dynamo_certificates.dart';
+import '/aws/dynamo/dynamo.dart';
 import 'master.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -14,6 +16,11 @@ void loadValues() async {
   actualIOToken = await loadTokenIO();
   subNicknamesMap = await loadSubNicknamesMap();
   notificationMap = await loadNotificationMap();
+
+  for (var device in previusConnections) {
+    await queryItems(
+        service, productCode[device]!, extractSerialNumber(device));
+  }
 }
 // MASTERLOAD \\
 
