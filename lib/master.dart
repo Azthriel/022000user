@@ -4,6 +4,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'aws/dynamo/dynamo.dart';
+import 'aws/dynamo/dynamo_certificates.dart';
 import 'aws/mqtt/mqtt.dart';
 import 'stored_data.dart';
 import 'package:dio/dio.dart';
@@ -28,6 +30,7 @@ final dio = Dio();
 List<String> topicsToSub = [];
 Map<String, String> productCode = {};
 List<String> ownedDevices = [];
+List<String> adminDevices = [];
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 List<int> infoValues = [];
@@ -61,15 +64,18 @@ Map<String, String> subNicknamesMap = {};
 String deviceType = '';
 String softwareVersion = '';
 String hardwareVersion = '';
-String actualToken = '';
-String actualIOToken = '';
 String currentUserEmail = '';
 String deviceSerialNumber = '';
 late String appName;
 Map<String, List<bool>> notificationMap = {};
 bool werror = false;
+Map<String, String> tokensOfDevices = {};
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
+
+bool deviceOwner = false;
+bool secondaryAdmin = false;
+String owner = '';
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -80,7 +86,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24060300';
+String appVersionNumber = '24060700';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -727,82 +733,38 @@ String encodeQueryParameters(Map<String, String> params) {
       .join('&');
 }
 
-void setupToken() async {
+void setupToken(String pc, String sn, String device) async {
   String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/${nicknamesMap[deviceName] ?? deviceName}';
-
+  String? tokenToSend = '$token/-/${nicknamesMap[device] ?? device}';
+  List<String> tokens = await getTokens(service, pc, sn);
+  printLog('Tokens: $tokens');
   if (token != null) {
-    if (actualToken != tokenToSend) {
-      await removeTokenFromDatabase(actualToken, deviceName);
-      actualToken = tokenToSend;
-      saveToken(actualToken);
-      saveTokenToDatabase(tokenToSend, deviceName);
-    } else {
-      printLog('Token ya agregado...');
+    await saveTokenasEndpoint(token);
+    if (tokens.contains(tokensOfDevices[device])) {
+      tokens.remove(tokensOfDevices[device]);
     }
+    tokens.add(tokenToSend);
+    await putTokens(service, pc, sn, tokens);
+    tokensOfDevices.addAll({device: tokenToSend});
+    saveToken(tokensOfDevices);
+
+    printLog('Token agregado exitosamente');
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
     String? newtokenToSend =
         '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
-
-    if (actualToken != '') {
-      await removeTokenFromDatabase(actualToken, deviceName);
+    List<String> tokens = await getTokens(service, pc, sn);
+    await saveTokenasEndpoint(newToken);
+    if (tokensOfDevices[device] != null) {
+      tokens.remove(tokensOfDevices[device]);
     }
-    actualToken = newtokenToSend;
-    saveTokenToDatabase(newtokenToSend, deviceName);
+    tokens.add(newtokenToSend);
+    await putTokens(service, pc, sn, tokens);
+    tokensOfDevices.addAll({device: newtokenToSend});
+    saveToken(tokensOfDevices);
+    printLog('Token actualizado exitosamente');
   });
-}
-
-void saveTokenToDatabase(String token, String device) async {
-  printLog("Voy a mandar: $token");
-  const url =
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveToken';
-  final response = await dio.post(
-    url,
-    data: json.encode(
-      {
-        'productCode': productCode[device],
-        'serialNumber': extractSerialNumber(device),
-        'token': token,
-      },
-    ),
-  );
-
-  if (response.statusCode == 200) {
-    // Handle success
-    printLog('Token added successfully');
-  } else {
-    // Handle failure
-    printLog('Failed to add token');
-    printLog(response);
-    printLog(response.data.toString());
-  }
-}
-
-Future<void> removeTokenFromDatabase(String token, String device) async {
-  printLog('Borrando esto: $token');
-  actualToken = '';
-  const url =
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeToken';
-  final response = await dio.post(
-    url,
-    data: json.encode(
-      {
-        'productCode': productCode[device],
-        'serialNumber': extractSerialNumber(device),
-        'token': token,
-      },
-    ),
-  );
-  if (response.statusCode == 200) {
-    // Handle success
-    printLog('Token removed successfully');
-  } else {
-    // Handle failure
-    printLog('Failed to removed token');
-    printLog(response.data);
-  }
 }
 
 void requestPermissionFCM() async {
@@ -824,85 +786,69 @@ void requestPermissionFCM() async {
   }
 }
 
-void setupIOToken(String nick, int index) async {
+void setupIOToken(
+    String nick, int index, String pc, String sn, String device) async {
   String? token = await FirebaseMessaging.instance.getToken();
+  printLog('Nick: $nick');
   String? tokenToSend = '$token/-/$nick';
 
+  List<String> tokens = await getIOTokens(service, pc, sn, index);
   if (token != null) {
-    if (actualIOToken != tokenToSend) {
-      await removeIOTokenFromDatabase(
-          actualIOToken, deviceName, index.toString());
-      actualIOToken = tokenToSend;
-      saveTokenIO(actualIOToken);
-      saveIOTokenToDatabase(tokenToSend, deviceName, index.toString());
-    } else {
-      printLog('ioToken ya existente...');
+    await saveTokenasEndpoint(token);
+    if (tokensOfDevices['$device$index'] != null) {
+      printLog('Eliminando: ${tokensOfDevices['$device$index']}');
+      tokens.remove(tokensOfDevices['$device$index']);
     }
+    tokens.add(tokenToSend);
+    await putIOTokens(service, pc, sn, tokens, index);
+    tokensOfDevices.addAll({'$device$index': tokenToSend});
+    saveToken(tokensOfDevices);
+    printLog('Token agregado exitosamente');
   }
 
   FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    String? newtokenToSend = '$newToken/-/$nick/-/$index';
+    String? newtokenToSend = '$newToken/-/$nick';
+    await saveTokenasEndpoint(newToken);
+    List<String> tokens = await getTokens(service, pc, sn);
 
-    if (actualIOToken != '') {
-      await removeIOTokenFromDatabase(
-          actualIOToken, deviceName, index.toString());
+    if (tokensOfDevices['$device$index'] != null) {
+      tokens.remove(tokensOfDevices['$device$index']);
     }
-    actualIOToken = newtokenToSend;
-    saveIOTokenToDatabase(newtokenToSend, deviceName, index.toString());
+    tokens.add(newtokenToSend);
+    tokensOfDevices.addAll({'$device$index': newtokenToSend});
+    await putIOTokens(service, pc, sn, tokens, index);
+    saveToken(tokensOfDevices);
   });
 }
 
-void saveIOTokenToDatabase(String token, String device, String entry) async {
-  printLog("Voy a mandar: $token");
-  const url =
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/saveTokenIO';
-  final response = await dio.post(
-    url,
-    data: json.encode(
-      {
-        'productCode': productCode[device],
-        'serialNumber': extractSerialNumber(device),
-        'token': token,
-        'entry': entry,
-      },
-    ),
-  );
+Future<void> saveTokenasEndpoint(String token) async {
+  // https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/snsendpoint
+  try {
+    const url =
+        'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/snsendpoint';
+    final response = await dio.post(
+      url,
+      data: json.encode(
+        {
+          'token': token,
+        },
+      ),
+    );
 
-  if (response.statusCode == 200) {
-    // Handle success
-    printLog('Token added successfully');
-  } else {
-    // Handle failure
-    printLog('Failed to add token');
-    printLog(response);
-    printLog(response.data);
-  }
-}
-
-Future<void> removeIOTokenFromDatabase(
-    String token, String device, String entry) async {
-  printLog('Borrando esto: $token');
-  actualIOToken = '';
-  const url =
-      'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/removeTokenIO';
-  final response = await dio.post(
-    url,
-    data: json.encode(
-      {
-        'productCode': productCode[device],
-        'serialNumber': extractSerialNumber(device),
-        'token': token,
-        'entry': entry,
-      },
-    ),
-  );
-  if (response.statusCode == 200) {
-    // Handle success
-    printLog('Token removed successfully');
-  } else {
-    // Handle failure
-    printLog('Failed to removed token');
-    printLog(response.data);
+    if (response.statusCode == 200) {
+      // Handle success
+      printLog('Token added successfully');
+      var data = response.data;
+      printLog(data);
+    } else {
+      // Handle failure
+      printLog('Failed to add token');
+      printLog(response);
+      printLog(response.data.toString());
+    }
+  } catch (e, s) {
+    printLog('Error guardando el token como endpoint : $e');
+    printLog(s);
   }
 }
 
@@ -2095,7 +2041,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 color: Color.fromARGB(255, 156, 157, 152),
                                 size: 20,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 printLog('Eliminando de la lista');
                                 setState(() {
                                   previusConnections.removeAt(index - 1);
@@ -2103,8 +2049,11 @@ class MyDrawerState extends State<MyDrawer> {
                                 guardarLista(previusConnections);
                                 unSubToTopicMQTT(
                                     'devices_tx/$equipo/$deviceName');
-                                removeTokenFromDatabase(
-                                    actualToken, deviceName);
+                                List<String> tokens = await getTokens(service,
+                                    equipo, extractSerialNumber(deviceName));
+                                tokens.remove(tokensOfDevices[deviceName]);
+                                putTokens(service, equipo,
+                                    extractSerialNumber(deviceName), tokens);
                               },
                             ),
                           ),
@@ -2224,7 +2173,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 color: Color.fromARGB(255, 156, 157, 152),
                                 size: 20,
                               ),
-                              onPressed: () {
+                              onPressed: () async {
                                 printLog('Eliminando de la lista');
                                 setState(() {
                                   previusConnections.removeAt(index - 1);
@@ -2232,8 +2181,22 @@ class MyDrawerState extends State<MyDrawer> {
                                 guardarLista(previusConnections);
                                 unSubToTopicMQTT(
                                     'devices_tx/$equipo/$deviceName');
-                                removeTokenFromDatabase(
-                                    actualToken, deviceName);
+
+                                for (int index = 0; index < 4; index++) {
+                                  List<String> tokens = await getIOTokens(
+                                      service,
+                                      equipo,
+                                      extractSerialNumber(deviceName),
+                                      index);
+                                  tokens.remove(
+                                      tokensOfDevices['$deviceName$index']);
+                                  putIOTokens(
+                                      service,
+                                      equipo,
+                                      extractSerialNumber(deviceName),
+                                      tokens,
+                                      index);
+                                }
                               },
                             ),
                           ),
@@ -2255,7 +2218,7 @@ class MyDrawerState extends State<MyDrawer> {
                                               color: Color.fromARGB(
                                                   255, 178, 181, 174),
                                               fontSize: 15,
-                                              fontWeight: FontWeight.bold))
+                                              fontWeight: FontWeight.bold)),
                                     ],
                                   ),
                                 ),
@@ -2300,81 +2263,98 @@ class MyDrawerState extends State<MyDrawer> {
                                 bool entradaDrawer =
                                     tipoDrawer[index] == 'Entrada';
                                 return ListTile(
-                                  title: Text(
-                                    subNicknamesMap['$deviceName/-/$index'] ??
-                                        '${tipoDrawer[index]} ${index + 1}',
-                                    style: const TextStyle(
-                                        color:
-                                            Color.fromARGB(255, 178, 181, 174),
-                                        fontWeight: FontWeight.bold),
-                                    textAlign: TextAlign.start,
-                                  ),
-                                  subtitle: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      entradaDrawer
-                                          ? estadoDrawer[index]
-                                              ? comunDrawer[index] == '1'
-                                                  ? const Text('Cerrado',
-                                                      style: TextStyle(
-                                                          color: Colors.green,
-                                                          fontSize: 15))
-                                                  : const Text('Abierto',
-                                                      style: TextStyle(
-                                                          color: Colors.red,
-                                                          fontSize: 15))
-                                              : comunDrawer[index] == '1'
-                                                  ? const Text('Abierto',
-                                                      style: TextStyle(
-                                                          color: Colors.red,
-                                                          fontSize: 15))
-                                                  : const Text('Cerrado',
-                                                      style: TextStyle(
-                                                          color: Colors.green,
-                                                          fontSize: 15))
-                                          : estadoDrawer[index]
-                                              ? const Text('Encendido',
-                                                  style: TextStyle(
-                                                      color: Colors.green,
-                                                      fontSize: 15))
-                                              : const Text('Apagado',
-                                                  style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontSize: 15)),
-                                      const SizedBox(width: 10),
-                                      index == 0
-                                          ? const Icon(
-                                              Icons.keyboard_double_arrow_right_rounded,
-                                              size: 30,
+                                  title: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          subNicknamesMap[
+                                                  '$deviceName/-/$index'] ??
+                                              '${tipoDrawer[index]} ${index + 1}',
+                                          style: const TextStyle(
                                               color: Color.fromARGB(
                                                   255, 178, 181, 174),
-                                            )
-                                          : const SizedBox(width: 0),
-                                      index == 1
-                                          ? const Icon(
-                                              Icons.compare_arrows,
-                                              size: 30,
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
-                                            )
-                                          : const SizedBox(width: 0),
-                                      index == 2
-                                          ? const Icon(
-                                              Icons.compare_arrows,
-                                              size: 30,
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
-                                            )
-                                          : const SizedBox(width: 0),
-                                      index == 3
-                                          ? const Icon(
-                                                Icons.keyboard_double_arrow_left_rounded,
+                                              fontWeight: FontWeight.bold),
+                                          textAlign: TextAlign.start,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        index == 0
+                                            ? const Icon(
+                                                Icons.arrow_right_alt,
                                                 size: 30,
                                                 color: Color.fromARGB(
                                                     255, 178, 181, 174),
                                               )
-                                          : const SizedBox(width: 0),
-                                    ],
+                                            : const SizedBox(width: 0),
+                                        index == 1
+                                            ? const Icon(
+                                                Icons.compare_arrows,
+                                                size: 30,
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                              )
+                                            : const SizedBox(width: 0),
+                                        index == 2
+                                            ? const Icon(
+                                                Icons.compare_arrows,
+                                                size: 30,
+                                                color: Color.fromARGB(
+                                                    255, 178, 181, 174),
+                                              )
+                                            : const SizedBox(width: 0),
+                                        index == 3
+                                            ? const RotatedBox(
+                                                quarterTurns: 2,
+                                                child: Icon(
+                                                  Icons.arrow_right_alt,
+                                                  size: 30,
+                                                  color: Color.fromARGB(
+                                                      255, 178, 181, 174),
+                                                ),
+                                              )
+                                            : const SizedBox(width: 0),
+                                      ],
+                                    ),
+                                  ),
+                                  subtitle: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        entradaDrawer
+                                            ? estadoDrawer[index]
+                                                ? comunDrawer[index] == '1'
+                                                    ? const Text('Cerrado',
+                                                        style: TextStyle(
+                                                            color: Colors.green,
+                                                            fontSize: 15))
+                                                    : const Text('Abierto',
+                                                        style: TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 15))
+                                                : comunDrawer[index] == '1'
+                                                    ? const Text('Abierto',
+                                                        style: TextStyle(
+                                                            color: Colors.red,
+                                                            fontSize: 15))
+                                                    : const Text('Cerrado',
+                                                        style: TextStyle(
+                                                            color: Colors.green,
+                                                            fontSize: 15))
+                                            : estadoDrawer[index]
+                                                ? const Text('Encendido',
+                                                    style: TextStyle(
+                                                        color: Colors.green,
+                                                        fontSize: 15))
+                                                : const Text('Apagado',
+                                                    style: TextStyle(
+                                                        color: Colors.red,
+                                                        fontSize: 15)),
+                                      ],
+                                    ),
                                   ),
                                   trailing: entradaDrawer
                                       ? estadoDrawer[index]

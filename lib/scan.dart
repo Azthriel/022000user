@@ -455,8 +455,10 @@ class LoadState extends State<LoadingPage> {
         var parts2 = utf8.decode(varsValues).split(':');
         printLog('$parts2');
         var list = await loadDevicesForDistanceControl();
-        canControlDistance = list.contains(deviceName) ? true : parts2[0] == '0';
-        printLog('Puede utilizar el control por distancia: $canControlDistance');
+        canControlDistance =
+            list.contains(deviceName) ? true : parts2[0] == '0';
+        printLog(
+            'Puede utilizar el control por distancia: $canControlDistance');
         turnOn = parts2[2] == '1';
         trueStatus = parts2[4] == '1';
         nightMode = parts2[5] == '1';
@@ -469,10 +471,40 @@ class LoadState extends State<LoadingPage> {
         printLog('Hay $users conectados');
         userConnected = users > 1;
         lastUser = users;
-
-        deviceOwner = true;
-        ownedDevices.add(deviceName);
-        saveOwnedDevices(ownedDevices); //TODO: Modificar y agregar owners a dynamo
+        owner = await getOwner(
+            service, command(deviceType), extractSerialNumber(deviceName));
+        printLog('Owner actual: $owner');
+        adminDevices = await getSecondaryAdmins(
+            service, command(deviceType), extractSerialNumber(deviceName));
+        printLog('Administradores: $adminDevices');
+        if (owner != '') {
+          if (owner == currentUserEmail) {
+            deviceOwner = true;
+            if (!ownedDevices.contains(deviceName)) {
+              ownedDevices.add(deviceName);
+              saveOwnedDevices(ownedDevices);
+            }
+          } else {
+            deviceOwner = false;
+            if (adminDevices.contains(currentUserEmail)) {
+              secondaryAdmin = true;
+              if (!ownedDevices.contains(deviceName)) {
+                ownedDevices.add(deviceName);
+                saveOwnedDevices(ownedDevices);
+              }
+            } else {
+              secondaryAdmin = false;
+              if (ownedDevices.contains(deviceName)) {
+                ownedDevices.remove(deviceName);
+                saveOwnedDevices(ownedDevices);
+              }
+            }
+          }
+        } else {
+          deviceOwner = true;
+          ownedDevices.add(deviceName);
+          saveOwnedDevices(ownedDevices);
+        }
 
         if (canControlDistance) {
           var mapOFF = await loadDistanceOFF();
@@ -522,10 +554,9 @@ class LoadState extends State<LoadingPage> {
                 '${command(deviceType)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"alert": workValues[4] == 1});
-
         saveGlobalData(globalDATA);
-
-        setupToken();
+        setupToken(
+            command(deviceType), extractSerialNumber(deviceName), deviceName);
       } else if (deviceType == '020010') {
         ioValues = await myDevice.ioUuid.read();
         printLog('Valores IO: $ioValues');

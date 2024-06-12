@@ -232,7 +232,7 @@ class DetectorPageState extends State<DetectorPage> {
             title: GestureDetector(
               onTap: () async {
                 await _showEditNicknameDialog(context);
-                setupToken();
+                setupToken(command(deviceType), extractSerialNumber(deviceName), deviceName);
               },
               child: Row(
                 children: [

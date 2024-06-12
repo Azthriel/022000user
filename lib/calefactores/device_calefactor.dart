@@ -500,7 +500,7 @@ class ControlPageState extends State<ControlPage> {
                                       size: 30, color: Colors.amber[600]),
                             ]
                           ]),
-                      if (deviceOwner) ...[
+                      if (deviceOwner || secondaryAdmin) ...[
                         const SizedBox(height: 30),
                         Transform.scale(
                           scale: 3.0,
@@ -765,39 +765,41 @@ class ControlPageState extends State<ControlPage> {
                               : const Icon(Icons.light_mode,
                                   color: Colors.white, size: 50),
                         ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        const Text(
-                          'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 25, color: Colors.white),
-                        ),
-                        const SizedBox(height: 10),
-                        ElevatedButton(
-                          style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 189, 189, 189),
-                            ),
-                            foregroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 255, 255, 255),
-                            ),
+                        if (!secondaryAdmin) ...[
+                          const SizedBox(
+                            height: 20,
                           ),
-                          onPressed: () async {
-                            var phoneNumber = '5491162232619';
-                            var message =
-                                'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${productCode[deviceName]}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
-                            var whatsappUrl =
-                                "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
-                            Uri uri = Uri.parse(whatsappUrl);
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri);
-                            } else {
-                              showToast('No se pudo abrir WhatsApp');
-                            }
-                          },
-                          child: const Text('Servicio técnico'),
-                        ),
+                          const Text(
+                            'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 25, color: Colors.white),
+                          ),
+                          const SizedBox(height: 10),
+                          ElevatedButton(
+                            style: const ButtonStyle(
+                              backgroundColor: MaterialStatePropertyAll(
+                                Color.fromARGB(255, 189, 189, 189),
+                              ),
+                              foregroundColor: MaterialStatePropertyAll(
+                                Color.fromARGB(255, 255, 255, 255),
+                              ),
+                            ),
+                            onPressed: () async {
+                              var phoneNumber = '5491162232619';
+                              var message =
+                                  'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${productCode[deviceName]}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
+                              var whatsappUrl =
+                                  "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                              Uri uri = Uri.parse(whatsappUrl);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(uri);
+                              } else {
+                                showToast('No se pudo abrir WhatsApp');
+                              }
+                            },
+                            child: const Text('Servicio técnico'),
+                          ),
+                        ]
                       ],
                     ],
                   ),

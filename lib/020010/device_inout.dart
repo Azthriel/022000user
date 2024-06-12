@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '../aws/dynamo/dynamo.dart';
+import '../aws/dynamo/dynamo_certificates.dart';
 import '/020010/master_ionout.dart';
 import '/master.dart';
 import '/stored_data.dart';
@@ -189,7 +191,7 @@ class IODevicesState extends State<IODevices> {
                 setState(() {
                   String newNickname = nicknameController.text;
                   nickname = newNickname;
-                  nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
+                  nicknamesMap.addAll({deviceName: newNickname});
                   saveNicknamesMap(nicknamesMap);
                   printLog('$nicknamesMap');
                   if (notificationMap[
@@ -205,8 +207,10 @@ class IODevicesState extends State<IODevices> {
                           '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!;
                       if (noti[index]) {
                         String nick =
-                            '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/${parts[index]}'] ?? '${tipo[index]} $index'}';
-                        setupIOToken(nick, index);
+                            '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
+                            // printLog('Nick: $nick');
+                        setupIOToken(nick, index, command(deviceType),
+                            extractSerialNumber(deviceName), deviceName);
                       }
                     }
                   }
@@ -281,12 +285,14 @@ class IODevicesState extends State<IODevices> {
               onPressed: () {
                 setState(() {
                   String newNickname = subNicknameController.text;
-                  subNicknamesMap['$deviceName/-/$index'] = newNickname;
+                  subNicknamesMap.addAll({'$deviceName/-/$index': newNickname});
                   saveSubNicknamesMap(subNicknamesMap);
                   printLog('$subNicknamesMap');
                   String nick =
                       '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
-                  setupIOToken(nick, index);
+                  // printLog('Nick: $nick');
+                  setupIOToken(nick, index, command(deviceType),
+                      extractSerialNumber(deviceName), deviceName);
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
               },
@@ -507,10 +513,25 @@ class IODevicesState extends State<IODevices> {
                                                   ),
                                                   actions: [
                                                     TextButton(
-                                                      onPressed: () {
-                                                        removeIOTokenFromDatabase(
-                                                            actualIOToken,
-                                                            deviceName, index.toString());
+                                                      onPressed: () async {
+                                                        List<String> tokens =
+                                                            await getIOTokens(
+                                                                service,
+                                                                command(
+                                                                    deviceType),
+                                                                extractSerialNumber(
+                                                                    deviceName),
+                                                                index);
+                                                        tokens.remove(
+                                                            tokensOfDevices[
+                                                                '$deviceName$index']);
+                                                        putIOTokens(
+                                                            service,
+                                                            command(deviceType),
+                                                            extractSerialNumber(
+                                                                deviceName),
+                                                            tokens,
+                                                            index);
                                                         showToast(
                                                             'Notificación desactivada');
                                                         setState(() {
@@ -520,8 +541,8 @@ class IODevicesState extends State<IODevices> {
                                                         });
                                                         saveNotificationMap(
                                                             notificationMap);
-                                                        Navigator.of(
-                                                                dialogContext)
+                                                        Navigator.of(navigatorKey
+                                                                .currentContext!)
                                                             .pop();
                                                       },
                                                       child: const Text(
@@ -539,7 +560,12 @@ class IODevicesState extends State<IODevices> {
                                           } else {
                                             String nick =
                                                 '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
-                                            setupIOToken(nick, index);
+                                            setupIOToken(
+                                                nick,
+                                                index,
+                                                command(deviceType),
+                                                extractSerialNumber(deviceName),
+                                                deviceName);
                                             showToast('Notificación activada');
                                             setState(() {
                                               notificationMap[

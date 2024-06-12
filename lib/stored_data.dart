@@ -12,8 +12,7 @@ void loadValues() async {
   topicsToSub = await loadTopicList();
   ownedDevices = await loadOwnedDevices();
   nicknamesMap = await loadNicknamesMap();
-  actualToken = await loadToken();
-  actualIOToken = await loadTokenIO();
+  tokensOfDevices = await loadToken();
   subNicknamesMap = await loadSubNicknamesMap();
   notificationMap = await loadNotificationMap();
 
@@ -275,36 +274,20 @@ Future<List<String>> loadOwnedDevices() async {
 
 //*- Token FCM
 
-Future<void> saveToken(String token) async {
+Future<void> saveToken(Map<String, String> token) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('token', token);
+  String tokenString = json.encode(token);
+  await prefs.setString('tokens', tokenString);
 }
 
-Future<String> loadToken() async {
+Future<Map<String, String>> loadToken() async {
   final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
-  if (token != null) {
-    return token;
-  } else {
-    return '';
+  String? tokenString = prefs.getString('tokens');
+  if (tokenString != null) {
+    return Map<String, String>.from(json.decode(tokenString));
   }
+  return {}; // Devuelve un mapa vacío si no hay nada almacenado
 }
-
-Future<void> saveTokenIO(String token) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('tokenio', token);
-}
-
-Future<String> loadTokenIO() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('tokenio');
-  if (token != null) {
-    return token;
-  } else {
-    return '';
-  }
-}
-
 //*-Fecha reinicio
 
 Future<void> guardarFecha(String device) async {
