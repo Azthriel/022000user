@@ -31,6 +31,7 @@ class RadiadorPageState extends State<RadiadorPage> {
   void initState() {
     super.initState();
     printLog(parts2);
+    analizePayment(command(deviceType), extractSerialNumber(deviceName));
     nickname = nicknamesMap[deviceName] ?? deviceName;
     tempValue = double.parse(parts2[1]);
 

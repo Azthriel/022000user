@@ -79,7 +79,7 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    android = Platform.isIOS;
+    android = Platform.isAndroid;
     loadValues();
     _configureAmplify();
     setupMqtt().then((value) {

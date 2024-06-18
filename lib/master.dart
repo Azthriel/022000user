@@ -72,10 +72,11 @@ bool werror = false;
 Map<String, String> tokensOfDevices = {};
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
-
 bool deviceOwner = false;
 bool secondaryAdmin = false;
 String owner = '';
+bool payAdmSec = false;
+bool payAT = false;
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -86,7 +87,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24060700';
+String appVersionNumber = '24061800';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -1024,7 +1025,220 @@ void wifiText(BuildContext context) {
   );
 }
 
-//BACKGROUND //
+void showAdminText() {
+  showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          title: const Text(
+            'Haz alcanzado el límite máximo de administradores secundarios',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          content: const Text(
+            'En caso de requerir más puedes solicitarlos vía mail',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          actions: [
+            TextButton(
+                style: const ButtonStyle(
+                    foregroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(255, 255, 255, 255))),
+                onPressed: () async {
+                  String cuerpo =
+                      '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: 'cobranzas@ibsanitarios.com.ar',
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Extensión de administradores secundarios',
+                      'body': cuerpo,
+                      'CC': 'pablo@intelligentgas.com.ar'
+                    }),
+                  );
+                  if (await canLaunchUrl(emailLaunchUri)) {
+                    await launchUrl(emailLaunchUri);
+                  } else {
+                    showToast('No se pudo enviar el correo electrónico');
+                  }
+                  navigatorKey.currentState?.pop();
+                },
+                child: const Text('Solicitar'))
+          ],
+        );
+      });
+}
+
+Future<void> analizePayment(
+  String pc,
+  String sn,
+) async {
+  List<DateTime> expDates = await getDates(service, pc, sn);
+
+  int vencimiento = expDates[0].difference(DateTime.now()).inDays;
+
+  payAdmSec = vencimiento > 0;
+
+  printLog('--------------Administradores secundarios--------------');
+  printLog(expDates[0].toIso8601String());
+  printLog('Se vence en $vencimiento dias');
+  printLog('¿Esta pago? ${payAdmSec ? 'Si' : 'No'}');
+  printLog('--------------Administradores secundarios--------------');
+
+  if (vencimiento < 30 && vencimiento > 0) {
+    showPaymentTest(true, vencimiento, navigatorKey.currentContext!);
+  } //Mostrar cartel...
+
+  int vencimiento2 = expDates[1].difference(DateTime.now()).inDays;
+
+  payAT = vencimiento2 > 0;
+
+  printLog('--------------Alquiler Temporario--------------');
+  printLog(expDates[1].toIso8601String());
+  printLog('Se vence en $vencimiento2 dias');
+  printLog('¿Esta pago? ${payAT ? 'Si' : 'No'}');
+  printLog('--------------Alquiler Temporario--------------');
+
+  if (vencimiento2 < 30 && vencimiento2 > 0) {
+    showPaymentTest(false, vencimiento2, navigatorKey.currentContext!);
+  } //Mostrar cartel...
+}
+
+void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
+  try {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          title: const Text(
+            '¡Estas por perder tu beneficio!',
+            style: TextStyle(
+              color: Color.fromARGB(255, 178, 181, 174),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                'Faltan $vencimiento días para que te quedes sin la opción:',
+                style: const TextStyle(
+                    color: Color.fromARGB(255, 178, 181, 174),
+                    fontWeight: FontWeight.normal),
+              ),
+              adm
+                  ? const Text(
+                      'Administradores secundarios extra',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 178, 181, 174),
+                          fontWeight: FontWeight.bold),
+                    )
+                  : const Text(
+                      'Habilitar alquiler temporario',
+                      style: TextStyle(
+                          color: Color.fromARGB(255, 178, 181, 174),
+                          fontWeight: FontWeight.bold),
+                    )
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: const ButtonStyle(
+                foregroundColor: MaterialStatePropertyAll(
+                  Color.fromARGB(255, 178, 181, 174),
+                ),
+              ),
+              child: const Text('Ignorar'),
+              onPressed: () {
+                navigatorKey.currentState?.pop();
+              },
+            ),
+            TextButton(
+              style: const ButtonStyle(
+                foregroundColor: MaterialStatePropertyAll(
+                  Color.fromARGB(255, 178, 181, 174),
+                ),
+              ),
+              child: const Text('Solicitar extensión'),
+              onPressed: () async {
+                String cuerpo = adm
+                    ? '¡Hola! Me comunico porque busco extender mi beneficio de "Administradores secundarios extra" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias'
+                    : '¡Hola! Me comunico porque busco extender mi beneficio "Habilitar alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias';
+                final Uri emailLaunchUri = Uri(
+                  scheme: 'mailto',
+                  path: 'cobranzas@ibsanitarios.com.ar',
+                  query: encodeQueryParameters(<String, String>{
+                    'subject': 'Extensión de beneficio',
+                    'body': cuerpo,
+                    'CC': 'pablo@intelligentgas.com.ar'
+                  }),
+                );
+                if (await canLaunchUrl(emailLaunchUri)) {
+                  await launchUrl(emailLaunchUri);
+                } else {
+                  showToast('No se pudo enviar el correo electrónico');
+                }
+                navigatorKey.currentState?.pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  } catch (e, s) {
+    printLog(e);
+    printLog(s);
+  }
+}
+
+void showATText() {
+  showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          title: const Text(
+            'Actualmente no tienes habilitado este beneficio',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          content: const Text(
+            'En caso de requerirlo puedes solicitarlo vía mail',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          actions: [
+            TextButton(
+                style: const ButtonStyle(
+                    foregroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(255, 255, 255, 255))),
+                onPressed: () async {
+                  String cuerpo =
+                      '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: 'cobranzas@ibsanitarios.com.ar',
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Habilitación alquiler temporario',
+                      'body': cuerpo,
+                      'CC': 'pablo@intelligentgas.com.ar'
+                    }),
+                  );
+                  if (await canLaunchUrl(emailLaunchUri)) {
+                    await launchUrl(emailLaunchUri);
+                  } else {
+                    showToast('No se pudo enviar el correo electrónico');
+                  }
+                  navigatorKey.currentState?.pop();
+                },
+                child: const Text('Solicitar'))
+          ],
+        );
+      });
+}
+// BACKGROUND //
 
 Timer? backTimer;
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/aws/dynamo/dynamo.dart';
-
+import '../aws/dynamo/dynamo.dart';
 import '../aws/dynamo/dynamo_certificates.dart';
 import '/stored_data.dart';
 import 'package:flutter/material.dart';
@@ -291,9 +290,13 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                               Color.fromARGB(255, 255, 255, 255),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: () async {
+                            adminDevices = await getSecondaryAdmins(
+                                service,
+                                command(deviceType),
+                                extractSerialNumber(deviceName));
                             showDialog<void>(
-                                context: context,
+                                context: navigatorKey.currentContext!,
                                 barrierDismissible: true,
                                 builder: (BuildContext dialogContext) {
                                   TextEditingController admins =
@@ -335,8 +338,30 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                   Navigator.of(dialogContext)
                                                       .pop();
                                                 } else {
-                                                  showToast(
-                                                      "El máximo son 3 usuarios");
+                                                  printLog('Pago: $payAdmSec');
+                                                  if (payAdmSec) {
+                                                    if (adminDevices.length <
+                                                        6) {
+                                                      adminDevices.add(
+                                                          admins.text.trim());
+                                                      putSecondaryAdmins(
+                                                          service,
+                                                          command(deviceType),
+                                                          extractSerialNumber(
+                                                              widget.device),
+                                                          adminDevices);
+                                                      Navigator.of(
+                                                              dialogContext)
+                                                          .pop();
+                                                    } else {
+                                                      showToast(
+                                                          'Alcanzaste el límite máximo');
+                                                    }
+                                                  } else {
+                                                    Navigator.of(dialogContext)
+                                                        .pop();
+                                                    showAdminText();
+                                                  }
                                                 }
                                               },
                                               decoration: InputDecoration(
@@ -374,8 +399,36 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                                   dialogContext)
                                                               .pop();
                                                         } else {
-                                                          showToast(
-                                                              "El máximo son 3 usuarios");
+                                                          printLog(
+                                                              'Pago: $payAdmSec');
+                                                          if (payAdmSec) {
+                                                            if (adminDevices
+                                                                    .length <
+                                                                6) {
+                                                              adminDevices.add(
+                                                                  admins.text
+                                                                      .trim());
+                                                              putSecondaryAdmins(
+                                                                  service,
+                                                                  command(
+                                                                      deviceType),
+                                                                  extractSerialNumber(
+                                                                      widget
+                                                                          .device),
+                                                                  adminDevices);
+                                                              Navigator.of(
+                                                                      dialogContext)
+                                                                  .pop();
+                                                            } else {
+                                                              showToast(
+                                                                  'Alcanzaste el límite máximo');
+                                                            }
+                                                          } else {
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop();
+                                                            showAdminText();
+                                                          }
                                                         }
                                                       },
                                                       icon: const Icon(
@@ -445,7 +498,23 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             'Añadir administradores\n secundarios',
                             textAlign: TextAlign.center,
                           ),
-                        )
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        // ElevatedButton(
+                        //   onPressed: () {
+                        //     if(!payAT){
+                        //       showATText();
+                        //     }else{
+
+                        //     }
+                        //   },
+                        //   child: const Text(
+                        //     'Habilitar Alquiler temporario',
+                        //     textAlign: TextAlign.center,
+                        //   ),
+                        // )
                       ]
                     ]
                   ],
@@ -731,9 +800,13 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                   Color.fromARGB(255, 72, 72, 72)),
                               foregroundColor: MaterialStatePropertyAll(
                                   Color.fromARGB(255, 255, 255, 255))),
-                          onPressed: () {
+                          onPressed: () async {
+                            adminDevices = await getSecondaryAdmins(
+                                service,
+                                command(deviceType),
+                                extractSerialNumber(deviceName));
                             showDialog<void>(
-                                context: context,
+                                context: navigatorKey.currentContext!,
                                 barrierDismissible: true,
                                 builder: (BuildContext dialogContext) {
                                   TextEditingController admins =
@@ -774,8 +847,30 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                   Navigator.of(dialogContext)
                                                       .pop();
                                                 } else {
-                                                  showToast(
-                                                      "El máximo son 3 usuarios");
+                                                  printLog('Pago: $payAdmSec');
+                                                  if (payAdmSec) {
+                                                    if (adminDevices.length <
+                                                        6) {
+                                                      adminDevices.add(
+                                                          admins.text.trim());
+                                                      putSecondaryAdmins(
+                                                          service,
+                                                          command(deviceType),
+                                                          extractSerialNumber(
+                                                              widget.device),
+                                                          adminDevices);
+                                                      Navigator.of(
+                                                              dialogContext)
+                                                          .pop();
+                                                    } else {
+                                                      showToast(
+                                                          'Alcanzaste el límite máximo');
+                                                    }
+                                                  } else {
+                                                    Navigator.of(dialogContext)
+                                                        .pop();
+                                                    showAdminText();
+                                                  }
                                                 }
                                               },
                                               decoration: InputDecoration(
@@ -813,8 +908,36 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                                   dialogContext)
                                                               .pop();
                                                         } else {
-                                                          showToast(
-                                                              "El máximo son 3 usuarios");
+                                                          printLog(
+                                                              'Pago: $payAdmSec');
+                                                          if (payAdmSec) {
+                                                            if (adminDevices
+                                                                    .length <
+                                                                6) {
+                                                              adminDevices.add(
+                                                                  admins.text
+                                                                      .trim());
+                                                              putSecondaryAdmins(
+                                                                  service,
+                                                                  command(
+                                                                      deviceType),
+                                                                  extractSerialNumber(
+                                                                      widget
+                                                                          .device),
+                                                                  adminDevices);
+                                                              Navigator.of(
+                                                                      dialogContext)
+                                                                  .pop();
+                                                            } else {
+                                                              showToast(
+                                                                  'Alcanzaste el límite máximo');
+                                                            }
+                                                          } else {
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop();
+                                                            showAdminText();
+                                                          }
                                                         }
                                                       },
                                                       icon: const Icon(

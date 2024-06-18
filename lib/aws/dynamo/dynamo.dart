@@ -73,6 +73,9 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
 
 Future<void> putTokens(
     DynamoDB service, String pc, String sn, List<String> data) async {
+  if (data.isEmpty) {
+    data.add('');
+  }
   try {
     final response = await service.updateItem(tableName: 'tokens', key: {
       'product_code': AttributeValue(s: pc),
@@ -245,7 +248,12 @@ Future<List<String>> getSecondaryAdmins(
 
       printLog('Se encontro el siguiente item: $secAdm');
 
-      return secAdm;
+      secAdm.remove('');
+      if (secAdm.contains('') && secAdm.length == 1) {
+        return [];
+      } else {
+        return secAdm;
+      }
     } else {
       printLog('Item no encontrado.');
       return [];
@@ -253,5 +261,48 @@ Future<List<String>> getSecondaryAdmins(
   } catch (e) {
     printLog('Error al obtener el item: $e');
     return [];
+  }
+}
+
+Future<List<DateTime>> getDates(DynamoDB service, String pc, String sn) async {
+  try {
+    final response = await service.getItem(
+      tableName: 'sime-domotica',
+      key: {
+        'product_code': AttributeValue(s: pc),
+        'device_id': AttributeValue(s: sn),
+      },
+    );
+    if (response.item != null) {
+      var item = response.item!;
+      List<DateTime> fechaExp = [];
+      String? date = item['DateSecAdm']?.s;
+      String? date2 = item['DateAT']?.s;
+      printLog('Fecha encontrada');
+
+      if (date != null) {
+        var parts = date.split('/');
+        fechaExp.add(DateTime(
+            int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2])));
+      } else {
+        fechaExp.add(DateTime.now());
+      }
+
+      if (date2 != null) {
+        var parts = date2.split('/');
+        fechaExp.add(DateTime(
+            int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2])));
+      } else {
+        fechaExp.add(DateTime.now());
+      }
+
+      return fechaExp;
+    } else {
+      printLog('Item no encontrado.');
+      return [DateTime.now(), DateTime.now()];
+    }
+  } catch (e) {
+    printLog('Error al obtener el item: $e');
+    return [DateTime.now(), DateTime.now()];
   }
 }

@@ -30,6 +30,7 @@ class ControlPageState extends State<ControlPage> {
   @override
   void initState() {
     super.initState();
+    analizePayment(command(deviceType), extractSerialNumber(deviceName));
     nickname = nicknamesMap[deviceName] ?? deviceName;
     tempValue = double.parse(parts2[1]);
 
