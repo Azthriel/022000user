@@ -25,7 +25,7 @@ void controlOut(bool value, int index) {
   sendMessagemqtt(topic, message);
   estado[index] = value ? '1' : '0';
   for (int i = 0; i < estado.length; i++) {
-    String device = '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}';
+    String device = '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}:${common[i]}';
     globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io$i'] =
         device;
   }

@@ -87,7 +87,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24061800';
+String appVersionNumber = '24061900';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -155,10 +155,12 @@ String generateErrorReport(FlutterErrorDetails details) {
   return '''
 Error: ${details.exception}
 Stacktrace: ${details.stack}
+Contexto: ${details.context}
   ''';
 }
 
 void sendReportError(String cuerpo) async {
+  printLog(cuerpo);
   String encodeQueryParameters(Map<String, String> params) {
     return params.entries
         .map((e) =>
@@ -1238,6 +1240,7 @@ void showATText() {
         );
       });
 }
+
 // BACKGROUND //
 
 Timer? backTimer;
@@ -2473,9 +2476,8 @@ class MyDrawerState extends State<MyDrawer> {
                               physics: const PageScrollPhysics(
                                   parent: BouncingScrollPhysics()),
                               itemCount: partes.length,
-                              itemBuilder: (context, index) {
-                                bool entradaDrawer =
-                                    tipoDrawer[index] == 'Entrada';
+                              itemBuilder: (context, i) {
+                                bool entradaDrawer = tipoDrawer[i] == 'Entrada';
                                 return ListTile(
                                   title: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
@@ -2484,9 +2486,8 @@ class MyDrawerState extends State<MyDrawer> {
                                           MainAxisAlignment.start,
                                       children: [
                                         Text(
-                                          subNicknamesMap[
-                                                  '$deviceName/-/$index'] ??
-                                              '${tipoDrawer[index]} ${index + 1}',
+                                          subNicknamesMap['$deviceName/-/$i'] ??
+                                              '${tipoDrawer[i]} ${i + 1}',
                                           style: const TextStyle(
                                               color: Color.fromARGB(
                                                   255, 178, 181, 174),
@@ -2539,8 +2540,8 @@ class MyDrawerState extends State<MyDrawer> {
                                           MainAxisAlignment.start,
                                       children: [
                                         entradaDrawer
-                                            ? estadoDrawer[index]
-                                                ? comunDrawer[index] == '1'
+                                            ? estadoDrawer[i]
+                                                ? comunDrawer[i] == '1'
                                                     ? const Text('Cerrado',
                                                         style: TextStyle(
                                                             color: Colors.green,
@@ -2549,7 +2550,7 @@ class MyDrawerState extends State<MyDrawer> {
                                                         style: TextStyle(
                                                             color: Colors.red,
                                                             fontSize: 15))
-                                                : comunDrawer[index] == '1'
+                                                : comunDrawer[i] == '1'
                                                     ? const Text('Abierto',
                                                         style: TextStyle(
                                                             color: Colors.red,
@@ -2558,7 +2559,7 @@ class MyDrawerState extends State<MyDrawer> {
                                                         style: TextStyle(
                                                             color: Colors.green,
                                                             fontSize: 15))
-                                            : estadoDrawer[index]
+                                            : estadoDrawer[i]
                                                 ? const Text('Encendido',
                                                     style: TextStyle(
                                                         color: Colors.green,
@@ -2571,8 +2572,8 @@ class MyDrawerState extends State<MyDrawer> {
                                     ),
                                   ),
                                   trailing: entradaDrawer
-                                      ? estadoDrawer[index]
-                                          ? comunDrawer[index] == '1'
+                                      ? estadoDrawer[i]
+                                          ? comunDrawer[i] == '1'
                                               ? const Icon(
                                                   Icons.new_releases,
                                                   color: Color(0xff9b9b9b),
@@ -2581,7 +2582,7 @@ class MyDrawerState extends State<MyDrawer> {
                                                   Icons.new_releases,
                                                   color: Color(0xffcb3234),
                                                 )
-                                          : comunDrawer[index] == '1'
+                                          : comunDrawer[i] == '1'
                                               ? const Icon(
                                                   Icons.new_releases,
                                                   color: Color(0xffcb3234),
@@ -2602,10 +2603,10 @@ class MyDrawerState extends State<MyDrawer> {
                                           inactiveTrackColor:
                                               const Color.fromARGB(
                                                   255, 156, 157, 152),
-                                          value: estadoDrawer[index],
+                                          value: estadoDrawer[i],
                                           onChanged: (value) {
                                             String fun2 =
-                                                '$index:${value ? '1' : '0'}';
+                                                '$i:${value ? '1' : '0'}';
                                             deviceSerialNumber =
                                                 extractSerialNumber(deviceName);
                                             String topic =
@@ -2613,19 +2614,18 @@ class MyDrawerState extends State<MyDrawer> {
                                             String topic2 =
                                                 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
                                             String message =
-                                                jsonEncode({'io$index': fun2});
+                                                jsonEncode({'io$i': fun2});
                                             sendMessagemqtt(topic, message);
-                                            estadoDrawer[index] = value;
-                                            for (int i = 0;
-                                                i < estadoDrawer.length;
-                                                i++) {
+                                            estadoDrawer[i] = value;
+                                            for (int j = 0;
+                                                j < estadoDrawer.length;
+                                                j++) {
                                               String device =
-                                                  '${tipoDrawer[i] == 'Salida' ? '0' : '1'}:${estadoDrawer[i] == true ? '1' : '0'}';
+                                                  '${tipoDrawer[j] == 'Salida' ? '0' : '1'}:${estadoDrawer[j] == true ? '1' : '0'}:${comunDrawer[j]}';
                                               globalDATA[
                                                       '${productCode[deviceName]}/$deviceSerialNumber']![
-                                                  'io$i'] = device;
+                                                  'io$j'] = device;
                                             }
-
                                             saveGlobalData(globalDATA);
                                             String message2 = jsonEncode(globalDATA[
                                                 '${productCode[deviceName]}/$deviceSerialNumber']);
