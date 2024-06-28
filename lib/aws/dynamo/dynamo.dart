@@ -56,6 +56,26 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
                     .putIfAbsent('$pc/$sn', () => {})
                     .addAll({key: int.parse(value.n ?? '0')});
                 break;
+              case 'distanceOn':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: double.parse(value.n ?? '3000')});
+                break;
+              case 'distanceOff':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: double.parse(value.n ?? '100')});
+                break;
+              case 'AT':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: value.boolValue ?? false});
+                break;
+              case 'tenant':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: value.s ?? ''});
+                break;
             }
           }
           printLog("$key: $displayValue");
@@ -248,7 +268,6 @@ Future<List<String>> getSecondaryAdmins(
 
       printLog('Se encontro el siguiente item: $secAdm');
 
-      secAdm.remove('');
       if (secAdm.contains('') && secAdm.length == 1) {
         return [];
       } else {
@@ -304,5 +323,57 @@ Future<List<DateTime>> getDates(DynamoDB service, String pc, String sn) async {
   } catch (e) {
     printLog('Error al obtener el item: $e');
     return [DateTime.now(), DateTime.now()];
+  }
+}
+
+Future<void> putDistanceOn(
+    DynamoDB service, String pc, String sn, String data) async {
+  try {
+    final response = await service.updateItem(tableName: 'sime-domotica', key: {
+      'product_code': AttributeValue(s: pc),
+      'device_id': AttributeValue(s: sn),
+    }, attributeUpdates: {
+      'distanceOn': AttributeValueUpdate(value: AttributeValue(n: data)),
+    });
+
+    printLog('Item escrito perfectamente $response');
+  } catch (e) {
+    printLog('Error inserting item: $e');
+  }
+}
+
+Future<void> putDistanceOff(
+    DynamoDB service, String pc, String sn, String data) async {
+  try {
+    final response = await service.updateItem(tableName: 'sime-domotica', key: {
+      'product_code': AttributeValue(s: pc),
+      'device_id': AttributeValue(s: sn),
+    }, attributeUpdates: {
+      'distanceOff': AttributeValueUpdate(value: AttributeValue(n: data)),
+    });
+
+    printLog('Item escrito perfectamente $response');
+  } catch (e) {
+    printLog('Error inserting item: $e');
+  }
+}
+
+Future<void> saveATData(DynamoDB service, String pc, String sn, bool activate,
+    String mail, String dOn, String dOff) async {
+  try {
+    final response = await service.updateItem(tableName: 'sime-domotica', key: {
+      'product_code': AttributeValue(s: pc),
+      'device_id': AttributeValue(s: sn),
+    }, attributeUpdates: {
+      'AT': AttributeValueUpdate(value: AttributeValue(boolValue: activate)),
+      'tenant': AttributeValueUpdate(value: AttributeValue(s: mail)),
+      'distanceOn': AttributeValueUpdate(value: AttributeValue(n: dOn)),
+      'distanceOff': AttributeValueUpdate(value: AttributeValue(n: dOff)),
+    });
+
+    activatedAT = activate;
+    printLog('Inquilino escrito perfectamente $response');
+  } catch (e) {
+    printLog('Error inserting item: $e');
   }
 }

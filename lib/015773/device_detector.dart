@@ -1,7 +1,7 @@
 import 'dart:convert';
 import '/stored_data.dart';
 import 'package:flutter/material.dart';
-import '/5773/master_detector.dart';
+import 'master_detector.dart';
 import '/master.dart';
 
 class DetectorPage extends StatefulWidget {
@@ -16,7 +16,7 @@ class DetectorPageState extends State<DetectorPage> {
   bool alert = false;
   String _textToShow = 'AIRE PURO';
   bool online =
-      globalDATA['${command(deviceType)}/${extractSerialNumber(deviceName)}']![
+      globalDATA['${command(deviceName)}/${extractSerialNumber(deviceName)}']![
               'cstate'] ??
           false;
 
@@ -232,7 +232,8 @@ class DetectorPageState extends State<DetectorPage> {
             title: GestureDetector(
               onTap: () async {
                 await _showEditNicknameDialog(context);
-                setupToken(command(deviceType), extractSerialNumber(deviceName), deviceName);
+                setupToken(command(deviceName), extractSerialNumber(deviceName),
+                    deviceName);
               },
               child: Row(
                 children: [
@@ -322,42 +323,47 @@ class DetectorPageState extends State<DetectorPage> {
                                 width: 5),
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'GAS',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 0,
+                              ),
+                              const Text(
+                                'GAS',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const Text(
+                                'Atmósfera\n Explosiva',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                '${(ppmCH4 / 500).round()}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 45,
+                                ),
+                              ),
+                              const Text(
+                                'LIE',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
                                   color: Color.fromARGB(255, 255, 255, 255),
                                   fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const Text(
-                              'Atmósfera Explosiva',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 15,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${(ppmCH4 / 500).round()}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 50,
-                              ),
-                            ),
-                            const Text(
-                              'LIE',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 30,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(
@@ -384,42 +390,47 @@ class DetectorPageState extends State<DetectorPage> {
                                 width: 5),
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'CO',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 0,
+                              ),
+                              const Text(
+                                'CO',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const Text(
+                                'Monóxido de\ncarbono',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                '$ppmCO',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 45,
+                                ),
+                              ),
+                              const Text(
+                                'PPM',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
                                   color: Color.fromARGB(255, 255, 255, 255),
                                   fontSize: 30,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const Text(
-                              'Monóxido de carbono',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 15,
+                                ),
                               ),
-                            ),
-                            Text(
-                              '$ppmCO',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 50,
-                              ),
-                            ),
-                            const Text(
-                              'PPM',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255),
-                                fontSize: 30,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -453,42 +464,47 @@ class DetectorPageState extends State<DetectorPage> {
                               width: 5),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Pico máximo',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Pico máximo',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CH4',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'PPM CH4',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$picoMaxppmCH4',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
+                            Text(
+                              '$picoMaxppmCH4',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                              ),
                             ),
-                          ),
-                          const Text(
-                            'PPM',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(
@@ -515,42 +531,47 @@ class DetectorPageState extends State<DetectorPage> {
                               width: 5),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Pico máximo',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Pico máximo',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CO',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'PPM CO',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$picoMaxppmCO',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
+                            Text(
+                              '$picoMaxppmCO',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                              ),
                             ),
-                          ),
-                          const Text(
-                            'PPM',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -583,42 +604,47 @@ class DetectorPageState extends State<DetectorPage> {
                               width: 5),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Promedio',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Promedio',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CH4',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'PPM CH4',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$promedioppmCH4',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
+                            Text(
+                              '$promedioppmCH4',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                              ),
                             ),
-                          ),
-                          const Text(
-                            'PPM',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(
@@ -645,42 +671,47 @@ class DetectorPageState extends State<DetectorPage> {
                               width: 5),
                         ),
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            'Promedio',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Promedio',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CO',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: Color.fromARGB(255, 255, 255, 255),
                                 fontSize: 15,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          const Text(
-                            'PPM CO',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '$promedioppmCO',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 30,
+                            Text(
+                              '$promedioppmCO',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 30,
+                              ),
                             ),
-                          ),
-                          const Text(
-                            'PPM',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255),
-                              fontSize: 15,
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 255, 255, 255),
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],

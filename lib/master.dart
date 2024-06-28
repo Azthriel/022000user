@@ -28,7 +28,6 @@ Map<String, Map<String, dynamic>> globalDATA = {};
 late bool android;
 final dio = Dio();
 List<String> topicsToSub = [];
-Map<String, String> productCode = {};
 List<String> ownedDevices = [];
 List<String> adminDevices = [];
 MyDevice myDevice = MyDevice();
@@ -77,6 +76,10 @@ bool secondaryAdmin = false;
 String owner = '';
 bool payAdmSec = false;
 bool payAT = false;
+bool activatedAT = false;
+int vencimientoAdmSec = 0;
+int vencimientoAT = 0;
+bool tenant = false;
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -87,7 +90,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24061900';
+String appVersionNumber = '24062800';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -118,7 +121,7 @@ void showToast(String message) {
 Future<void> sendWifitoBle() async {
   MyDevice myDevice = MyDevice();
   String value = '$wifiName#$wifiPassword';
-  String deviceCommand = command(deviceType);
+  String deviceCommand = command(deviceName);
   printLog(deviceCommand);
   String dataToSend = '$deviceCommand[1]($value)';
   printLog(dataToSend);
@@ -134,20 +137,18 @@ Future<void> sendWifitoBle() async {
 }
 
 String command(String device) {
-  // printLog('Entro $device');
-  switch (device) {
-    case '022000':
-      return '022000_IOT';
-    case '027000':
-      return '027000_IOT';
-    case '015773':
-      return '015773_IOT';
-    case '041220':
-      return '041220_IOT';
-    case '020010':
-      return '020010_IOT';
-    default:
-      return '';
+  if (device.contains('Eléctrico')) {
+    return '022000_IOT';
+  } else if (device.contains('Gas')) {
+    return '027000_IOT';
+  } else if (device.contains('Detector')) {
+    return '015773_IOT';
+  } else if (device.contains('Radiador')) {
+    return '041220_IOT';
+  } else if (device.contains('Módulo')) {
+    return '020010_IOT';
+  } else {
+    return '';
   }
 }
 
@@ -631,7 +632,7 @@ void showContactInfo(BuildContext context) {
                       onPressed: () => _launchEmail(
                           'pablo@intelligentgas.com.ar',
                           'Consulta ref. $deviceName',
-                          '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${productCode[deviceName]}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                          '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                       icon: const Icon(
                         Icons.mail,
                         // color: Color.fromARGB(255, 29, 163, 169),
@@ -681,7 +682,7 @@ void showContactInfo(BuildContext context) {
                       IconButton(
                         onPressed: () => _launchEmail(
                             'service@calefactorescalden.com.ar',
-                            'Consulta ${productCode[deviceName]}',
+                            'Consulta ${command(deviceName)}',
                             'Tengo una consulta referida a mi equipo $deviceName: \n'),
                         icon: const Icon(
                           Icons.mail,
@@ -1049,7 +1050,7 @@ void showAdminText() {
                         Color.fromARGB(255, 255, 255, 255))),
                 onPressed: () async {
                   String cuerpo =
-                      '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                      '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
                   final Uri emailLaunchUri = Uri(
                     scheme: 'mailto',
                     path: 'cobranzas@ibsanitarios.com.ar',
@@ -1078,33 +1079,25 @@ Future<void> analizePayment(
 ) async {
   List<DateTime> expDates = await getDates(service, pc, sn);
 
-  int vencimiento = expDates[0].difference(DateTime.now()).inDays;
+  vencimientoAdmSec = expDates[0].difference(DateTime.now()).inDays;
 
-  payAdmSec = vencimiento > 0;
+  payAdmSec = vencimientoAdmSec > 0;
 
   printLog('--------------Administradores secundarios--------------');
   printLog(expDates[0].toIso8601String());
-  printLog('Se vence en $vencimiento dias');
+  printLog('Se vence en $vencimientoAdmSec dias');
   printLog('¿Esta pago? ${payAdmSec ? 'Si' : 'No'}');
   printLog('--------------Administradores secundarios--------------');
 
-  if (vencimiento < 30 && vencimiento > 0) {
-    showPaymentTest(true, vencimiento, navigatorKey.currentContext!);
-  } //Mostrar cartel...
+  vencimientoAT = expDates[1].difference(DateTime.now()).inDays;
 
-  int vencimiento2 = expDates[1].difference(DateTime.now()).inDays;
-
-  payAT = vencimiento2 > 0;
+  payAT = vencimientoAT > 0;
 
   printLog('--------------Alquiler Temporario--------------');
   printLog(expDates[1].toIso8601String());
-  printLog('Se vence en $vencimiento2 dias');
+  printLog('Se vence en $vencimientoAT dias');
   printLog('¿Esta pago? ${payAT ? 'Si' : 'No'}');
   printLog('--------------Alquiler Temporario--------------');
-
-  if (vencimiento2 < 30 && vencimiento2 > 0) {
-    showPaymentTest(false, vencimiento2, navigatorKey.currentContext!);
-  } //Mostrar cartel...
 }
 
 void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
@@ -1167,8 +1160,8 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
               child: const Text('Solicitar extensión'),
               onPressed: () async {
                 String cuerpo = adm
-                    ? '¡Hola! Me comunico porque busco extender mi beneficio de "Administradores secundarios extra" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias'
-                    : '¡Hola! Me comunico porque busco extender mi beneficio "Habilitar alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias';
+                    ? '¡Hola! Me comunico porque busco extender mi beneficio de "Administradores secundarios extra" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias'
+                    : '¡Hola! Me comunico porque busco extender mi beneficio "Habilitar alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner\nVencimiento en: $vencimiento dias';
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',
                   path: 'cobranzas@ibsanitarios.com.ar',
@@ -1218,7 +1211,7 @@ void showATText() {
                         Color.fromARGB(255, 255, 255, 255))),
                 onPressed: () async {
                   String cuerpo =
-                      '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceType)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                      '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
                   final Uri emailLaunchUri = Uri(
                     scheme: 'mailto',
                     path: 'cobranzas@ibsanitarios.com.ar',
@@ -1236,6 +1229,137 @@ void showATText() {
                   navigatorKey.currentState?.pop();
                 },
                 child: const Text('Solicitar'))
+          ],
+        );
+      });
+}
+
+Future<void> configAT() async {
+  showDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) {
+        final TextEditingController tenantController = TextEditingController();
+        final TextEditingController tenantDistanceOn = TextEditingController();
+        final TextEditingController tenantDistanceOff = TextEditingController();
+        bool dOnOk = false;
+        bool dOffOk = false;
+        final FocusNode dOnNode = FocusNode();
+        final FocusNode dOffNode = FocusNode();
+        return AlertDialog(
+          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          title: const Text(
+            'Configura los parametros del alquiler',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: tenantController,
+                    keyboardType: TextInputType.emailAddress,
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.person),
+                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      labelText: "Email del inquilino",
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                    onEditingComplete: () {
+                      if (tenantController.text != '') {
+                        dOffNode.requestFocus();
+                      } else {
+                        showToast('Debes ingresar un mail');
+                      }
+                    },
+                  ),
+                  TextField(
+                    controller: tenantDistanceOff,
+                    keyboardType: TextInputType.number,
+                    focusNode: dOffNode,
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.map),
+                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      labelText: "Distancia de apagado",
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      hintText: 'Entre 100 y 300 metros',
+                      hintStyle: TextStyle(
+                        color: Color.fromARGB(255, 141, 141, 141),
+                      ),
+                    ),
+                    onEditingComplete: () {
+                      int? fun = int.tryParse(tenantDistanceOff.text);
+                      if (fun == null || fun < 100 || fun > 300) {
+                        showToast('Distancia de apagado no permitida');
+                      } else {
+                        dOffOk = true;
+                        dOnNode.requestFocus();
+                      }
+                    },
+                  ),
+                  TextField(
+                    controller: tenantDistanceOn,
+                    keyboardType: TextInputType.number,
+                    focusNode: dOnNode,
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                    ),
+                    decoration: const InputDecoration(
+                      icon: Icon(Icons.map),
+                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      labelText: "Distancia de encendido",
+                      labelStyle: TextStyle(
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                      hintText: 'Entre 3000 y 5000 metros',
+                      hintStyle: TextStyle(
+                        color: Color.fromARGB(255, 141, 141, 141),
+                      ),
+                    ),
+                    onEditingComplete: () {
+                      int? fun = int.tryParse(tenantDistanceOn.text);
+                      if (fun == null || fun < 3000 || fun > 5000) {
+                        showToast('Distancia de encendido no permitida');
+                      } else {
+                        dOnOk = true;
+                      }
+                    },
+                  ),
+                ]),
+          ),
+          actions: [
+            TextButton(
+                style: const ButtonStyle(
+                    foregroundColor: MaterialStatePropertyAll(
+                        Color.fromARGB(255, 255, 255, 255))),
+                onPressed: () {
+                  if (dOnOk && dOffOk && tenantController.text != '') {
+                    saveATData(
+                      service,
+                      command(deviceName),
+                      extractSerialNumber(deviceName),
+                      true,
+                      tenantController.text.trim(),
+                      tenantDistanceOn.text.trim(),
+                      tenantDistanceOff.text.trim(),
+                    );
+                    navigatorKey.currentState?.pop();
+                  } else {
+                    showToast('Parametros no permitidos');
+                  }
+                },
+                child: const Text('Activar')),
           ],
         );
       });
@@ -1319,22 +1443,24 @@ Future<bool> backFunction() async {
   // showNotification('Entre a la función', '${DateTime.now()}');
   try {
     List<String> devicesStored = await loadDevicesForDistanceControl();
-    Map<String, String> products = await loadProductCodesMap();
     globalDATA = await loadGlobalData();
     Map<String, double> latitudes = await loadLatitude();
     Map<String, double> longitudes = await loadLongitud();
-    Map<String, double> distancesOn = await loadDistanceON();
-    Map<String, double> distancesOff = await loadDistanceOFF();
 
     for (int index = 0; index < devicesStored.length; index++) {
       String name = devicesStored[index];
-      String productCode = products[name]!;
+      String productCode = command(name);
       String sn = extractSerialNumber(name);
+
+      await queryItems(service, productCode, sn);
 
       double latitude = latitudes[name]!;
       double longitude = longitudes[name]!;
-      double distanceOn = distancesOn[name] ?? 3000.0;
-      double distanceOff = distancesOff[name] ?? 100.0;
+
+      double distanceOff =
+          globalDATA['$productCode/$sn']?['distanceOff'] ?? 100.0;
+      double distanceOn =
+          globalDATA['$productCode/$sn']?['distanceOn'] ?? 3000.0;
 
       Position storedLocation = Position(
         latitude: latitude,
@@ -1510,15 +1636,13 @@ class MyDevice {
       var partes = str.split(':');
       var fun = partes[0].split('_');
       deviceType = fun[0];
-      productCode[device.platformName] = partes[0];
-      saveProductCodesMap(productCode);
       softwareVersion = partes[2];
       hardwareVersion = partes[3];
       printLog('Device: $deviceType');
-      printLog('Product code: ${productCode[device.platformName]}');
+      printLog('Product code: ${command(device.platformName)}');
       printLog('Serial number: ${extractSerialNumber(device.platformName)}');
       globalDATA.putIfAbsent(
-          '${productCode[device.platformName]}/${extractSerialNumber(device.platformName)}',
+          '${command(device.platformName)}/${extractSerialNumber(device.platformName)}',
           () => {});
       saveGlobalData(globalDATA);
 
@@ -1787,17 +1911,16 @@ class MyDrawerState extends State<MyDrawer> {
   bool fun2 = false;
 
   void toggleState(String deviceName, bool newState) async {
-    // Función para cambiar el estado
     deviceSerialNumber = extractSerialNumber(deviceName);
-    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
+    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['w_status'] =
         newState;
     saveGlobalData(globalDATA);
-    String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-    String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+    String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
+    String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
     String message = jsonEncode({"w_status": newState});
     sendMessagemqtt(topic, message);
     sendMessagemqtt(topic2, message);
-    printLog(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+    printLog(globalDATA['${command(deviceName)}/$deviceSerialNumber']);
   }
 
   @override
@@ -1861,7 +1984,7 @@ class MyDrawerState extends State<MyDrawer> {
                 String deviceName = previusConnections[index - 1];
                 return Consumer<GlobalDataNotifier>(
                   builder: (context, notifier, child) {
-                    String equipo = productCode[deviceName] ?? 'Error';
+                    String equipo = command(deviceName);
                     Map<String, dynamic> topicData = notifier
                         .getData('$equipo/${extractSerialNumber(deviceName)}');
                     globalDATA
@@ -2610,9 +2733,9 @@ class MyDrawerState extends State<MyDrawer> {
                                             deviceSerialNumber =
                                                 extractSerialNumber(deviceName);
                                             String topic =
-                                                'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
+                                                'devices_rx/${command(deviceName)}/$deviceSerialNumber';
                                             String topic2 =
-                                                'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+                                                'devices_tx/${command(deviceName)}/$deviceSerialNumber';
                                             String message =
                                                 jsonEncode({'io$i': fun2});
                                             sendMessagemqtt(topic, message);
@@ -2623,12 +2746,12 @@ class MyDrawerState extends State<MyDrawer> {
                                               String device =
                                                   '${tipoDrawer[j] == 'Salida' ? '0' : '1'}:${estadoDrawer[j] == true ? '1' : '0'}:${comunDrawer[j]}';
                                               globalDATA[
-                                                      '${productCode[deviceName]}/$deviceSerialNumber']![
+                                                      '${command(deviceName)}/$deviceSerialNumber']![
                                                   'io$j'] = device;
                                             }
                                             saveGlobalData(globalDATA);
                                             String message2 = jsonEncode(globalDATA[
-                                                '${productCode[deviceName]}/$deviceSerialNumber']);
+                                                '${command(deviceName)}/$deviceSerialNumber']);
                                             sendMessagemqtt(topic2, message2);
                                           },
                                         ),

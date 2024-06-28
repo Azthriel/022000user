@@ -76,6 +76,17 @@ class DrawerDetectorState extends State<DrawerDetector> {
             const SizedBox(
               height: 30,
             ),
+            Text(
+              'Versión de Hardware: $hardwareVersion',
+              style: const TextStyle(fontSize: 10.0, color: Colors.white),
+            ),
+            Text(
+              'Versión de SoftWare: $softwareVersion',
+              style: const TextStyle(fontSize: 10.0, color: Colors.white),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
             ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all<Color>(
@@ -100,7 +111,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
 
   Widget _buildCustomSlider() {
     return SizedBox(
-      width: 300,
+      width: 200,
       height: 30,
       child: SliderTheme(
         data: SliderTheme.of(context).copyWith(

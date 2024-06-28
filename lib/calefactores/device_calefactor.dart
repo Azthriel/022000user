@@ -2,8 +2,10 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'package:biocalden_smart_life/aws/dynamo/dynamo.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../aws/dynamo/dynamo_certificates.dart';
 import '/aws/mqtt/mqtt.dart';
 import '/stored_data.dart';
 import 'package:flutter/material.dart';
@@ -30,12 +32,24 @@ class ControlPageState extends State<ControlPage> {
   @override
   void initState() {
     super.initState();
-    analizePayment(command(deviceType), extractSerialNumber(deviceName));
+
+    if (deviceOwner) {
+      if (vencimientoAdmSec < 10 && vencimientoAdmSec > 0) {
+        showPaymentTest(true, vencimientoAdmSec, navigatorKey.currentContext!);
+      }
+
+      if (vencimientoAT < 10 && vencimientoAT > 0) {
+        showPaymentTest(false, vencimientoAT, navigatorKey.currentContext!);
+      }
+    }
+
     nickname = nicknamesMap[deviceName] ?? deviceName;
     tempValue = double.parse(parts2[1]);
 
     printLog('Valor temp: $tempValue');
     printLog('¿Encendido? $turnOn');
+    printLog('¿Alquiler temporario? $activatedAT');
+    printLog('¿Inquilino? $tenant');
     updateWifiValues(toolsValues);
     subscribeToWifiStatus();
     subscribeTrueStatus();
@@ -133,22 +147,19 @@ class ControlPageState extends State<ControlPage> {
   }
 
   void sendTemperature(int temp) {
-    String data = '${command(deviceType)}[7]($temp)';
+    String data = '${command(deviceName)}[7]($temp)';
     myDevice.toolsUuid.write(data.codeUnits);
   }
 
   void turnDeviceOn(bool on) async {
     int fun = on ? 1 : 0;
-    String data = '${command(deviceType)}[11]($fun)';
+    String data = '${command(deviceName)}[11]($fun)';
     myDevice.toolsUuid.write(data.codeUnits);
-    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['w_status'] =
-        on;
+    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['w_status'] = on;
     saveGlobalData(globalDATA);
     try {
-      String topic =
-          'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-      String topic2 =
-          'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+      String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
+      String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
       String message = jsonEncode({'w_status': on});
       sendMessagemqtt(topic, message);
       sendMessagemqtt(topic2, message);
@@ -240,7 +251,7 @@ class ControlPageState extends State<ControlPage> {
       // Programar la tarea.
       try {
         showToast('Recuerda tener la ubicación encendida.');
-        String data = '${command(deviceType)}[5](1)';
+        String data = '${command(deviceName)}[5](1)';
         myDevice.toolsUuid.write(data.codeUnits);
         List<String> deviceControl = await loadDevicesForDistanceControl();
         deviceControl.add(deviceName);
@@ -269,7 +280,7 @@ class ControlPageState extends State<ControlPage> {
     } else {
       // Cancelar la tarea.
       showToast('Se cancelo el control por distancia');
-      String data = '${command(deviceType)}[5](0)';
+      String data = '${command(deviceName)}[5](0)';
       myDevice.toolsUuid.write(data.codeUnits);
       List<String> deviceControl = await loadDevicesForDistanceControl();
       deviceControl.remove(deviceName);
@@ -433,167 +444,102 @@ class ControlPageState extends State<ControlPage> {
         drawer: userConnected
             ? null
             : deviceOwner
-                ? DeviceDrawer(night: nightMode, device: deviceName)
+                ? DeviceDrawer(device: deviceName)
                 : null,
         body: SingleChildScrollView(
           child: Center(
-            child: userConnected
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 50,
-                        ),
-                        Text('Actualmente hay un usuario usando el calefactor',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 28,
-                                color: Color.fromARGB(255, 255, 255, 255))),
-                        Text('Espere a que se desconecte para poder usarla',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 28,
-                                color: Color.fromARGB(255, 255, 255, 255))),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        CircularProgressIndicator(
-                          color: Color.fromARGB(255, 255, 255, 255),
-                        ),
-                      ],
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 30),
-                      deviceOwner
-                          ? const SizedBox(height: 0)
-                          : const Text('Estado:',
-                              style: TextStyle(
-                                  fontSize: 30,
-                                  color: Color.fromARGB(255, 255, 255, 255))),
-                      Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text.rich(
-                              TextSpan(
-                                text: turnOn
-                                    ? trueStatus
-                                        ? 'Calentando'
-                                        : 'Encendido'
-                                    : 'Apagado',
-                                style: TextStyle(
-                                    color: turnOn
-                                        ? trueStatus
-                                            ? Colors.amber[600]
-                                            : Colors.green
-                                        : Colors.red,
-                                    fontSize: 30),
-                              ),
-                            ),
-                            if (trueStatus) ...[
-                              deviceType == '022000'
-                                  ? Icon(Icons.flash_on_rounded,
-                                      size: 30, color: Colors.amber[600])
-                                  : Icon(Icons.local_fire_department,
-                                      size: 30, color: Colors.amber[600]),
-                            ]
-                          ]),
-                      if (deviceOwner || secondaryAdmin) ...[
-                        const SizedBox(height: 30),
-                        Transform.scale(
-                          scale: 3.0,
-                          child: Switch(
-                            activeColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            activeTrackColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveThumbColor:
-                                const Color.fromARGB(255, 255, 255, 255),
-                            inactiveTrackColor:
-                                const Color.fromARGB(255, 189, 189, 189),
-                            value: turnOn,
-                            onChanged: (value) {
-                              turnDeviceOn(value);
-                              setState(() {
-                                turnOn = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                      const SizedBox(height: 50),
-                      const Text('Temperatura de corte:',
-                          style: TextStyle(
-                              fontSize: 25,
-                              color: Color.fromARGB(255, 255, 255, 255))),
-                      Row(
+              child: userConnected
+                  ? const Center(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text.rich(TextSpan(
-                              text: tempValue.round().toString(),
-                              style: const TextStyle(
-                                  fontSize: 30,
-                                  color: Color.fromARGB(255, 255, 255, 255)))),
-                          const Text.rich(TextSpan(
-                              text: '°C',
-                              style: TextStyle(
-                                  fontSize: 30,
-                                  color: Color.fromARGB(255, 255, 255, 255)))),
-                        ],
-                      ),
-                      if (deviceOwner) ...[
-                        SizedBox(
-                          width: width - 50,
-                          child: SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              trackHeight: 50.0,
-                              trackShape: const RoundedRectSliderTrackShape(),
-                              overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 0.0),
-                              thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 26.0,
-                                  disabledThumbRadius: 26.0,
-                                  elevation: 0.0,
-                                  pressedElevation: 0.0),
-                            ),
-                            child: Slider(
-                              activeColor:
-                                  const Color.fromARGB(255, 255, 255, 255),
-                              inactiveColor:
-                                  const Color.fromARGB(255, 189, 189, 189),
-                              thumbColor:
-                                  const Color.fromARGB(255, 255, 255, 255),
-                              value: tempValue,
-                              onChanged: (value) {
-                                setState(() {
-                                  tempValue = value;
-                                });
-                              },
-                              onChangeEnd: (value) {
-                                printLog('$value');
-                                sendTemperature(value.round());
-                              },
-                              min: 10,
-                              max: 40,
+                          SizedBox(
+                            height: 50,
+                          ),
+                          Text(
+                            'Actualmente hay un usuario usando el calefactor',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 28,
+                              color: Color.fromARGB(255, 255, 255, 255),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (canControlDistance) ...[
-                          Row(
+                          Text(
+                            'Espere a que se desconecte para poder usarla',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 28,
+                              color: Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          CircularProgressIndicator(
+                            color: Color.fromARGB(255, 255, 255, 255),
+                          ),
+                        ],
+                      ),
+                    )
+                  : activatedAT && !deviceOwner
+                      ? !tenant
+                          ? const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text('Activar control\n por distancia:',
-                                    style: TextStyle(
-                                        fontSize: 25,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255))),
-                                const SizedBox(width: 30),
+                                SizedBox(
+                                  height: 200,
+                                ),
+                                Text(
+                                  'No eres el inquilino\n asignado a este equipo',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 25, color: Colors.white),
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                CircularProgressIndicator(color: Colors.white),
+                                SizedBox(
+                                  height: 200,
+                                ),
+                              ],
+                            )
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const SizedBox(height: 30),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text: turnOn
+                                              ? trueStatus
+                                                  ? 'Calentando'
+                                                  : 'Encendido'
+                                              : 'Apagado',
+                                          style: TextStyle(
+                                              color: turnOn
+                                                  ? trueStatus
+                                                      ? Colors.amber[600]
+                                                      : Colors.green
+                                                  : Colors.red,
+                                              fontSize: 30),
+                                        ),
+                                      ),
+                                      if (trueStatus) ...[
+                                        deviceType == '022000'
+                                            ? Icon(Icons.flash_on_rounded,
+                                                size: 30,
+                                                color: Colors.amber[600])
+                                            : Icon(Icons.local_fire_department,
+                                                size: 30,
+                                                color: Colors.amber[600]),
+                                      ]
+                                    ]),
+                                const SizedBox(height: 30),
                                 Transform.scale(
-                                  scale: 1.5,
+                                  scale: 3.0,
                                   child: Switch(
                                     activeColor: const Color.fromARGB(
                                         255, 189, 189, 189),
@@ -603,208 +549,516 @@ class ControlPageState extends State<ControlPage> {
                                         255, 255, 255, 255),
                                     inactiveTrackColor: const Color.fromARGB(
                                         255, 189, 189, 189),
-                                    value: isTaskScheduled[deviceName] ?? false,
+                                    value: turnOn,
                                     onChanged: (value) {
-                                      verifyPermission().then((result) {
-                                        if (result == true) {
-                                          isTaskScheduled
-                                              .addAll({deviceName: value});
-                                          saveControlValue(isTaskScheduled);
-                                          controlTask(value, deviceName);
-                                        } else {
-                                          showToast(
-                                              'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
-                                          openAppSettings();
-                                        }
+                                      turnDeviceOn(value);
+                                      setState(() {
+                                        turnOn = value;
                                       });
                                     },
                                   ),
                                 ),
-                              ]),
-                          const SizedBox(height: 25),
-                          if (isTaskScheduled[deviceName] ?? false) ...[
-                            const Row(
+                                const SizedBox(height: 50),
+                                const Text('Temperatura de corte:',
+                                    style: TextStyle(
+                                        fontSize: 25,
+                                        color: Color.fromARGB(
+                                            255, 255, 255, 255))),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text.rich(
+                                      TextSpan(
+                                        text: tempValue.round().toString(),
+                                        style: const TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255),
+                                        ),
+                                      ),
+                                    ),
+                                    const Text.rich(
+                                      TextSpan(
+                                        text: '°C',
+                                        style: TextStyle(
+                                          fontSize: 30,
+                                          color: Color.fromARGB(
+                                              255, 255, 255, 255),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  width: width - 50,
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 50.0,
+                                      trackShape:
+                                          const RoundedRectSliderTrackShape(),
+                                      overlayShape:
+                                          const RoundSliderOverlayShape(
+                                              overlayRadius: 0.0),
+                                      thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 26.0,
+                                          disabledThumbRadius: 26.0,
+                                          elevation: 0.0,
+                                          pressedElevation: 0.0),
+                                    ),
+                                    child: Slider(
+                                      activeColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      inactiveColor: const Color.fromARGB(
+                                          255, 189, 189, 189),
+                                      thumbColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      value: tempValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          tempValue = value;
+                                        });
+                                      },
+                                      onChangeEnd: (value) {
+                                        printLog('$value');
+                                        sendTemperature(value.round());
+                                      },
+                                      min: 10,
+                                      max: 40,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                          'Activar control\n por distancia:',
+                                          style: TextStyle(
+                                              fontSize: 25,
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255))),
+                                      const SizedBox(width: 30),
+                                      Transform.scale(
+                                        scale: 1.5,
+                                        child: Switch(
+                                          activeColor: const Color.fromARGB(
+                                              255, 189, 189, 189),
+                                          activeTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                          inactiveThumbColor:
+                                              const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                          inactiveTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 189, 189, 189),
+                                          value: isTaskScheduled[deviceName] ??
+                                              false,
+                                          onChanged: (value) {
+                                            verifyPermission().then((result) {
+                                              if (result == true) {
+                                                isTaskScheduled.addAll(
+                                                    {deviceName: value});
+                                                saveControlValue(
+                                                    isTaskScheduled);
+                                                controlTask(value, deviceName);
+                                              } else {
+                                                showToast(
+                                                    'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
+                                                openAppSettings();
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ]),
+                              ],
+                            )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(height: 30),
+                            deviceOwner
+                                ? const SizedBox(height: 0)
+                                : const Text(
+                                    'Estado:',
+                                    style: TextStyle(
+                                      fontSize: 30,
+                                      color: Color.fromARGB(255, 255, 255, 255),
+                                    ),
+                                  ),
+                            Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Distancia de apagado',
+                                  Text.rich(
+                                    TextSpan(
+                                      text: turnOn
+                                          ? trueStatus
+                                              ? 'Calentando'
+                                              : 'Encendido'
+                                          : 'Apagado',
                                       style: TextStyle(
-                                          fontSize: 20,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))
+                                          color: turnOn
+                                              ? trueStatus
+                                                  ? Colors.amber[600]
+                                                  : Colors.green
+                                              : Colors.red,
+                                          fontSize: 30),
+                                    ),
+                                  ),
+                                  if (trueStatus) ...[
+                                    deviceType == '022000'
+                                        ? Icon(Icons.flash_on_rounded,
+                                            size: 30, color: Colors.amber[600])
+                                        : Icon(Icons.local_fire_department,
+                                            size: 30, color: Colors.amber[600]),
+                                  ]
                                 ]),
+                            if (deviceOwner || secondaryAdmin) ...[
+                              const SizedBox(height: 30),
+                              Transform.scale(
+                                scale: 3.0,
+                                child: Switch(
+                                  activeColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  activeTrackColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveThumbColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                  inactiveTrackColor:
+                                      const Color.fromARGB(255, 189, 189, 189),
+                                  value: turnOn,
+                                  onChanged: (value) {
+                                    turnDeviceOn(value);
+                                    setState(() {
+                                      turnOn = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: 50),
+                            const Text('Temperatura de corte:',
+                                style: TextStyle(
+                                    fontSize: 25,
+                                    color: Color.fromARGB(255, 255, 255, 255))),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text.rich(TextSpan(
-                                    text: distOffValue.round().toString(),
+                                Text.rich(
+                                  TextSpan(
+                                    text: tempValue.round().toString(),
                                     style: const TextStyle(
-                                        fontSize: 30,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
-                                const Text.rich(TextSpan(
-                                    text: 'Metros',
+                                      fontSize: 30,
+                                      color: Color.fromARGB(255, 255, 255, 255),
+                                    ),
+                                  ),
+                                ),
+                                const Text.rich(
+                                  TextSpan(
+                                    text: '°C',
                                     style: TextStyle(
-                                        fontSize: 30,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
+                                      fontSize: 30,
+                                      color: Color.fromARGB(255, 255, 255, 255),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 30.0,
-                                thumbColor: Colors.white,
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 16.0,
-                                    disabledThumbRadius: 16.0,
-                                    elevation: 0.0,
-                                    pressedElevation: 0.0),
+                            if (deviceOwner) ...[
+                              SizedBox(
+                                width: width - 50,
+                                child: SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    trackHeight: 50.0,
+                                    trackShape:
+                                        const RoundedRectSliderTrackShape(),
+                                    overlayShape: const RoundSliderOverlayShape(
+                                        overlayRadius: 0.0),
+                                    thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 26.0,
+                                        disabledThumbRadius: 26.0,
+                                        elevation: 0.0,
+                                        pressedElevation: 0.0),
+                                  ),
+                                  child: Slider(
+                                    activeColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    inactiveColor: const Color.fromARGB(
+                                        255, 189, 189, 189),
+                                    thumbColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    value: tempValue,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        tempValue = value;
+                                      });
+                                    },
+                                    onChangeEnd: (value) {
+                                      printLog('$value');
+                                      sendTemperature(value.round());
+                                    },
+                                    min: 10,
+                                    max: 40,
+                                  ),
+                                ),
                               ),
-                              child: Slider(
-                                activeColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
-                                inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
-                                value: distOffValue,
-                                divisions: 20,
-                                onChanged: (value) {
+                              const SizedBox(height: 20),
+                              if (canControlDistance) ...[
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const Text(
+                                          'Activar control\n por distancia:',
+                                          style: TextStyle(
+                                              fontSize: 25,
+                                              color: Color.fromARGB(
+                                                  255, 255, 255, 255))),
+                                      const SizedBox(width: 30),
+                                      Transform.scale(
+                                        scale: 1.5,
+                                        child: Switch(
+                                          activeColor: const Color.fromARGB(
+                                              255, 189, 189, 189),
+                                          activeTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                          inactiveThumbColor:
+                                              const Color.fromARGB(
+                                                  255, 255, 255, 255),
+                                          inactiveTrackColor:
+                                              const Color.fromARGB(
+                                                  255, 189, 189, 189),
+                                          value: isTaskScheduled[deviceName] ??
+                                              false,
+                                          onChanged: (value) {
+                                            verifyPermission().then((result) {
+                                              if (result == true) {
+                                                isTaskScheduled.addAll(
+                                                    {deviceName: value});
+                                                saveControlValue(
+                                                    isTaskScheduled);
+                                                controlTask(value, deviceName);
+                                              } else {
+                                                showToast(
+                                                    'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
+                                                openAppSettings();
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                    ]),
+                                const SizedBox(height: 25),
+                                if (isTaskScheduled[deviceName] ?? false) ...[
+                                  const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text('Distancia de apagado',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255)))
+                                      ]),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text: distOffValue.round().toString(),
+                                          style: const TextStyle(
+                                            fontSize: 30,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255),
+                                          ),
+                                        ),
+                                      ),
+                                      const Text.rich(
+                                        TextSpan(
+                                          text: 'Metros',
+                                          style: TextStyle(
+                                            fontSize: 30,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 30.0,
+                                      thumbColor: Colors.white,
+                                      thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 16.0,
+                                          disabledThumbRadius: 16.0,
+                                          elevation: 0.0,
+                                          pressedElevation: 0.0),
+                                    ),
+                                    child: Slider(
+                                      activeColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      inactiveColor: const Color.fromARGB(
+                                          255, 189, 189, 189),
+                                      value: distOffValue,
+                                      divisions: 20,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          distOffValue = value;
+                                        });
+                                      },
+                                      onChangeEnd: (value) async {
+                                        printLog(
+                                            'Valor enviado: ${value.round()}');
+                                        putDistanceOff(
+                                            service,
+                                            command(deviceName),
+                                            extractSerialNumber(deviceName),
+                                            value.toString());
+                                      },
+                                      min: 100,
+                                      max: 300,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 0),
+                                  const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text('Distancia de encendido',
+                                            style: TextStyle(
+                                                fontSize: 20,
+                                                color: Color.fromARGB(
+                                                    255, 255, 255, 255)))
+                                      ]),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text.rich(
+                                        TextSpan(
+                                          text: distOnValue.round().toString(),
+                                          style: const TextStyle(
+                                            fontSize: 30,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255),
+                                          ),
+                                        ),
+                                      ),
+                                      const Text.rich(
+                                        TextSpan(
+                                          text: 'Metros',
+                                          style: TextStyle(
+                                            fontSize: 30,
+                                            color: Color.fromARGB(
+                                                255, 255, 255, 255),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 30.0,
+                                      thumbColor: Colors.white,
+                                      thumbShape: const RoundSliderThumbShape(
+                                          enabledThumbRadius: 16.0,
+                                          disabledThumbRadius: 16.0,
+                                          elevation: 0.0,
+                                          pressedElevation: 0.0),
+                                    ),
+                                    child: Slider(
+                                      activeColor: const Color.fromARGB(
+                                          255, 255, 255, 255),
+                                      inactiveColor: const Color.fromARGB(
+                                          255, 189, 189, 189),
+                                      value: distOnValue,
+                                      divisions: 20,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          distOnValue = value;
+                                        });
+                                      },
+                                      onChangeEnd: (value) {
+                                        printLog(
+                                            'Valor enviado: ${value.round()}');
+                                        putDistanceOn(
+                                            service,
+                                            command(deviceName),
+                                            extractSerialNumber(deviceName),
+                                            value.toString());
+                                      },
+                                      min: 3000,
+                                      max: 5000,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ]
+                              ]
+                            ] else ...[
+                              const SizedBox(height: 30),
+                              const Text('Modo actual: ',
+                                  style: TextStyle(
+                                      fontSize: 25, color: Colors.white)),
+                              IconButton(
+                                onPressed: () {
                                   setState(() {
-                                    distOffValue = value;
+                                    nightMode = !nightMode;
+                                    printLog('Estado: $nightMode');
+                                    int fun = nightMode ? 1 : 0;
+                                    String data =
+                                        '${command(deviceName)}[9]($fun)';
+                                    printLog(data);
+                                    myDevice.toolsUuid.write(data.codeUnits);
                                   });
                                 },
-                                onChangeEnd: (value) async {
-                                  printLog('Valor enviado: ${value.round()}');
-                                  Map<String, double> mapOFF =
-                                      await loadDistanceOFF();
-                                  mapOFF.addAll({deviceName: value});
-                                  saveDistanceOFF(mapOFF);
-                                },
-                                min: 100,
-                                max: 300,
+                                icon: nightMode
+                                    ? const Icon(Icons.nightlight,
+                                        color: Colors.white, size: 50)
+                                    : const Icon(Icons.light_mode,
+                                        color: Colors.white, size: 50),
                               ),
-                            ),
-                            const SizedBox(height: 0),
-                            const Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text('Distancia de encendido',
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Color.fromARGB(
-                                              255, 255, 255, 255)))
-                                ]),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text.rich(TextSpan(
-                                    text: distOnValue.round().toString(),
-                                    style: const TextStyle(
-                                        fontSize: 30,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
-                                const Text.rich(TextSpan(
-                                    text: 'Metros',
-                                    style: TextStyle(
-                                        fontSize: 30,
-                                        color: Color.fromARGB(
-                                            255, 255, 255, 255)))),
-                              ],
-                            ),
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 30.0,
-                                thumbColor: Colors.white,
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 16.0,
-                                    disabledThumbRadius: 16.0,
-                                    elevation: 0.0,
-                                    pressedElevation: 0.0),
-                              ),
-                              child: Slider(
-                                activeColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
-                                inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
-                                value: distOnValue,
-                                divisions: 20,
-                                onChanged: (value) {
-                                  setState(() {
-                                    distOnValue = value;
-                                  });
-                                },
-                                onChangeEnd: (value) async {
-                                  printLog('Valor enviado: ${value.round()}');
-                                  Map<String, double> mapON =
-                                      await loadDistanceON();
-                                  mapON.addAll({deviceName: value});
-                                  saveDistanceON(mapON);
-                                },
-                                min: 3000,
-                                max: 5000,
-                              ),
-                            ),
-                          ]
-                        ]
-                      ] else ...[
-                        const SizedBox(height: 30),
-                        const Text('Modo actual: ',
-                            style:
-                                TextStyle(fontSize: 25, color: Colors.white)),
-                        IconButton(
-                          onPressed: () {
-                            setState(() {
-                              nightMode = !nightMode;
-                              printLog('Estado: $nightMode');
-                              int fun = nightMode ? 1 : 0;
-                              String data = '${command(deviceType)}[9]($fun)';
-                              printLog(data);
-                              myDevice.toolsUuid.write(data.codeUnits);
-                            });
-                          },
-                          icon: nightMode
-                              ? const Icon(Icons.nightlight,
-                                  color: Colors.white, size: 50)
-                              : const Icon(Icons.light_mode,
-                                  color: Colors.white, size: 50),
-                        ),
-                        if (!secondaryAdmin) ...[
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          const Text(
-                            'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 25, color: Colors.white),
-                          ),
-                          const SizedBox(height: 10),
-                          ElevatedButton(
-                            style: const ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189),
-                              ),
-                              foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255),
-                              ),
-                            ),
-                            onPressed: () async {
-                              var phoneNumber = '5491162232619';
-                              var message =
-                                  'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${productCode[deviceName]}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
-                              var whatsappUrl =
-                                  "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
-                              Uri uri = Uri.parse(whatsappUrl);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(uri);
-                              } else {
-                                showToast('No se pudo abrir WhatsApp');
-                              }
-                            },
-                            child: const Text('Servicio técnico'),
-                          ),
-                        ]
-                      ],
-                    ],
-                  ),
-          ),
+                              if (!secondaryAdmin) ...[
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                const Text(
+                                  'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      fontSize: 25, color: Colors.white),
+                                ),
+                                const SizedBox(height: 10),
+                                ElevatedButton(
+                                  style: const ButtonStyle(
+                                    backgroundColor: MaterialStatePropertyAll(
+                                      Color.fromARGB(255, 189, 189, 189),
+                                    ),
+                                    foregroundColor: MaterialStatePropertyAll(
+                                      Color.fromARGB(255, 255, 255, 255),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    var phoneNumber = '5491162232619';
+                                    var message =
+                                        'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${command(deviceName)}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
+                                    var whatsappUrl =
+                                        "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                                    Uri uri = Uri.parse(whatsappUrl);
+                                    if (await canLaunchUrl(uri)) {
+                                      await launchUrl(uri);
+                                    } else {
+                                      showToast('No se pudo abrir WhatsApp');
+                                    }
+                                  },
+                                  child: const Text('Servicio técnico'),
+                                ),
+                              ]
+                            ],
+                          ],
+                        )),
         ),
       ),
     );

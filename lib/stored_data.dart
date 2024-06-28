@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 void loadValues() async {
   globalDATA = await loadGlobalData();
   previusConnections = await cargarLista();
-  productCode = await loadProductCodesMap();
   topicsToSub = await loadTopicList();
   ownedDevices = await loadOwnedDevices();
   nicknamesMap = await loadNicknamesMap();
@@ -18,7 +17,7 @@ void loadValues() async {
 
   for (var device in previusConnections) {
     await queryItems(
-        service, productCode[device]!, extractSerialNumber(device));
+        service, command(device), extractSerialNumber(device));
   }
 }
 // MASTERLOAD \\
@@ -79,23 +78,6 @@ Future<Map<String, String>> loadSubNicknamesMap() async {
   return {}; // Devuelve un mapa vacío si no hay nada almacenado
 }
 
-//*-Product code
-
-Future<void> saveProductCodesMap(Map<String, String> productCodesMap) async {
-  final prefs = await SharedPreferences.getInstance();
-  String productCodesMapString = json.encode(productCodesMap);
-  await prefs.setString('productCodes', productCodesMapString);
-}
-
-Future<Map<String, String>> loadProductCodesMap() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? productCodesMapString = prefs.getString('productCodes');
-  if (productCodesMapString != null) {
-    return Map<String, String>.from(json.decode(productCodesMapString));
-  }
-  return {}; // Devuelve un mapa vacío si no hay nada almacenado
-}
-
 //*-GlobalDATA
 
 Future<void> saveGlobalData(
@@ -119,57 +101,6 @@ Future<Map<String, Map<String, dynamic>>> loadGlobalData() async {
     return MapEntry(key, json.decode(value) as Map<String, dynamic>);
   });
   return globalData;
-}
-
-//*-Distancias de control
-
-Future<void> saveDistanceON(Map<String, double> distanceONMap) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String distanceON = json.encode(distanceONMap);
-  await prefs.setString('distanceON', distanceON);
-}
-
-Future<Map<String, double>> loadDistanceON() async {
-  try {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? distanceONString = prefs.getString('distanceON');
-    if (distanceONString != null) {
-      printLog(
-          'On cargo chido ${Map<String, double>.from(json.decode(distanceONString))}');
-      return Map<String, double>.from(json.decode(distanceONString));
-    }
-
-    return Map<String, double>.from({});
-  } catch (e, s) {
-    printLog('Error cargando data:');
-    printLog(e);
-    printLog(s);
-    return Map<String, double>.from({});
-  }
-}
-
-Future<void> saveDistanceOFF(Map<String, double> distanceOFFMap) async {
-  final SharedPreferences prefs = await SharedPreferences.getInstance();
-  String distanceOFF = json.encode(distanceOFFMap);
-  await prefs.setString('distanceOFF', distanceOFF);
-}
-
-Future<Map<String, double>> loadDistanceOFF() async {
-  try {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? distanceOFFString = prefs.getString('distanceOFF');
-    if (distanceOFFString != null) {
-      printLog(
-          'OFF cargo chido ${Map<String, double>.from(json.decode(distanceOFFString))}');
-      return Map<String, double>.from(json.decode(distanceOFFString));
-    }
-    return Map<String, double>.from({});
-  } catch (e, s) {
-    printLog('Error cargando data:');
-    printLog(e);
-    printLog(s);
-    return Map<String, double>.from({});
-  }
 }
 
 //*-Position
@@ -204,7 +135,7 @@ Future<Map<String, double>> loadLongitud() async {
   return {};
 }
 
-//*-Control de distancia
+//*-Control de distancia habilitado
 
 Future<void> saveControlValue(Map<String, bool> taskMap) async {
   final prefs = await SharedPreferences.getInstance();

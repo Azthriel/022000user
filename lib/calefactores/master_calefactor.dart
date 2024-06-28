@@ -28,9 +28,8 @@ late List<String> pikachu;
 //*-Drawer-*//Menú lateral con dispositivos
 
 class DeviceDrawer extends StatefulWidget {
-  final bool night;
   final String device;
-  const DeviceDrawer({super.key, required this.night, required this.device});
+  const DeviceDrawer({super.key, required this.device});
 
   @override
   DeviceDrawerState createState() => DeviceDrawerState();
@@ -42,39 +41,48 @@ class DeviceDrawerState extends State<DeviceDrawer> {
   bool buttonPressed = false;
   double result = 0.0;
   DateTime? fechaSeleccionada;
-  late bool nightState;
   String measure = deviceType == '022000' ? 'KW/h' : 'M³/h';
+  String tiempo = '';
 
   @override
   void initState() {
     super.initState();
     timeData();
-    nightState = widget.night;
-    printLog('NightMode status: $nightState');
+    printLog('NightMode status: $nightMode');
   }
 
   void timeData() async {
     fechaSeleccionada = await cargarFechaGuardada(widget.device);
+    List<int> list = await myDevice.varsUuid.read(timeout: 2);
+    tiempo = utf8.decode(list).split(':')[3];
+    printLog('Tiempo: $tiempo');
   }
 
   void makeCompute() async {
-    if (costController.text.isNotEmpty) {
-      setState(() {
-        buttonPressed = true;
-        loading = true;
-      });
-      printLog('Estoy haciendo calculaciones misticas');
-      List<int> list = await myDevice.varsUuid.read();
-      var parts = utf8.decode(list).split(':');
+    if (tiempo != '') {
+      if (costController.text.isNotEmpty) {
+        setState(() {
+          buttonPressed = true;
+          loading = true;
+        });
+        printLog('Estoy haciendo calculaciones misticas');
 
-      result = double.parse(parts[3]) * 2 * double.parse(costController.text);
+        result =
+            double.parse(tiempo) * 2 * double.parse(costController.text.trim());
 
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() {
-        loading = false;
-      });
+        await Future.delayed(const Duration(seconds: 1));
+
+        printLog('Calculaciones terminadas');
+
+        setState(() {
+          loading = false;
+        });
+      } else {
+        showToast('Primero debes ingresar un valor kW/h');
+      }
     } else {
-      showToast('Primero debes ingresar un valor kW/h');
+      showToast(
+          'Error al hacer el calculo\n Por favor cierra y vuelve a abrir el menú');
     }
   }
 
@@ -149,7 +157,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                         onPressed: () {
                           guardarFecha(widget.device).then(
                               (value) => fechaSeleccionada = DateTime.now());
-                          String data = '${command(deviceType)}[10](0)';
+                          String data = '${command(deviceName)}[10](0)';
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
                         child: const Text('Reiniciar mes')),
@@ -165,15 +173,15 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     IconButton(
                       onPressed: () {
                         setState(() {
-                          nightState = !nightState;
-                          printLog('Estado: $nightState');
-                          int fun = nightState ? 1 : 0;
-                          String data = '${command(deviceType)}[9]($fun)';
+                          nightMode = !nightMode;
+                          printLog('Estado: $nightMode');
+                          int fun = nightMode ? 1 : 0;
+                          String data = '${command(deviceName)}[9]($fun)';
                           printLog(data);
                           myDevice.toolsUuid.write(data.codeUnits);
                         });
                       },
-                      icon: nightState
+                      icon: nightMode
                           ? const Icon(Icons.nightlight,
                               color: Colors.white, size: 40)
                           : const Icon(Icons.light_mode,
@@ -231,7 +239,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                         try {
                                           putOwner(
                                               service,
-                                              command(deviceType),
+                                              command(deviceName),
                                               extractSerialNumber(
                                                   widget.device),
                                               '');
@@ -255,7 +263,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             try {
                               putOwner(
                                   service,
-                                  command(deviceType),
+                                  command(deviceName),
                                   extractSerialNumber(widget.device),
                                   currentUserEmail);
                               setState(() {
@@ -293,7 +301,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                           onPressed: () async {
                             adminDevices = await getSecondaryAdmins(
                                 service,
-                                command(deviceType),
+                                command(deviceName),
                                 extractSerialNumber(deviceName));
                             showDialog<void>(
                                 context: navigatorKey.currentContext!,
@@ -331,7 +339,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                       .add(admins.text.trim());
                                                   putSecondaryAdmins(
                                                       service,
-                                                      command(deviceType),
+                                                      command(deviceName),
                                                       extractSerialNumber(
                                                           widget.device),
                                                       adminDevices);
@@ -346,7 +354,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                           admins.text.trim());
                                                       putSecondaryAdmins(
                                                           service,
-                                                          command(deviceType),
+                                                          command(deviceName),
                                                           extractSerialNumber(
                                                               widget.device),
                                                           adminDevices);
@@ -390,7 +398,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                           putSecondaryAdmins(
                                                               service,
                                                               command(
-                                                                  deviceType),
+                                                                  deviceName),
                                                               extractSerialNumber(
                                                                   widget
                                                                       .device),
@@ -411,7 +419,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                               putSecondaryAdmins(
                                                                   service,
                                                                   command(
-                                                                      deviceType),
+                                                                      deviceName),
                                                                   extractSerialNumber(
                                                                       widget
                                                                           .device),
@@ -462,7 +470,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                             adminDevices[i]);
                                                         putSecondaryAdmins(
                                                             service,
-                                                            command(deviceType),
+                                                            command(deviceName),
                                                             extractSerialNumber(
                                                                 widget.device),
                                                             adminDevices);
@@ -502,24 +510,67 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                         const SizedBox(
                           height: 10,
                         ),
-                        // ElevatedButton(
-                        //   onPressed: () {
-                        //     if(!payAT){
-                        //       showATText();
-                        //     }else{
-
-                        //     }
-                        //   },
-                        //   child: const Text(
-                        //     'Habilitar Alquiler temporario',
-                        //     textAlign: TextAlign.center,
-                        //   ),
-                        // )
+                        ElevatedButton(
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 189, 189, 189),
+                            ),
+                            foregroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (activatedAT) {
+                              saveATData(
+                                service,
+                                command(deviceName),
+                                extractSerialNumber(deviceName),
+                                false,
+                                '',
+                                distOnValue.round().toString(),
+                                distOffValue.round().toString(),
+                              );
+                              setState(() {});
+                            } else {
+                              if (!payAT) {
+                                showATText();
+                              } else {
+                                configAT();
+                                setState(() {});
+                              }
+                            }
+                          },
+                          child: activatedAT
+                              ? const Text(
+                                  'Desactivar alquiler temporario',
+                                  textAlign: TextAlign.center,
+                                )
+                              : const Text(
+                                  'Activar alquiler temporario',
+                                  textAlign: TextAlign.center,
+                                ),
+                        )
                       ]
                     ]
                   ],
                 ),
               ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              'Versión de Hardware: $hardwareVersion',
+              style: const TextStyle(
+                  fontSize: 10.0, color: Color.fromARGB(255, 255, 255, 255)),
+            ),
+            Text(
+              'Versión de SoftWare: $softwareVersion',
+              style: const TextStyle(
+                  fontSize: 10.0, color: Color.fromARGB(255, 255, 255, 255)),
+            ),
+            const SizedBox(
+              height: 0,
             ),
             Padding(
               padding: const EdgeInsets.all(10.0),
@@ -541,9 +592,8 @@ class DeviceDrawerState extends State<DeviceDrawer> {
 }
 
 class SilemaDrawer extends StatefulWidget {
-  final bool night;
   final String device;
-  const SilemaDrawer({super.key, required this.night, required this.device});
+  const SilemaDrawer({super.key, required this.device});
 
   @override
   SilemaDrawerState createState() => SilemaDrawerState();
@@ -555,39 +605,48 @@ class SilemaDrawerState extends State<SilemaDrawer> {
   bool buttonPressed = false;
   double result = 0.0;
   DateTime? fechaSeleccionada;
-  late bool nightState;
+  String tiempo = '';
   String measure = 'KW/h';
 
   @override
   void initState() {
     super.initState();
     timeData();
-    nightState = widget.night;
-    printLog('NightMode status: $nightState');
+    printLog('NightMode status: $nightMode');
   }
 
   void timeData() async {
     fechaSeleccionada = await cargarFechaGuardada(widget.device);
+    List<int> list = await myDevice.varsUuid.read(timeout: 2);
+    tiempo = utf8.decode(list).split(':')[3];
+    printLog('Tiempo: $tiempo');
   }
 
   void makeCompute() async {
-    if (costController.text.isNotEmpty) {
-      setState(() {
-        buttonPressed = true;
-        loading = true;
-      });
-      printLog('Estoy haciendo calculaciones misticas');
-      List<int> list = await myDevice.varsUuid.read();
-      var parts = utf8.decode(list).split(':');
+    if (tiempo != '') {
+      if (costController.text.isNotEmpty) {
+        setState(() {
+          buttonPressed = true;
+          loading = true;
+        });
+        printLog('Estoy haciendo calculaciones misticas');
 
-      result = double.parse(parts[3]) * 2 * double.parse(costController.text);
+        result =
+            double.parse(tiempo) * 2 * double.parse(costController.text.trim());
 
-      await Future.delayed(const Duration(seconds: 1));
-      setState(() {
-        loading = false;
-      });
+        await Future.delayed(const Duration(seconds: 1));
+
+        printLog('Calculaciones terminadas');
+
+        setState(() {
+          loading = false;
+        });
+      } else {
+        showToast('Primero debes ingresar un valor kW/h');
+      }
     } else {
-      showToast('Primero debes ingresar un valor kW/h');
+      showToast(
+          'Error al hacer el calculo\n Por favor cierra y vuelve a abrir el menú');
     }
   }
 
@@ -662,7 +721,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         onPressed: () {
                           guardarFecha(widget.device).then(
                               (value) => fechaSeleccionada = DateTime.now());
-                          String data = '${command(deviceType)}[10](0)';
+                          String data = '${command(deviceName)}[10](0)';
                           myDevice.toolsUuid.write(data.codeUnits);
                         },
                         child: const Text('Reiniciar mes')),
@@ -680,15 +739,15 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                     IconButton(
                       onPressed: () {
                         setState(() {
-                          nightState = !nightState;
-                          printLog('Estado: $nightState');
-                          int fun = nightState ? 1 : 0;
-                          String data = '${command(deviceType)}[9]($fun)';
+                          nightMode = !nightMode;
+                          printLog('Estado: $nightMode');
+                          int fun = nightMode ? 1 : 0;
+                          String data = '${command(deviceName)}[9]($fun)';
                           printLog(data);
                           myDevice.toolsUuid.write(data.codeUnits);
                         });
                       },
-                      icon: nightState
+                      icon: nightMode
                           ? const Icon(Icons.nightlight,
                               color: Color.fromARGB(255, 0, 0, 0), size: 40)
                           : const Icon(Icons.light_mode,
@@ -744,7 +803,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                         try {
                                           putOwner(
                                               service,
-                                              command(deviceType),
+                                              command(deviceName),
                                               extractSerialNumber(
                                                   widget.device),
                                               '');
@@ -768,7 +827,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                             try {
                               putOwner(
                                   service,
-                                  command(deviceType),
+                                  command(deviceName),
                                   extractSerialNumber(widget.device),
                                   currentUserEmail);
                               setState(() {
@@ -803,7 +862,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                           onPressed: () async {
                             adminDevices = await getSecondaryAdmins(
                                 service,
-                                command(deviceType),
+                                command(deviceName),
                                 extractSerialNumber(deviceName));
                             showDialog<void>(
                                 context: navigatorKey.currentContext!,
@@ -812,204 +871,258 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                   TextEditingController admins =
                                       TextEditingController();
                                   return AlertDialog(
-                                      backgroundColor: const Color.fromARGB(
-                                          255, 255, 255, 255),
-                                      title: const Text(
-                                        'Administradores secundarios:',
-                                        style: TextStyle(
-                                            color: Color.fromARGB(255, 0, 0, 0),
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      content: SingleChildScrollView(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            TextField(
-                                              controller: admins,
-                                              keyboardType:
-                                                  TextInputType.emailAddress,
-                                              style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 0, 0, 0),
-                                              ),
-                                              onSubmitted: (value) {
-                                                if (adminDevices.length < 3) {
-                                                  adminDevices
-                                                      .add(admins.text.trim());
-                                                  putSecondaryAdmins(
-                                                      service,
-                                                      command(deviceType),
-                                                      extractSerialNumber(
-                                                          widget.device),
-                                                      adminDevices);
-                                                  Navigator.of(dialogContext)
-                                                      .pop();
-                                                } else {
-                                                  printLog('Pago: $payAdmSec');
-                                                  if (payAdmSec) {
-                                                    if (adminDevices.length <
-                                                        6) {
-                                                      adminDevices.add(
-                                                          admins.text.trim());
-                                                      putSecondaryAdmins(
-                                                          service,
-                                                          command(deviceType),
-                                                          extractSerialNumber(
-                                                              widget.device),
-                                                          adminDevices);
-                                                      Navigator.of(
-                                                              dialogContext)
-                                                          .pop();
-                                                    } else {
-                                                      showToast(
-                                                          'Alcanzaste el límite máximo');
-                                                    }
-                                                  } else {
+                                    backgroundColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                    title: const Text(
+                                      'Administradores secundarios:',
+                                      style: TextStyle(
+                                          color: Color.fromARGB(255, 0, 0, 0),
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    content: SingleChildScrollView(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          TextField(
+                                            controller: admins,
+                                            keyboardType:
+                                                TextInputType.emailAddress,
+                                            style: const TextStyle(
+                                              color:
+                                                  Color.fromARGB(255, 0, 0, 0),
+                                            ),
+                                            onSubmitted: (value) {
+                                              if (adminDevices.length < 3) {
+                                                adminDevices
+                                                    .add(admins.text.trim());
+                                                putSecondaryAdmins(
+                                                    service,
+                                                    command(deviceName),
+                                                    extractSerialNumber(
+                                                        widget.device),
+                                                    adminDevices);
+                                                Navigator.of(dialogContext)
+                                                    .pop();
+                                              } else {
+                                                printLog('Pago: $payAdmSec');
+                                                if (payAdmSec) {
+                                                  if (adminDevices.length < 6) {
+                                                    adminDevices.add(
+                                                        admins.text.trim());
+                                                    putSecondaryAdmins(
+                                                        service,
+                                                        command(deviceName),
+                                                        extractSerialNumber(
+                                                            widget.device),
+                                                        adminDevices);
                                                     Navigator.of(dialogContext)
                                                         .pop();
-                                                    showAdminText();
+                                                  } else {
+                                                    showToast(
+                                                        'Alcanzaste el límite máximo');
                                                   }
+                                                } else {
+                                                  Navigator.of(dialogContext)
+                                                      .pop();
+                                                  showAdminText();
                                                 }
-                                              },
-                                              decoration: InputDecoration(
-                                                  labelText:
-                                                      'Agrega el correo electronico',
-                                                  labelStyle: const TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0),
-                                                  ),
-                                                  enabledBorder:
-                                                      const UnderlineInputBorder(
-                                                    borderSide: BorderSide(),
-                                                  ),
-                                                  focusedBorder:
-                                                      const UnderlineInputBorder(
-                                                    borderSide: BorderSide(),
-                                                  ),
-                                                  suffixIcon: IconButton(
-                                                      onPressed: () {
-                                                        if (adminDevices
-                                                                .length <
-                                                            3) {
-                                                          adminDevices.add(
-                                                              admins.text
-                                                                  .trim());
-                                                          putSecondaryAdmins(
-                                                              service,
-                                                              command(
-                                                                  deviceType),
-                                                              extractSerialNumber(
-                                                                  widget
-                                                                      .device),
-                                                              adminDevices);
-                                                          Navigator.of(
-                                                                  dialogContext)
-                                                              .pop();
-                                                        } else {
-                                                          printLog(
-                                                              'Pago: $payAdmSec');
-                                                          if (payAdmSec) {
-                                                            if (adminDevices
-                                                                    .length <
-                                                                6) {
-                                                              adminDevices.add(
-                                                                  admins.text
-                                                                      .trim());
-                                                              putSecondaryAdmins(
-                                                                  service,
-                                                                  command(
-                                                                      deviceType),
-                                                                  extractSerialNumber(
-                                                                      widget
-                                                                          .device),
-                                                                  adminDevices);
-                                                              Navigator.of(
-                                                                      dialogContext)
-                                                                  .pop();
-                                                            } else {
-                                                              showToast(
-                                                                  'Alcanzaste el límite máximo');
-                                                            }
-                                                          } else {
-                                                            Navigator.of(
-                                                                    dialogContext)
-                                                                .pop();
-                                                            showAdminText();
-                                                          }
-                                                        }
-                                                      },
-                                                      icon: const Icon(
-                                                        Icons.add,
-                                                        color: Color.fromARGB(
-                                                            255, 0, 0, 0),
-                                                      ))),
-                                            ),
-                                            const SizedBox(
-                                              height: 10,
-                                            ),
-                                            if (adminDevices.isNotEmpty) ...[
-                                              for (int i = 0;
-                                                  i < adminDevices.length;
-                                                  i++) ...[
-                                                ListTile(
-                                                  title: SingleChildScrollView(
-                                                    scrollDirection:
-                                                        Axis.horizontal,
-                                                    child: Text(
-                                                      adminDevices[i],
-                                                      style: const TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 0, 0, 0),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  trailing: IconButton(
-                                                      onPressed: () {
-                                                        adminDevices.remove(
-                                                            adminDevices[i]);
+                                              }
+                                            },
+                                            decoration: InputDecoration(
+                                                labelText:
+                                                    'Agrega el correo electronico',
+                                                labelStyle: const TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
+                                                ),
+                                                enabledBorder:
+                                                    const UnderlineInputBorder(
+                                                  borderSide: BorderSide(),
+                                                ),
+                                                focusedBorder:
+                                                    const UnderlineInputBorder(
+                                                  borderSide: BorderSide(),
+                                                ),
+                                                suffixIcon: IconButton(
+                                                    onPressed: () {
+                                                      if (adminDevices.length <
+                                                          3) {
+                                                        adminDevices.add(
+                                                            admins.text.trim());
                                                         putSecondaryAdmins(
                                                             service,
-                                                            command(deviceType),
+                                                            command(deviceName),
                                                             extractSerialNumber(
                                                                 widget.device),
                                                             adminDevices);
                                                         Navigator.of(
                                                                 dialogContext)
                                                             .pop();
-                                                      },
-                                                      icon: const Icon(
-                                                          Icons.delete,
-                                                          color: Color.fromARGB(
-                                                              255, 0, 0, 0))),
-                                                )
-                                              ]
-                                            ] else ...[
-                                              const Text(
-                                                'Actualmente no hay ninguna cuenta agregada...',
-                                                style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0),
-                                                    fontWeight:
-                                                        FontWeight.normal),
+                                                      } else {
+                                                        printLog(
+                                                            'Pago: $payAdmSec');
+                                                        if (payAdmSec) {
+                                                          if (adminDevices
+                                                                  .length <
+                                                              6) {
+                                                            adminDevices.add(
+                                                                admins.text
+                                                                    .trim());
+                                                            putSecondaryAdmins(
+                                                                service,
+                                                                command(
+                                                                    deviceName),
+                                                                extractSerialNumber(
+                                                                    widget
+                                                                        .device),
+                                                                adminDevices);
+                                                            Navigator.of(
+                                                                    dialogContext)
+                                                                .pop();
+                                                          } else {
+                                                            showToast(
+                                                                'Alcanzaste el límite máximo');
+                                                          }
+                                                        } else {
+                                                          Navigator.of(
+                                                                  dialogContext)
+                                                              .pop();
+                                                          showAdminText();
+                                                        }
+                                                      }
+                                                    },
+                                                    icon: const Icon(
+                                                      Icons.add,
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0),
+                                                    ))),
+                                          ),
+                                          const SizedBox(
+                                            height: 10,
+                                          ),
+                                          if (adminDevices.isNotEmpty) ...[
+                                            for (int i = 0;
+                                                i < adminDevices.length;
+                                                i++) ...[
+                                              ListTile(
+                                                title: SingleChildScrollView(
+                                                  scrollDirection:
+                                                      Axis.horizontal,
+                                                  child: Text(
+                                                    adminDevices[i],
+                                                    style: const TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0),
+                                                    ),
+                                                  ),
+                                                ),
+                                                trailing: IconButton(
+                                                    onPressed: () {
+                                                      adminDevices.remove(
+                                                          adminDevices[i]);
+                                                      putSecondaryAdmins(
+                                                          service,
+                                                          command(deviceName),
+                                                          extractSerialNumber(
+                                                              widget.device),
+                                                          adminDevices);
+                                                      Navigator.of(
+                                                              dialogContext)
+                                                          .pop();
+                                                    },
+                                                    icon: const Icon(
+                                                        Icons.delete,
+                                                        color: Color.fromARGB(
+                                                            255, 0, 0, 0))),
                                               )
                                             ]
-                                          ],
-                                        ),
-                                      ));
+                                          ] else ...[
+                                            const Text(
+                                              'Actualmente no hay ninguna cuenta agregada...',
+                                              style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 0, 0, 0),
+                                                  fontWeight:
+                                                      FontWeight.normal),
+                                            )
+                                          ]
+                                        ],
+                                      ),
+                                    ),
+                                  );
                                 });
                           },
                           child: const Text(
                             'Añadir administradores\n secundarios',
                             textAlign: TextAlign.center,
                           ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        ElevatedButton(
+                          style: const ButtonStyle(
+                            backgroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 72, 72, 72),
+                            ),
+                            foregroundColor: MaterialStatePropertyAll(
+                              Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ),
+                          onPressed: () {
+                            if (activatedAT) {
+                              saveATData(
+                                service,
+                                command(deviceName),
+                                extractSerialNumber(deviceName),
+                                false,
+                                '',
+                                distOnValue.round().toString(),
+                                distOffValue.round().toString(),
+                              );
+                              setState(() {});
+                            } else {
+                              if (!payAT) {
+                                showATText();
+                              } else {
+                                configAT();
+                                setState(() {});
+                              }
+                            }
+                          },
+                          child: activatedAT
+                              ? const Text(
+                                  'Desactivar alquiler temporario',
+                                  textAlign: TextAlign.center,
+                                )
+                              : const Text(
+                                  'Activar alquiler temporario',
+                                  textAlign: TextAlign.center,
+                                ),
                         )
                       ]
                     ]
                   ],
                 ),
               ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Text(
+              'Versión de Hardware: $hardwareVersion',
+              style: const TextStyle(
+                  fontSize: 10.0, color: Color.fromARGB(255, 72, 72, 72)),
+            ),
+            Text(
+              'Versión de SoftWare: $softwareVersion',
+              style: const TextStyle(
+                  fontSize: 10.0, color: Color.fromARGB(255, 72, 72, 72)),
+            ),
+            const SizedBox(
+              height: 0,
             ),
             Padding(
                 padding: const EdgeInsets.all(10.0),

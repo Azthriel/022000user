@@ -25,7 +25,7 @@ class IODevicesState extends State<IODevices> {
     subToIO();
     processValues(ioValues);
     notificationMap.putIfAbsent(
-        '${productCode[deviceName]}/${extractSerialNumber(deviceName)}',
+        '${command(deviceName)}/${extractSerialNumber(deviceName)}',
         () => List<bool>.filled(4, false));
   }
 
@@ -108,7 +108,7 @@ class IODevicesState extends State<IODevices> {
           'En la posición $i el modo es ${tipo[i]} y su estado es ${estado[i]}');
       globalDATA
           .putIfAbsent(
-              '${productCode[deviceName]}/${extractSerialNumber(deviceName)}',
+              '${command(deviceName)}/${extractSerialNumber(deviceName)}',
               () => {})
           .addAll({'io$i': parts[i]});
     }
@@ -195,21 +195,21 @@ class IODevicesState extends State<IODevices> {
                   saveNicknamesMap(nicknamesMap);
                   printLog('$nicknamesMap');
                   if (notificationMap[
-                          '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!
+                          '${command(deviceName)}/${extractSerialNumber(deviceName)}']!
                       .contains(true)) {
                     for (int index = 0;
                         index <
                             notificationMap[
-                                    '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!
+                                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']!
                                 .length;
                         index++) {
                       var noti = notificationMap[
-                          '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']!;
+                          '${command(deviceName)}/${extractSerialNumber(deviceName)}']!;
                       if (noti[index]) {
                         String nick =
                             '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
                             // printLog('Nick: $nick');
-                        setupIOToken(nick, index, command(deviceType),
+                        setupIOToken(nick, index, command(deviceName),
                             extractSerialNumber(deviceName), deviceName);
                       }
                     }
@@ -291,7 +291,7 @@ class IODevicesState extends State<IODevices> {
                   String nick =
                       '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
                   // printLog('Nick: $nick');
-                  setupIOToken(nick, index, command(deviceType),
+                  setupIOToken(nick, index, command(deviceName),
                       extractSerialNumber(deviceName), deviceName);
                 });
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -473,7 +473,7 @@ class IODevicesState extends State<IODevices> {
                                       width: 20,
                                     ),
                                     notificationMap[
-                                                '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
                                             index]
                                         ? const Text(
                                             '¿Desactivar notificaciones?',
@@ -495,7 +495,7 @@ class IODevicesState extends State<IODevices> {
                                     IconButton(
                                         onPressed: () {
                                           if (notificationMap[
-                                                  '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                  '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
                                               index]) {
                                             showDialog(
                                               context: context,
@@ -518,7 +518,7 @@ class IODevicesState extends State<IODevices> {
                                                             await getIOTokens(
                                                                 service,
                                                                 command(
-                                                                    deviceType),
+                                                                    deviceName),
                                                                 extractSerialNumber(
                                                                     deviceName),
                                                                 index);
@@ -527,7 +527,7 @@ class IODevicesState extends State<IODevices> {
                                                                 '$deviceName$index']);
                                                         putIOTokens(
                                                             service,
-                                                            command(deviceType),
+                                                            command(deviceName),
                                                             extractSerialNumber(
                                                                 deviceName),
                                                             tokens,
@@ -536,7 +536,7 @@ class IODevicesState extends State<IODevices> {
                                                             'Notificación desactivada');
                                                         setState(() {
                                                           notificationMap[
-                                                                  '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                                  '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
                                                               index] = false;
                                                         });
                                                         saveNotificationMap(
@@ -563,13 +563,13 @@ class IODevicesState extends State<IODevices> {
                                             setupIOToken(
                                                 nick,
                                                 index,
-                                                command(deviceType),
+                                                command(deviceName),
                                                 extractSerialNumber(deviceName),
                                                 deviceName);
                                             showToast('Notificación activada');
                                             setState(() {
                                               notificationMap[
-                                                      '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
                                                   index] = true;
                                             });
                                             saveNotificationMap(
@@ -577,7 +577,7 @@ class IODevicesState extends State<IODevices> {
                                           }
                                         },
                                         icon: notificationMap[
-                                                    '${productCode[deviceName]}/${extractSerialNumber(deviceName)}']![
+                                                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
                                                 index]
                                             ? const Icon(
                                                 Icons.notifications_active,

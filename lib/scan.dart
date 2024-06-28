@@ -8,7 +8,7 @@ import 'stored_data.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import '5773/master_detector.dart';
+import '015773/master_detector.dart';
 import 'master.dart';
 import 'calefactores/master_calefactor.dart';
 
@@ -638,14 +638,14 @@ class LoadState extends State<LoadingPage> {
         previusConnections.add(deviceName);
         guardarLista(previusConnections);
         topicsToSub.add(
-            'devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
+            'devices_tx/${command(deviceName)}/${extractSerialNumber(deviceName)}');
         saveTopicList(topicsToSub);
         subToTopicMQTT(
-            'devices_tx/${productCode[deviceName]}/${extractSerialNumber(deviceName)}');
+            'devices_tx/${command(deviceName)}/${extractSerialNumber(deviceName)}');
       }
       deviceSerialNumber = extractSerialNumber(deviceName);
 
-      await queryItems(service, productCode[deviceName]!, deviceSerialNumber);
+      await queryItems(service, command(deviceName), deviceSerialNumber);
 
       //Si es un calefactor
       if (deviceType == '022000' ||
@@ -672,11 +672,12 @@ class LoadState extends State<LoadingPage> {
         userConnected = users > 1;
         lastUser = users;
         owner = await getOwner(
-            service, command(deviceType), extractSerialNumber(deviceName));
+            service, command(deviceName), extractSerialNumber(deviceName));
         printLog('Owner actual: $owner');
         adminDevices = await getSecondaryAdmins(
-            service, command(deviceType), extractSerialNumber(deviceName));
+            service, command(deviceName), extractSerialNumber(deviceName));
         printLog('Administradores: $adminDevices');
+
         if (owner != '') {
           if (owner == currentUserEmail) {
             deviceOwner = true;
@@ -686,17 +687,20 @@ class LoadState extends State<LoadingPage> {
             }
           } else {
             deviceOwner = false;
-            if (adminDevices.contains(currentUserEmail)) {
-              secondaryAdmin = true;
-              if (!ownedDevices.contains(deviceName)) {
-                ownedDevices.add(deviceName);
-                saveOwnedDevices(ownedDevices);
-              }
+            if (userConnected) {
             } else {
-              secondaryAdmin = false;
-              if (ownedDevices.contains(deviceName)) {
-                ownedDevices.remove(deviceName);
-                saveOwnedDevices(ownedDevices);
+              if (adminDevices.contains(currentUserEmail)) {
+                secondaryAdmin = true;
+                if (!ownedDevices.contains(deviceName)) {
+                  ownedDevices.add(deviceName);
+                  saveOwnedDevices(ownedDevices);
+                }
+              } else {
+                secondaryAdmin = false;
+                if (ownedDevices.contains(deviceName)) {
+                  ownedDevices.remove(deviceName);
+                  saveOwnedDevices(ownedDevices);
+                }
               }
             }
           }
@@ -706,27 +710,47 @@ class LoadState extends State<LoadingPage> {
           saveOwnedDevices(ownedDevices);
         }
 
+        await analizePayment(
+            command(deviceName), extractSerialNumber(deviceName));
+
+        if (payAT) {
+          activatedAT = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['AT'] ??
+              false;
+          tenant = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['tenant'] ==
+              currentUserEmail;
+        }else{
+          activatedAT = false;
+          tenant = false;
+        }
+
         if (canControlDistance) {
-          var mapOFF = await loadDistanceOFF();
-          distOffValue = mapOFF[deviceName] ?? 100.0;
-          var mapON = await loadDistanceON();
-          distOnValue = mapON[deviceName] ?? 3000.0;
+          distOffValue = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                  'distanceOff'] ??
+              100.0;
+          distOnValue = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                  'distanceOn'] ??
+              3000.0;
           isTaskScheduled = await loadControlValue();
         }
 
         globalDATA
             .putIfAbsent(
-                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                '${command(deviceName)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"w_status": turnOn});
         globalDATA
             .putIfAbsent(
-                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                '${command(deviceName)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"f_status": trueStatus});
 
         saveGlobalData(globalDATA);
-
       } else if (deviceType == '015773') {
         //Si soy un detector
         workValues = await myDevice.workUuid.read();
@@ -742,22 +766,22 @@ class LoadState extends State<LoadingPage> {
 
         globalDATA
             .putIfAbsent(
-                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                '${command(deviceName)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"ppmCO": ppmCO});
         globalDATA
             .putIfAbsent(
-                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                '${command(deviceName)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"ppmCH4": ppmCH4});
         globalDATA
             .putIfAbsent(
-                '${command(deviceType)}/${extractSerialNumber(deviceName)}',
+                '${command(deviceName)}/${extractSerialNumber(deviceName)}',
                 () => {})
             .addAll({"alert": workValues[4] == 1});
         saveGlobalData(globalDATA);
         setupToken(
-            command(deviceType), extractSerialNumber(deviceName), deviceName);
+            command(deviceName), extractSerialNumber(deviceName), deviceName);
       } else if (deviceType == '020010') {
         ioValues = await myDevice.ioUuid.read();
         printLog('Valores IO: $ioValues');

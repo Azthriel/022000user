@@ -8,7 +8,7 @@ import 'stored_data.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '5773/device_detector.dart';
+import '015773/device_detector.dart';
 import 'calefactores/device_calefactor.dart';
 import 'login/login.dart';
 import 'master.dart';

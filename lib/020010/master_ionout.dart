@@ -19,20 +19,20 @@ void controlOut(bool value, int index) {
 
   String fun2 = '$index:${value ? '1' : '0'}';
   deviceSerialNumber = extractSerialNumber(deviceName);
-  String topic = 'devices_rx/${productCode[deviceName]}/$deviceSerialNumber';
-  String topic2 = 'devices_tx/${productCode[deviceName]}/$deviceSerialNumber';
+  String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
+  String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
   String message = jsonEncode({'io': fun2});
   sendMessagemqtt(topic, message);
   estado[index] = value ? '1' : '0';
   for (int i = 0; i < estado.length; i++) {
     String device = '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}:${common[i]}';
-    globalDATA['${productCode[deviceName]}/$deviceSerialNumber']!['io$i'] =
+    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['io$i'] =
         device;
   }
 
   saveGlobalData(globalDATA);
   String message2 =
-      jsonEncode(globalDATA['${productCode[deviceName]}/$deviceSerialNumber']);
+      jsonEncode(globalDATA['${command(deviceName)}/$deviceSerialNumber']);
   sendMessagemqtt(topic2, message2);
 }
 
@@ -101,7 +101,7 @@ Future<void> changeModes(BuildContext context) {
                         TextButton(
                           onPressed: () {
                             String fun =
-                                '${command(deviceType)}[13]($i#${tipo[i] == 'Entrada' ? '0' : '1'})';
+                                '${command(deviceName)}[13]($i#${tipo[i] == 'Entrada' ? '0' : '1'})';
                             printLog(fun);
                             myDevice.toolsUuid.write(fun.codeUnits);
                             Navigator.of(dialogContext).pop();
@@ -136,7 +136,7 @@ Future<void> changeModes(BuildContext context) {
                                   IconButton(
                                     onPressed: () {
                                       String data =
-                                          '${command(deviceType)}[14]($i#${common[i] == '1' ? '0' : '1'})';
+                                          '${command(deviceName)}[14]($i#${common[i] == '1' ? '0' : '1'})';
                                       printLog(data);
                                       myDevice.toolsUuid.write(data.codeUnits);
                                       Navigator.of(dialogContext).pop();
@@ -265,6 +265,17 @@ class DrawerIOState extends State<DrawerIO> {
             height: 20,
           ),
           const Spacer(),
+          Text(
+              'Versión de Hardware: $hardwareVersion',
+              style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
+            ),
+            Text(
+              'Versión de SoftWare: $softwareVersion',
+              style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: ElevatedButton(
