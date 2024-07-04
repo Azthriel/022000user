@@ -271,7 +271,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                               });
                             } catch (e, s) {
                               printLog('Error al agregar owner $e Trace: $s');
-                              showToast('Error al agregar el administrador.');
+                              showToast('Error al agregar el propietario.');
                             }
                           }
                         },

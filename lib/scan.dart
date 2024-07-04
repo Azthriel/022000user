@@ -28,6 +28,7 @@ class ScanPageState extends State<ScanPage> {
   );
   final FocusNode searchFocusNode = FocusNode();
   bool toastFlag = false;
+  int connectionTry = 0;
 
   @override
   void initState() {
@@ -121,6 +122,7 @@ class ScanPageState extends State<ScanPage> {
                 FlutterBluePlus.stopScan();
                 myDevice.setup(device).then((valor) {
                   printLog('RETORNASHE $valor');
+                  connectionTry = 0;
                   if (valor) {
                     navigatorKey.currentState?.pushReplacementNamed('/loading');
                   } else {
@@ -140,13 +142,20 @@ class ScanPageState extends State<ScanPage> {
         }
       });
     } catch (e, stackTrace) {
-      if (e is FlutterBluePlusException && e.code == 133) {
-        printLog('Error específico de Android con código 133: $e');
-        showToast('Error de conexión, intentelo nuevamente');
+      if (connectionTry < 3) {
+        printLog('Retry');
+        connectionTry++;
+        connectToDevice(device);
       } else {
-        printLog('Error al conectar: $e $stackTrace');
-        showToast('Error al conectar, intentelo nuevamente');
-        // handleManualError(e, stackTrace);
+        connectionTry = 0;
+        if (e is FlutterBluePlusException && e.code == 133) {
+          printLog('Error específico de Android con código 133: $e');
+          showToast('Error de conexión, intentelo nuevamente');
+        } else {
+          printLog('Error al conectar: $e $stackTrace');
+          showToast('Error al conectar, intentelo nuevamente');
+          // handleManualError(e, stackTrace);
+        }
       }
     }
   }
@@ -671,8 +680,10 @@ class LoadState extends State<LoadingPage> {
         printLog('Hay $users conectados');
         userConnected = users > 1;
         lastUser = users;
-        owner = await getOwner(
-            service, command(deviceName), extractSerialNumber(deviceName));
+        owner = globalDATA[
+                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                'owner'] ??
+            '';
         printLog('Owner actual: $owner');
         adminDevices = await getSecondaryAdmins(
             service, command(deviceName), extractSerialNumber(deviceName));
@@ -722,7 +733,7 @@ class LoadState extends State<LoadingPage> {
                       '${command(deviceName)}/${extractSerialNumber(deviceName)}']
                   ?['tenant'] ==
               currentUserEmail;
-        }else{
+        } else {
           activatedAT = false;
           tenant = false;
         }

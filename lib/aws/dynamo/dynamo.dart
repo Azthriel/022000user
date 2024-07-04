@@ -23,6 +23,7 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
           String displayValue = value?.s ??
               value?.n ??
               value?.boolValue.toString() ??
+              value?.ss.toString() ??
               "Desconocido";
           if (value != null) {
             switch (key) {
@@ -72,6 +73,11 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
                     .addAll({key: value.boolValue ?? false});
                 break;
               case 'tenant':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: value.s ?? ''});
+                break;
+              case 'owner':
                 globalDATA
                     .putIfAbsent('$pc/$sn', () => {})
                     .addAll({key: value.s ?? ''});
@@ -208,30 +214,6 @@ Future<void> putOwner(
   }
 }
 
-Future<String> getOwner(DynamoDB service, String pc, String sn) async {
-  try {
-    final response = await service.getItem(
-      tableName: 'sime-domotica',
-      key: {
-        'product_code': AttributeValue(s: pc),
-        'device_id': AttributeValue(s: sn),
-      },
-    );
-    if (response.item != null) {
-      var item = response.item!;
-      String owner = item['owner']?.s ?? '';
-      printLog('Owner encontrado');
-      return owner;
-    } else {
-      printLog('Item no encontrado.');
-      return '';
-    }
-  } catch (e) {
-    printLog('Error al obtener el item: $e');
-    return '';
-  }
-}
-
 Future<void> putSecondaryAdmins(
     DynamoDB service, String pc, String sn, List<String> data) async {
   if (data.isEmpty) {
@@ -299,7 +281,7 @@ Future<List<DateTime>> getDates(DynamoDB service, String pc, String sn) async {
       String? date2 = item['DateAT']?.s;
       printLog('Fecha encontrada');
 
-      if (date != null) {
+      if (date != null && date != '') {
         var parts = date.split('/');
         fechaExp.add(DateTime(
             int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2])));
@@ -307,7 +289,7 @@ Future<List<DateTime>> getDates(DynamoDB service, String pc, String sn) async {
         fechaExp.add(DateTime.now());
       }
 
-      if (date2 != null) {
+      if (date2 != null && date2 != '') {
         var parts = date2.split('/');
         fechaExp.add(DateTime(
             int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2])));
@@ -321,7 +303,7 @@ Future<List<DateTime>> getDates(DynamoDB service, String pc, String sn) async {
       return [DateTime.now(), DateTime.now()];
     }
   } catch (e) {
-    printLog('Error al obtener el item: $e');
+    printLog('Error al obtener las fechas $e');
     return [DateTime.now(), DateTime.now()];
   }
 }
