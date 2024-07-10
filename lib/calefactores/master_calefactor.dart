@@ -89,7 +89,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-        backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+        backgroundColor: const Color(0xFF252223),
         child: Column(
           children: [
             Expanded(
@@ -170,24 +170,44 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     const SizedBox(height: 20),
                     const Text('Modo actual: ',
                         style: TextStyle(fontSize: 20, color: Colors.white)),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          nightMode = !nightMode;
-                          printLog('Estado: $nightMode');
-                          int fun = nightMode ? 1 : 0;
-                          String data = '${command(deviceName)}[9]($fun)';
-                          printLog(data);
-                          myDevice.toolsUuid.write(data.codeUnits);
-                        });
-                      },
-                      icon: nightMode
-                          ? const Icon(Icons.nightlight,
-                              color: Colors.white, size: 40)
-                          : const Icon(Icons.light_mode,
-                              color: Colors.white, size: 40),
+                    const SizedBox(height: 5),
+                    Transform.scale(
+                      scale: 1.5,
+                      child: Switch(
+                        activeColor: const Color.fromARGB(255, 189, 189, 189),
+                        activeTrackColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        inactiveThumbColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 189, 189, 189),
+                        trackOutlineColor: const MaterialStatePropertyAll(
+                            Color.fromARGB(255, 189, 189, 189)),
+                        thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return const Icon(Icons.nights_stay,
+                                  color: Colors.white);
+                            } else {
+                              return const Icon(Icons.wb_sunny,
+                                  color: Color.fromARGB(255, 189, 189, 189));
+                            }
+                          },
+                        ),
+                        value: nightMode,
+                        onChanged: (value) {
+                          setState(() {
+                            nightMode = !nightMode;
+                            printLog('Estado: $nightMode');
+                            int fun = nightMode ? 1 : 0;
+                            String data = '${command(deviceName)}[9]($fun)';
+                            printLog(data);
+                            myDevice.toolsUuid.write(data.codeUnits);
+                          });
+                        },
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     if (deviceOwner) ...[
                       ElevatedButton(
                         style: const ButtonStyle(
@@ -729,31 +749,57 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         ? Text(
                             'Ultimo reinicio: ${fechaSeleccionada!.day}/${fechaSeleccionada!.month}/${fechaSeleccionada!.year}',
                             style: const TextStyle(
-                                fontSize: 10,
-                                color: Color.fromARGB(255, 0, 0, 0)))
+                              fontSize: 10,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                          )
                         : const Text(''),
                     const SizedBox(height: 20),
-                    const Text('Modo actual: ',
-                        style: TextStyle(
-                            fontSize: 20, color: Color.fromARGB(255, 0, 0, 0))),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          nightMode = !nightMode;
-                          printLog('Estado: $nightMode');
-                          int fun = nightMode ? 1 : 0;
-                          String data = '${command(deviceName)}[9]($fun)';
-                          printLog(data);
-                          myDevice.toolsUuid.write(data.codeUnits);
-                        });
-                      },
-                      icon: nightMode
-                          ? const Icon(Icons.nightlight,
-                              color: Color.fromARGB(255, 0, 0, 0), size: 40)
-                          : const Icon(Icons.light_mode,
-                              color: Color.fromARGB(255, 0, 0, 0), size: 40),
+                    const Text(
+                      'Modo actual: ',
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Color.fromARGB(255, 0, 0, 0),
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 5),
+                    Transform.scale(
+                      scale: 1.5,
+                      child: Switch(
+                        activeColor: const Color.fromARGB(255, 72, 72, 72),
+                        activeTrackColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        inactiveThumbColor:
+                            const Color.fromARGB(255, 255, 255, 255),
+                        inactiveTrackColor:
+                            const Color.fromARGB(255, 72, 72, 72),
+                        trackOutlineColor: const MaterialStatePropertyAll(
+                            Color.fromARGB(255, 72, 72, 72)),
+                        thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
+                          (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.selected)) {
+                              return const Icon(Icons.nights_stay,
+                                  color: Colors.white);
+                            } else {
+                              return const Icon(Icons.wb_sunny,
+                                  color: Color.fromARGB(255, 72, 72, 72));
+                            }
+                          },
+                        ),
+                        value: nightMode,
+                        onChanged: (value) {
+                          setState(() {
+                            nightMode = !nightMode;
+                            printLog('Estado: $nightMode');
+                            int fun = nightMode ? 1 : 0;
+                            String data = '${command(deviceName)}[9]($fun)';
+                            printLog(data);
+                            myDevice.toolsUuid.write(data.codeUnits);
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 5),
                     if (deviceOwner) ...[
                       ElevatedButton(
                         style: const ButtonStyle(

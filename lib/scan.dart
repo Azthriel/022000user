@@ -796,6 +796,64 @@ class LoadState extends State<LoadingPage> {
       } else if (deviceType == '020010') {
         ioValues = await myDevice.ioUuid.read();
         printLog('Valores IO: $ioValues');
+
+        owner = globalDATA[
+                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                'owner'] ??
+            '';
+        printLog('Owner actual: $owner');
+        adminDevices = await getSecondaryAdmins(
+            service, command(deviceName), extractSerialNumber(deviceName));
+        printLog('Administradores: $adminDevices');
+
+        if (owner != '') {
+          if (owner == currentUserEmail) {
+            deviceOwner = true;
+            if (!ownedDevices.contains(deviceName)) {
+              ownedDevices.add(deviceName);
+              saveOwnedDevices(ownedDevices);
+            }
+          } else {
+            deviceOwner = false;
+            if (userConnected) {
+            } else {
+              if (adminDevices.contains(currentUserEmail)) {
+                secondaryAdmin = true;
+                if (!ownedDevices.contains(deviceName)) {
+                  ownedDevices.add(deviceName);
+                  saveOwnedDevices(ownedDevices);
+                }
+              } else {
+                secondaryAdmin = false;
+                if (ownedDevices.contains(deviceName)) {
+                  ownedDevices.remove(deviceName);
+                  saveOwnedDevices(ownedDevices);
+                }
+              }
+            }
+          }
+        } else {
+          deviceOwner = true;
+          ownedDevices.add(deviceName);
+          saveOwnedDevices(ownedDevices);
+        }
+
+        await analizePayment(
+            command(deviceName), extractSerialNumber(deviceName));
+
+        if (payAT) {
+          activatedAT = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['AT'] ??
+              false;
+          tenant = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['tenant'] ==
+              currentUserEmail;
+        } else {
+          activatedAT = false;
+          tenant = false;
+        }
       }
 
       return Future.value(true);

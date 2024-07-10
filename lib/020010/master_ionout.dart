@@ -1,4 +1,6 @@
 import 'dart:convert';
+import '../aws/dynamo/dynamo.dart';
+import '../aws/dynamo/dynamo_certificates.dart';
 import '/master.dart';
 import '/aws/mqtt/mqtt.dart';
 import '/stored_data.dart';
@@ -25,9 +27,9 @@ void controlOut(bool value, int index) {
   sendMessagemqtt(topic, message);
   estado[index] = value ? '1' : '0';
   for (int i = 0; i < estado.length; i++) {
-    String device = '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}:${common[i]}';
-    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['io$i'] =
-        device;
+    String device =
+        '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}:${common[i]}';
+    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['io$i'] = device;
   }
 
   saveGlobalData(globalDATA);
@@ -264,18 +266,289 @@ class DrawerIOState extends State<DrawerIO> {
           const SizedBox(
             height: 20,
           ),
-          const Spacer(),
-          Text(
-              'Versión de Hardware: $hardwareVersion',
-              style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
-            ),
-            Text(
-              'Versión de SoftWare: $softwareVersion',
-              style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
+          if (deviceOwner) ...[
+            ElevatedButton(
+              style: const ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(
+                  Color(0xff4b2427),
+                ),
+                foregroundColor: MaterialStatePropertyAll(
+                  Color(0xffa79986),
+                ),
+              ),
+              onPressed: () {
+                if (owner != '') {
+                  showDialog<void>(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext dialogContext) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xff1f1d20),
+                        title: const Text(
+                          '¿Dejar de ser administrador del calefactor?',
+                          style: TextStyle(
+                            color: Color(0xffa79986),
+                          ),
+                        ),
+                        content: const Text(
+                          'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
+                          style: TextStyle(
+                            color: Color(0xffa79986),
+                          ),
+                        ),
+                        actions: <Widget>[
+                          TextButton(
+                            style: const ButtonStyle(
+                              foregroundColor: MaterialStatePropertyAll(
+                                Color(0xffa79986),
+                              ),
+                            ),
+                            child: const Text('Cancelar'),
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop();
+                            },
+                          ),
+                          TextButton(
+                            style: const ButtonStyle(
+                              foregroundColor: MaterialStatePropertyAll(
+                                Color(0xffa79986),
+                              ),
+                            ),
+                            child: const Text('Aceptar'),
+                            onPressed: () {
+                              try {
+                                putOwner(service, command(deviceName),
+                                    extractSerialNumber(deviceName), '');
+                                ownedDevices.remove(deviceName);
+                                saveOwnedDevices(ownedDevices);
+                                myDevice.device.disconnect();
+                                Navigator.of(dialogContext).pop();
+                              } catch (e, s) {
+                                printLog('Error al borrar owner $e Trace: $s');
+                                showToast('Error al borrar el administrador.');
+                              }
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  try {
+                    putOwner(service, command(deviceName),
+                        extractSerialNumber(deviceName), currentUserEmail);
+                    setState(() {
+                      owner = currentUserEmail;
+                    });
+                  } catch (e, s) {
+                    printLog('Error al agregar owner $e Trace: $s');
+                    showToast('Error al agregar el administrador.');
+                  }
+                }
+              },
+              child: owner != ''
+                  ? const Text(
+                      'Dejar de ser dueño\n del equipo',
+                      textAlign: TextAlign.center,
+                    )
+                  : const Text(
+                      'Reclamar propiedad\n del equipo',
+                      textAlign: TextAlign.center,
+                    ),
             ),
             const SizedBox(
               height: 10,
             ),
+            if (currentUserEmail == owner) ...[
+              ElevatedButton(
+                style: const ButtonStyle(
+                  backgroundColor: MaterialStatePropertyAll(
+                    Color(0xff4b2427),
+                  ),
+                  foregroundColor: MaterialStatePropertyAll(
+                    Color(0xffa79986),
+                  ),
+                ),
+                onPressed: () async {
+                  adminDevices = await getSecondaryAdmins(service,
+                      command(deviceName), extractSerialNumber(deviceName));
+                  showDialog<void>(
+                      context: navigatorKey.currentContext!,
+                      barrierDismissible: true,
+                      builder: (BuildContext dialogContext) {
+                        TextEditingController admins = TextEditingController();
+                        return AlertDialog(
+                          backgroundColor: const Color(0xff1f1d20),
+                          title: const Text(
+                            'Administradores secundarios:',
+                            style: TextStyle(
+                                color: Color(0xffa79986),
+                                fontWeight: FontWeight.bold),
+                          ),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                TextField(
+                                  controller: admins,
+                                  keyboardType: TextInputType.emailAddress,
+                                  style: const TextStyle(
+                                    color: Color(0xffa79986),
+                                  ),
+                                  onSubmitted: (value) {
+                                    if (adminDevices.length < 3) {
+                                      adminDevices.add(admins.text.trim());
+                                      putSecondaryAdmins(
+                                          service,
+                                          command(deviceName),
+                                          extractSerialNumber(deviceName),
+                                          adminDevices);
+                                      Navigator.of(dialogContext).pop();
+                                    } else {
+                                      printLog('Pago: $payAdmSec');
+                                      if (payAdmSec) {
+                                        if (adminDevices.length < 6) {
+                                          adminDevices.add(admins.text.trim());
+                                          putSecondaryAdmins(
+                                              service,
+                                              command(deviceName),
+                                              extractSerialNumber(deviceName),
+                                              adminDevices);
+                                          Navigator.of(dialogContext).pop();
+                                        } else {
+                                          showToast(
+                                              'Alcanzaste el límite máximo');
+                                        }
+                                      } else {
+                                        Navigator.of(dialogContext).pop();
+                                        showAdminText();
+                                      }
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                      labelText: 'Agrega el correo electronico',
+                                      labelStyle: const TextStyle(
+                                        color: Color(0xffa79986),
+                                      ),
+                                      enabledBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(),
+                                      ),
+                                      suffixIcon: IconButton(
+                                          onPressed: () {
+                                            if (adminDevices.length < 3) {
+                                              adminDevices
+                                                  .add(admins.text.trim());
+                                              putSecondaryAdmins(
+                                                  service,
+                                                  command(deviceName),
+                                                  extractSerialNumber(
+                                                      deviceName),
+                                                  adminDevices);
+                                              Navigator.of(dialogContext).pop();
+                                            } else {
+                                              printLog('Pago: $payAdmSec');
+                                              if (payAdmSec) {
+                                                if (adminDevices.length < 6) {
+                                                  adminDevices
+                                                      .add(admins.text.trim());
+                                                  putSecondaryAdmins(
+                                                      service,
+                                                      command(deviceName),
+                                                      extractSerialNumber(
+                                                          deviceName),
+                                                      adminDevices);
+                                                  Navigator.of(dialogContext)
+                                                      .pop();
+                                                } else {
+                                                  showToast(
+                                                      'Alcanzaste el límite máximo');
+                                                }
+                                              } else {
+                                                Navigator.of(dialogContext)
+                                                    .pop();
+                                                showAdminText();
+                                              }
+                                            }
+                                          },
+                                          icon: const Icon(
+                                            Icons.add,
+                                            color: Color(0xffa79986),
+                                          ))),
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                if (adminDevices.isNotEmpty) ...[
+                                  for (int i = 0;
+                                      i < adminDevices.length;
+                                      i++) ...[
+                                    ListTile(
+                                      title: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Text(
+                                          adminDevices[i],
+                                          style: const TextStyle(
+                                            color: Color(0xffa79986),
+                                          ),
+                                        ),
+                                      ),
+                                      trailing: IconButton(
+                                        onPressed: () {
+                                          adminDevices.remove(adminDevices[i]);
+                                          putSecondaryAdmins(
+                                              service,
+                                              command(deviceName),
+                                              extractSerialNumber(deviceName),
+                                              adminDevices);
+                                          Navigator.of(dialogContext).pop();
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Color(0xffa79986),
+                                        ),
+                                      ),
+                                    )
+                                  ]
+                                ] else ...[
+                                  const Text(
+                                    'Actualmente no hay ninguna cuenta agregada...',
+                                    style: TextStyle(
+                                        color: Color(0xffa79986),
+                                        fontWeight: FontWeight.normal),
+                                  )
+                                ]
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+                },
+                child: const Text(
+                  'Añadir administradores\n secundarios',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+            ]
+          ],
+          const Spacer(),
+          Text(
+            'Versión de Hardware: $hardwareVersion',
+            style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
+          ),
+          Text(
+            'Versión de SoftWare: $softwareVersion',
+            style: const TextStyle(fontSize: 10.0, color: Color(0xffa79986)),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: ElevatedButton(

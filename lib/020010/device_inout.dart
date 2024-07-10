@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:url_launcher/url_launcher.dart';
+
 import '../aws/dynamo/dynamo.dart';
 import '../aws/dynamo/dynamo_certificates.dart';
 import '/020010/master_ionout.dart';
@@ -19,6 +21,17 @@ class IODevicesState extends State<IODevices> {
   @override
   initState() {
     super.initState();
+
+    if (deviceOwner) {
+      if (vencimientoAdmSec < 10 && vencimientoAdmSec > 0) {
+        showPaymentTest(true, vencimientoAdmSec, navigatorKey.currentContext!);
+      }
+
+      if (vencimientoAT < 10 && vencimientoAT > 0) {
+        showPaymentTest(false, vencimientoAT, navigatorKey.currentContext!);
+      }
+    }
+
     nickname = nicknamesMap[deviceName] ?? deviceName;
     updateWifiValues(toolsValues);
     subscribeToWifiStatus();
@@ -208,7 +221,7 @@ class IODevicesState extends State<IODevices> {
                       if (noti[index]) {
                         String nick =
                             '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
-                            // printLog('Nick: $nick');
+                        // printLog('Nick: $nick');
                         setupIOToken(nick, index, command(deviceName),
                             extractSerialNumber(deviceName), deviceName);
                       }
@@ -289,7 +302,7 @@ class IODevicesState extends State<IODevices> {
                   saveSubNicknamesMap(subNicknamesMap);
                   printLog('$subNicknamesMap');
                   String nick =
-                      '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
+                      '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
                   // printLog('Nick: $nick');
                   setupIOToken(nick, index, command(deviceName),
                       extractSerialNumber(deviceName), deviceName);
@@ -343,295 +356,359 @@ class IODevicesState extends State<IODevices> {
         return; // Retorna según la lógica de tu app
       },
       child: Scaffold(
-        backgroundColor: const Color(0xff1f1d20),
-        appBar: AppBar(
-            backgroundColor: const Color(0xff4b2427),
-            foregroundColor: const Color(0xffa79986),
-            title: GestureDetector(
-              onTap: () async {
-                await _showEditNicknameDialog(context);
-              },
-              child: Row(
-                children: [
-                  Text(nickname),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  const Icon(
-                    Icons.edit,
-                    size: 20,
-                  )
-                ],
-              ),
-            ),
-            actions: <Widget>[
-              IconButton(
-                icon: Icon(
-                  wifiIcon,
-                  size: 24.0,
-                  semanticLabel: 'Icono de wifi',
-                ),
-                onPressed: () {
-                  wifiText(context);
+          backgroundColor: const Color(0xff1f1d20),
+          appBar: AppBar(
+              backgroundColor: const Color(0xff4b2427),
+              foregroundColor: const Color(0xffa79986),
+              title: GestureDetector(
+                onTap: () async {
+                  await _showEditNicknameDialog(context);
                 },
-              ),
-            ]),
-        drawer: const DrawerIO(),
-        body: ListView.builder(
-          itemCount: parts.length,
-          itemBuilder: (context, int index) {
-            bool entrada = tipo[index] == 'Entrada';
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xffa79986),
-                    borderRadius: BorderRadius.circular(20),
-                    border: const Border(
-                      bottom: BorderSide(color: Color(0xff4b2427), width: 5),
-                      right: BorderSide(color: Color(0xff4b2427), width: 5),
-                      left: BorderSide(color: Color(0xff4b2427), width: 5),
-                      top: BorderSide(color: Color(0xff4b2427), width: 5),
+                child: Row(
+                  children: [
+                    Text(nickname),
+                    const SizedBox(
+                      width: 3,
                     ),
+                    const Icon(
+                      Icons.edit,
+                      size: 20,
+                    )
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                IconButton(
+                  icon: Icon(
+                    wifiIcon,
+                    size: 24.0,
+                    semanticLabel: 'Icono de wifi',
                   ),
-                  width: width - 50,
-                  height: 220,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const SizedBox(
-                            width: 20,
+                  onPressed: () {
+                    wifiText(context);
+                  },
+                ),
+              ]),
+          drawer: deviceOwner ? const DrawerIO() : null,
+          body: deviceOwner || secondaryAdmin
+              ? ListView.builder(
+                  itemCount: parts.length,
+                  itemBuilder: (context, int index) {
+                    bool entrada = tipo[index] == 'Entrada';
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xffa79986),
+                            borderRadius: BorderRadius.circular(20),
+                            border: const Border(
+                              bottom: BorderSide(
+                                  color: Color(0xff4b2427), width: 5),
+                              right: BorderSide(
+                                  color: Color(0xff4b2427), width: 5),
+                              left: BorderSide(
+                                  color: Color(0xff4b2427), width: 5),
+                              top: BorderSide(
+                                  color: Color(0xff4b2427), width: 5),
+                            ),
                           ),
-                          GestureDetector(
-                              onTap: () async {
-                                await _showEditSubNicknameDialog(
-                                    context, index);
-                              },
-                              child: Row(
+                          width: width - 50,
+                          height: 220,
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  GestureDetector(
+                                      onTap: () async {
+                                        await _showEditSubNicknameDialog(
+                                            context, index);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            subNicknamesMap[
+                                                    '$deviceName/-/$index'] ??
+                                                '${tipo[index]} $index',
+                                            style: const TextStyle(
+                                                color: Color(0xff3e3d38),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 30),
+                                            textAlign: TextAlign.start,
+                                          ),
+                                          const SizedBox(
+                                            width: 3,
+                                          ),
+                                          const Icon(
+                                            Icons.edit,
+                                            size: 20,
+                                            color: Color(0xff3e3d38),
+                                          )
+                                        ],
+                                      )),
+                                  const Spacer(),
                                   Text(
-                                    subNicknamesMap['$deviceName/-/$index'] ??
-                                        '${tipo[index]} ${index + 1}',
+                                    'Tipo: ${tipo[index]}',
                                     style: const TextStyle(
                                         color: Color(0xff3e3d38),
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 30),
-                                    textAlign: TextAlign.start,
+                                        fontSize: 10),
+                                    textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(
-                                    width: 3,
+                                    width: 20,
                                   ),
-                                  const Icon(
-                                    Icons.edit,
-                                    size: 20,
-                                    color: Color(0xff3e3d38),
-                                  )
                                 ],
-                              )),
-                          const Spacer(),
-                          Text(
-                            'Tipo: ${tipo[index]}',
-                            style: const TextStyle(
-                                color: Color(0xff3e3d38),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(
-                            width: 20,
-                          ),
-                        ],
-                      ),
-                      entrada
-                          ? Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  height: 10,
-                                ),
-                                alertIO[index]
-                                    ? const Icon(
-                                        Icons.new_releases,
-                                        color: Color(0xffcb3234),
-                                        size: 80,
-                                      )
-                                    : const Icon(
-                                        Icons.new_releases,
-                                        color: Color(0xff9b9b9b),
-                                        size: 80,
-                                      ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(
-                                      width: 20,
-                                    ),
-                                    notificationMap[
-                                                '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
-                                            index]
-                                        ? const Text(
-                                            '¿Desactivar notificaciones?',
-                                            style: TextStyle(
-                                                color: Color(0xff3e3d38),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15),
-                                            textAlign: TextAlign.center,
-                                          )
-                                        : const Text(
-                                            '¿Activar notificaciones?',
-                                            style: TextStyle(
-                                                color: Color(0xff3e3d38),
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 15),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                    const Spacer(),
-                                    IconButton(
-                                        onPressed: () {
-                                          if (notificationMap[
-                                                  '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
-                                              index]) {
-                                            showDialog(
-                                              context: context,
-                                              barrierDismissible: true,
-                                              builder: (dialogContext) {
-                                                return AlertDialog(
-                                                  backgroundColor:
-                                                      const Color(0xff1f1d20),
-                                                  content: const Text(
-                                                    "¿Seguro que quieres desactivar las notificaciones?",
-                                                    style: TextStyle(
-                                                      color: Color(0xffa79986),
-                                                      fontSize: 30,
-                                                    ),
-                                                  ),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () async {
-                                                        List<String> tokens =
-                                                            await getIOTokens(
-                                                                service,
-                                                                command(
-                                                                    deviceName),
-                                                                extractSerialNumber(
-                                                                    deviceName),
-                                                                index);
-                                                        tokens.remove(
-                                                            tokensOfDevices[
-                                                                '$deviceName$index']);
-                                                        putIOTokens(
-                                                            service,
-                                                            command(deviceName),
-                                                            extractSerialNumber(
-                                                                deviceName),
-                                                            tokens,
-                                                            index);
-                                                        showToast(
-                                                            'Notificación desactivada');
-                                                        setState(() {
-                                                          notificationMap[
-                                                                  '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
-                                                              index] = false;
-                                                        });
-                                                        saveNotificationMap(
-                                                            notificationMap);
-                                                        Navigator.of(navigatorKey
-                                                                .currentContext!)
-                                                            .pop();
-                                                      },
-                                                      child: const Text(
-                                                        "Desactivar",
-                                                        style: TextStyle(
-                                                          color:
-                                                              Color(0xffa79986),
-                                                        ),
-                                                      ),
-                                                    )
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          } else {
-                                            String nick =
-                                                '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} ${index + 1}'}';
-                                            setupIOToken(
-                                                nick,
-                                                index,
-                                                command(deviceName),
-                                                extractSerialNumber(deviceName),
-                                                deviceName);
-                                            showToast('Notificación activada');
-                                            setState(() {
-                                              notificationMap[
-                                                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
-                                                  index] = true;
-                                            });
-                                            saveNotificationMap(
-                                                notificationMap);
-                                          }
-                                        },
-                                        icon: notificationMap[
-                                                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
-                                                index]
+                              ),
+                              entrada
+                                  ? Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        alertIO[index]
                                             ? const Icon(
-                                                Icons.notifications_active,
-                                                color: Color(0xff4b2427),
+                                                Icons.new_releases,
+                                                color: Color(0xffcb3234),
+                                                size: 80,
                                               )
                                             : const Icon(
-                                                Icons.notification_add_rounded,
-                                                color: Color(0xff4b2427),
-                                              )),
-                                    const SizedBox(
-                                      width: 20,
+                                                Icons.new_releases,
+                                                color: Color(0xff9b9b9b),
+                                                size: 80,
+                                              ),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(
+                                              width: 20,
+                                            ),
+                                            notificationMap[
+                                                        '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                                                    index]
+                                                ? const Text(
+                                                    '¿Desactivar notificaciones?',
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xff3e3d38),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15),
+                                                    textAlign: TextAlign.center,
+                                                  )
+                                                : const Text(
+                                                    '¿Activar notificaciones?',
+                                                    style: TextStyle(
+                                                        color:
+                                                            Color(0xff3e3d38),
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                        fontSize: 15),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                            const Spacer(),
+                                            IconButton(
+                                                onPressed: () {
+                                                  if (notificationMap[
+                                                          '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                                                      index]) {
+                                                    showDialog(
+                                                      context: context,
+                                                      barrierDismissible: true,
+                                                      builder: (dialogContext) {
+                                                        return AlertDialog(
+                                                          backgroundColor:
+                                                              const Color(
+                                                                  0xff1f1d20),
+                                                          content: const Text(
+                                                            "¿Seguro que quieres desactivar las notificaciones?",
+                                                            style: TextStyle(
+                                                              color: Color(
+                                                                  0xffa79986),
+                                                              fontSize: 30,
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                List<String>
+                                                                    tokens =
+                                                                    await getIOTokens(
+                                                                        service,
+                                                                        command(
+                                                                            deviceName),
+                                                                        extractSerialNumber(
+                                                                            deviceName),
+                                                                        index);
+                                                                tokens.remove(
+                                                                    tokensOfDevices[
+                                                                        '$deviceName$index']);
+                                                                putIOTokens(
+                                                                    service,
+                                                                    command(
+                                                                        deviceName),
+                                                                    extractSerialNumber(
+                                                                        deviceName),
+                                                                    tokens,
+                                                                    index);
+                                                                showToast(
+                                                                    'Notificación desactivada');
+                                                                setState(() {
+                                                                  notificationMap[
+                                                                          '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                                                                      index] = false;
+                                                                });
+                                                                saveNotificationMap(
+                                                                    notificationMap);
+                                                                Navigator.of(
+                                                                        navigatorKey
+                                                                            .currentContext!)
+                                                                    .pop();
+                                                              },
+                                                              child: const Text(
+                                                                "Desactivar",
+                                                                style:
+                                                                    TextStyle(
+                                                                  color: Color(
+                                                                      0xffa79986),
+                                                                ),
+                                                              ),
+                                                            )
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  } else {
+                                                    String nick =
+                                                        '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
+                                                    setupIOToken(
+                                                        nick,
+                                                        index,
+                                                        command(deviceName),
+                                                        extractSerialNumber(
+                                                            deviceName),
+                                                        deviceName);
+                                                    showToast(
+                                                        'Notificación activada');
+                                                    setState(() {
+                                                      notificationMap[
+                                                              '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                                                          index] = true;
+                                                    });
+                                                    saveNotificationMap(
+                                                        notificationMap);
+                                                  }
+                                                },
+                                                icon: notificationMap[
+                                                            '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                                                        index]
+                                                    ? const Icon(
+                                                        Icons
+                                                            .notifications_active,
+                                                        color:
+                                                            Color(0xff4b2427),
+                                                      )
+                                                    : const Icon(
+                                                        Icons
+                                                            .notification_add_rounded,
+                                                        color:
+                                                            Color(0xff4b2427),
+                                                      )),
+                                            const SizedBox(
+                                              width: 20,
+                                            ),
+                                          ],
+                                        )
+                                      ],
+                                    )
+                                  : Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          height: 50,
+                                        ),
+                                        Transform.scale(
+                                          scale: 2.5,
+                                          child: Switch(
+                                            trackOutlineColor:
+                                                const MaterialStatePropertyAll(
+                                                    Color(0xff4b2427)),
+                                            activeColor:
+                                                const Color(0xff803e2f),
+                                            activeTrackColor:
+                                                const Color(0xff4b2427),
+                                            inactiveThumbColor:
+                                                const Color(0xff4b2427),
+                                            inactiveTrackColor:
+                                                const Color(0xff803e2f),
+                                            value: estado[index] == '1',
+                                            onChanged: (value) {
+                                              controlOut(value, index);
+                                            },
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                  ],
-                                )
-                              ],
-                            )
-                          : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const SizedBox(
-                                  height: 50,
-                                ),
-                                Transform.scale(
-                                  scale: 2.5,
-                                  child: Switch(
-                                    trackOutlineColor:
-                                        const MaterialStatePropertyAll(
-                                            Color(0xff4b2427)),
-                                    activeColor: const Color(0xff803e2f),
-                                    activeTrackColor: const Color(0xff4b2427),
-                                    inactiveThumbColor: const Color(0xff4b2427),
-                                    inactiveTrackColor: const Color(0xff803e2f),
-                                    value: estado[index] == '1',
-                                    onChanged: (value) {
-                                      controlOut(value, index);
-                                    },
-                                  ),
-                                )
-                              ],
-                            ),
-                      const SizedBox(
-                        height: 10,
+                              const SizedBox(
+                                height: 10,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                      ],
+                    );
+                  },
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 25, color: Color(0xffa79986)),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton(
+                      style: const ButtonStyle(
+                        backgroundColor: MaterialStatePropertyAll(
+                          Color(0xff4b2427),
+                        ),
+                        foregroundColor: MaterialStatePropertyAll(
+                          Color(0xffa79986),
+                        ),
                       ),
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-              ],
-            );
-          },
-        ),
-      ),
+                      onPressed: () async {
+                        var phoneNumber = '5491162232619';
+                        var message =
+                            'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${command(deviceName)}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
+                        var whatsappUrl =
+                            "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
+                        Uri uri = Uri.parse(whatsappUrl);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        } else {
+                          showToast('No se pudo abrir WhatsApp');
+                        }
+                      },
+                      child: const Text('Servicio técnico'),
+                    ),
+                  ],
+                )),
     );
   }
 }

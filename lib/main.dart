@@ -111,7 +111,7 @@ class MyAppState extends State<MyApp> {
       navigatorKey: navigatorKey,
       title: biocalden ? 'Biocalden Smart Life' : 'Silema calefactores',
       theme: ThemeData(
-        primaryColor: const Color.fromARGB(255, 30, 36, 43),
+        primaryColor: const Color.fromRGBO(30, 36, 43, 1),
         primaryColorLight: const Color.fromARGB(255, 178, 181, 174),
         textSelectionTheme: const TextSelectionThemeData(
           selectionColor: Color.fromARGB(255, 178, 181, 174),

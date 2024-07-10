@@ -48,6 +48,7 @@ app.*.map.json
 
 /lib/aws/mqtt/mqtt_certificates.dart
 /lib/aws/dynamo/dynamo_certificates.dart
+/lib/firebase_options.dart
 
 #amplify-do-not-edit-begin
 amplify/\#current-cloud-backend
