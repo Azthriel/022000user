@@ -86,7 +86,7 @@ class FieldState extends State<FieldWidget> {
         keyboardType: widget.keyboard,
         controller: widget.controlador,
         focusNode: widget.node,
-        cursorColor: const Color.fromARGB(255, 255, 255, 255),
+        cursorColor: const Color(0xFFFFFFFF),
         obscureText: widget.pass ? _obscureText : false,
         onFieldSubmitted: (value) {
           if (widget.controlador == mailController) {
@@ -94,8 +94,8 @@ class FieldState extends State<FieldWidget> {
           }
         },
         decoration: InputDecoration(
-            focusColor: const Color.fromARGB(255, 189, 189, 189),
-            hoverColor: const Color.fromARGB(255, 189, 189, 189),
+            focusColor: const Color(0xFFBDBDBD),
+            hoverColor: const Color(0xFFBDBDBD),
             hintText: widget.title,
             border: InputBorder.none,
             prefixIcon: Icon(

@@ -9,7 +9,6 @@ void loadValues() async {
   globalDATA = await loadGlobalData();
   previusConnections = await cargarLista();
   topicsToSub = await loadTopicList();
-  ownedDevices = await loadOwnedDevices();
   nicknamesMap = await loadNicknamesMap();
   tokensOfDevices = await loadToken();
   subNicknamesMap = await loadSubNicknamesMap();

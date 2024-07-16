@@ -32,7 +32,7 @@ class AskLoginPageState extends State<AskLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+      backgroundColor: const Color(0xFF252223),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +48,7 @@ class AskLoginPageState extends State<AskLoginPage> {
               height: 30,
             ),
             const CircularProgressIndicator(
-              color: Color.fromARGB(255, 255, 255, 255),
+              color: Color(0xFFFFFFFF),
             ),
           ],
         ),
@@ -122,26 +122,26 @@ class LoginPageState extends State<LoginPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          backgroundColor: const Color(0xFF1E242B),
           title: const Text(
             'Ingresa el código de verificación.',
-            style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            style: TextStyle(color: Color(0xFFB2B5AE)),
           ),
           content: TextField(
             controller: codeController,
             keyboardType: TextInputType.number,
-            style: const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            style: const TextStyle(color: Color(0xFFB2B5AE)),
             decoration: const InputDecoration(
               icon: Icon(Icons.mail),
-              iconColor: Color.fromARGB(255, 178, 181, 174),
-              hintStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+              iconColor: Color(0xFFB2B5AE),
+              hintStyle: TextStyle(color: Color(0xFFB2B5AE)),
             ),
           ),
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
                   foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 178, 181, 174))),
+                      Color(0xFFB2B5AE))),
               child: const Text('Verificar código'),
               onPressed: () async {
                 try {
@@ -200,10 +200,10 @@ class LoginPageState extends State<LoginPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          backgroundColor: const Color(0xFF1E242B),
           title: const Text(
             'Ingresa el código de verificación y la nueva contraseña.',
-            style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+            style: TextStyle(color: Color(0xFFB2B5AE)),
           ),
           content: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -213,13 +213,13 @@ class LoginPageState extends State<LoginPage> {
                 controller: npcodeController,
                 keyboardType: TextInputType.number,
                 style:
-                    const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                    const TextStyle(color: Color(0xFFB2B5AE)),
                 decoration: const InputDecoration(
                   icon: Icon(Icons.mail),
-                  iconColor: Color.fromARGB(255, 178, 181, 174),
+                  iconColor: Color(0xFFB2B5AE),
                   hintText: 'Ingrese el código aquí',
                   hintStyle:
-                      TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                      TextStyle(color: Color(0xFFB2B5AE)),
                 ),
               ),
               const SizedBox(
@@ -229,13 +229,13 @@ class LoginPageState extends State<LoginPage> {
                 controller: npController,
                 keyboardType: TextInputType.text,
                 style:
-                    const TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                    const TextStyle(color: Color(0xFFB2B5AE)),
                 decoration: const InputDecoration(
                   icon: Icon(Icons.key),
-                  iconColor: Color.fromARGB(255, 178, 181, 174),
+                  iconColor: Color(0xFFB2B5AE),
                   hintText: 'Ingrese su nueva contraseña aquí',
                   hintStyle:
-                      TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                      TextStyle(color: Color(0xFFB2B5AE)),
                 ),
               ),
             ],
@@ -244,7 +244,7 @@ class LoginPageState extends State<LoginPage> {
             TextButton(
               style: const ButtonStyle(
                   foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 178, 181, 174))),
+                      Color(0xFFB2B5AE))),
               child: const Text('Cambiar contraseña'),
               onPressed: () async {
                 try {
@@ -443,8 +443,7 @@ class LoginPageState extends State<LoginPage> {
                                         child: Text(
                                           'Versión $appVersionNumber',
                                           style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 156, 157, 152),
+                                              color: Color(0xFF9C9D98),
                                               fontSize: 12),
                                         )),
                                   ],

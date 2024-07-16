@@ -28,7 +28,6 @@ Map<String, Map<String, dynamic>> globalDATA = {};
 late bool android;
 final dio = Dio();
 List<String> topicsToSub = [];
-List<String> ownedDevices = [];
 List<String> adminDevices = [];
 MyDevice myDevice = MyDevice();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -58,6 +57,7 @@ Timer? locationTimer;
 Timer? bluetoothTimer;
 int lastUser = 0;
 List<String> previusConnections = [];
+List<String> highlightedConnections = [];
 Map<String, String> nicknamesMap = {};
 Map<String, String> subNicknamesMap = {};
 String deviceType = '';
@@ -90,7 +90,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24071000';
+String appVersionNumber = '24071500';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -113,8 +113,8 @@ void showToast(String message) {
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      textColor: const Color.fromARGB(255, 0, 0, 0),
+      backgroundColor: const Color(0xFFFFFFFF),
+      textColor: const Color(0xFF000000),
       fontSize: 16.0);
 }
 
@@ -339,20 +339,19 @@ void showBleText() async {
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color(0xFF252223),
           title: const Text(
             'Bluetooth apagado',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           content: const Text(
             'No se puede continuar sin Bluetooth',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           actions: [
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
               onPressed: () async {
                 if (Platform.isAndroid) {
                   await FlutterBluePlus.turnOn();
@@ -394,20 +393,20 @@ void showUbiText() {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+            backgroundColor: const Color(0xFF252223),
             title: const Text(
               'Ubicación apagada',
-              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              style: TextStyle(color: Color(0xFFFFFFFF)),
             ),
             content: const Text(
               'No se puede continuar sin la ubicación',
-              style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+              style: TextStyle(color: Color(0xFFFFFFFF)),
             ),
             actions: [
               TextButton(
                   style: const ButtonStyle(
-                      foregroundColor: MaterialStatePropertyAll(
-                          Color.fromARGB(255, 255, 255, 255))),
+                      foregroundColor:
+                          MaterialStatePropertyAll(Color(0xFFFFFFFF))),
                   onPressed: () async {
                     checkubiFlag = false;
                     navigatorKey.currentState?.pop();
@@ -429,18 +428,17 @@ void showPrivacyDialogIfNeeded() async {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color(0xFF252223),
           title: const Text(
             'Política de Privacidad',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
                   'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de $appName, por favor, acepta nuestra política de privacidad.',
-                  style: const TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255)),
+                  style: const TextStyle(color: Color(0xFFFFFFFF)),
                 ),
               ],
             ),
@@ -448,8 +446,7 @@ void showPrivacyDialogIfNeeded() async {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
                 Uri uri = Uri.parse(biocalden
@@ -464,8 +461,7 @@ void showPrivacyDialogIfNeeded() async {
             ),
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
-                      Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
               child: const Text('Aceptar'),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -566,16 +562,12 @@ void showContactInfo(BuildContext context) {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-            // backgroundColor: const Color.fromARGB(255, 230, 254, 255),
             content: Column(
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
               const Text('Contacto comercial:',
-                  style: TextStyle(
-                      // color: Color.fromARGB(255, 0, 0, 0),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -584,14 +576,10 @@ void showContactInfo(BuildContext context) {
                           '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
                       icon: const Icon(
                         Icons.phone,
-                        // color: Color.fromARGB(255, 29, 163, 169),
                         size: 20,
                       )),
-                  // const SizedBox(width: 5),
                   const Text('+54 9 11 6223-4181',
-                      style: TextStyle(
-                          // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20))
+                      style: TextStyle(fontSize: 20))
                 ],
               ),
               SingleChildScrollView(
@@ -606,23 +594,16 @@ void showContactInfo(BuildContext context) {
                             '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                         icon: const Icon(
                           Icons.mail,
-                          // color: Color.fromARGB(255, 29, 163, 169),
                           size: 20,
                         ),
                       ),
-                      // const SizedBox(width: 5),
                       const Text('ceat@ibsanitarios.com.ar',
-                          style: TextStyle(
-                              // color: Color.fromARGB(255, 0, 0, 0),
-                              fontSize: 20))
+                          style: TextStyle(fontSize: 20))
                     ],
                   )),
               const SizedBox(height: 20),
               const Text('Consulta técnica:',
-                  style: TextStyle(
-                      // color: Color.fromARGB(255, 0, 0, 0),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -635,16 +616,12 @@ void showContactInfo(BuildContext context) {
                           '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
                       icon: const Icon(
                         Icons.mail,
-                        // color: Color.fromARGB(255, 29, 163, 169),
                         size: 20,
                       ),
                     ),
-                    // const SizedBox(width: 5),
                     const Text(
                       'pablo@intelligentgas.com.ar',
-                      style: TextStyle(
-                          // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20),
+                      style: TextStyle(fontSize: 20),
                       overflow: TextOverflow.ellipsis,
                     )
                   ],
@@ -652,10 +629,7 @@ void showContactInfo(BuildContext context) {
               ),
               const SizedBox(height: 20),
               const Text('Customer service:',
-                  style: TextStyle(
-                      // color: Color.fromARGB(255, 0, 0, 0),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -664,14 +638,10 @@ void showContactInfo(BuildContext context) {
                           '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
                       icon: const Icon(
                         Icons.phone,
-                        // color: Color.fromARGB(255, 29, 163, 169),
                         size: 20,
                       )),
-                  // const SizedBox(width: 5),
                   const Text('+54 9 11 6223-2619',
-                      style: TextStyle(
-                          // color: Color.fromARGB(255, 0, 0, 0),
-                          fontSize: 20))
+                      style: TextStyle(fontSize: 20))
                 ],
               ),
               SingleChildScrollView(
@@ -686,15 +656,13 @@ void showContactInfo(BuildContext context) {
                             'Tengo una consulta referida a mi equipo $deviceName: \n'),
                         icon: const Icon(
                           Icons.mail,
-                          // color: Color.fromARGB(255, 29, 163, 169),
                           size: 20,
                         ),
                       ),
-                      // const SizedBox(width: 5),
                       const Text(
                         'service@calefactorescalden.com.ar',
-                        style: TextStyle(
-                            color: Color.fromARGB(255, 0, 0, 0), fontSize: 20),
+                        style:
+                            TextStyle(color: Color(0xFF000000), fontSize: 20),
                         overflow: TextOverflow.ellipsis,
                       )
                     ],
@@ -872,7 +840,7 @@ void wifiText(BuildContext context) {
                   text: 'Estado de conexión: ',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Color.fromARGB(255, 255, 255, 255),
+                    color: Color(0xFFFFFFFF),
                   ),
                 ),
               ),
@@ -898,7 +866,7 @@ void wifiText(BuildContext context) {
                     text: 'Error: $errorMessage',
                     style: const TextStyle(
                       fontSize: 10,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                   ),
                 ),
@@ -908,7 +876,7 @@ void wifiText(BuildContext context) {
                     text: 'Sintax: $errorSintax',
                     style: const TextStyle(
                       fontSize: 10,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                   ),
                 ),
@@ -922,7 +890,7 @@ void wifiText(BuildContext context) {
                       text: 'Red actual: ',
                       style: TextStyle(
                           fontSize: 20,
-                          color: Color.fromARGB(255, 255, 255, 255),
+                          color: Color(0xFFFFFFFF),
                           fontWeight: FontWeight.bold),
                     ),
                   ),
@@ -930,7 +898,7 @@ void wifiText(BuildContext context) {
                     nameOfWifi,
                     style: const TextStyle(
                       fontSize: 20,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                   ),
                 ]),
@@ -941,7 +909,7 @@ void wifiText(BuildContext context) {
                   text: 'Ingrese los datos de WiFi',
                   style: TextStyle(
                     fontSize: 20,
-                    color: Color.fromARGB(255, 255, 255, 255),
+                    color: Color(0xFFFFFFFF),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -949,7 +917,7 @@ void wifiText(BuildContext context) {
               IconButton(
                 icon: const Icon(
                   Icons.qr_code,
-                  color: Color.fromARGB(255, 255, 255, 255),
+                  color: Color(0xFFFFFFFF),
                 ),
                 iconSize: 50,
                 onPressed: () async {
@@ -966,12 +934,12 @@ void wifiText(BuildContext context) {
               ),
               TextField(
                 style: const TextStyle(
-                  color: Color.fromARGB(255, 255, 255, 255),
+                  color: Color(0xFFFFFFFF),
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Nombre de la red',
                   hintStyle: TextStyle(
-                    color: Color.fromARGB(255, 255, 255, 255),
+                    color: Color(0xFFFFFFFF),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(),
@@ -986,12 +954,12 @@ void wifiText(BuildContext context) {
               ),
               TextField(
                 style: const TextStyle(
-                  color: Color.fromARGB(255, 255, 255, 255),
+                  color: Color(0xFFFFFFFF),
                 ),
                 decoration: const InputDecoration(
                   hintText: 'Contraseña',
                   hintStyle: TextStyle(
-                    color: Color.fromARGB(255, 255, 255, 255),
+                    color: Color(0xFFFFFFFF),
                   ),
                   enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(),
@@ -1014,7 +982,7 @@ void wifiText(BuildContext context) {
             child: const Text(
               'Aceptar',
               style: TextStyle(
-                color: Color.fromARGB(255, 255, 255, 255),
+                color: Color(0xFFFFFFFF),
               ),
             ),
             onPressed: () {
@@ -1034,20 +1002,20 @@ void showAdminText() {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color(0xFF252223),
           title: const Text(
             'Haz alcanzado el límite máximo de administradores secundarios',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           content: const Text(
             'En caso de requerir más puedes solicitarlos vía mail',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                    foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 255, 255, 255))),
+                    foregroundColor:
+                        MaterialStatePropertyAll(Color(0xFFFFFFFF))),
                 onPressed: () async {
                   String cuerpo =
                       '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
@@ -1107,11 +1075,11 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+          backgroundColor: const Color(0xFF1E242B),
           title: const Text(
             '¡Estas por perder tu beneficio!',
             style: TextStyle(
-              color: Color.fromARGB(255, 178, 181, 174),
+              color: Color(0xFFB2B5AE),
             ),
           ),
           content: Column(
@@ -1121,20 +1089,19 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
               Text(
                 'Faltan $vencimiento días para que te quedes sin la opción:',
                 style: const TextStyle(
-                    color: Color.fromARGB(255, 178, 181, 174),
-                    fontWeight: FontWeight.normal),
+                    color: Color(0xFFB2B5AE), fontWeight: FontWeight.normal),
               ),
               adm
                   ? const Text(
                       'Administradores secundarios extra',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 178, 181, 174),
+                          color: Color(0xFFB2B5AE),
                           fontWeight: FontWeight.bold),
                     )
                   : const Text(
                       'Habilitar alquiler temporario',
                       style: TextStyle(
-                          color: Color.fromARGB(255, 178, 181, 174),
+                          color: Color(0xFFB2B5AE),
                           fontWeight: FontWeight.bold),
                     )
             ],
@@ -1143,7 +1110,7 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
             TextButton(
               style: const ButtonStyle(
                 foregroundColor: MaterialStatePropertyAll(
-                  Color.fromARGB(255, 178, 181, 174),
+                  Color(0xFFB2B5AE),
                 ),
               ),
               child: const Text('Ignorar'),
@@ -1154,7 +1121,7 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
             TextButton(
               style: const ButtonStyle(
                 foregroundColor: MaterialStatePropertyAll(
-                  Color.fromARGB(255, 178, 181, 174),
+                  Color(0xFFB2B5AE),
                 ),
               ),
               child: const Text('Solicitar extensión'),
@@ -1195,20 +1162,20 @@ void showATText() {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color(0xFF252223),
           title: const Text(
             'Actualmente no tienes habilitado este beneficio',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           content: const Text(
             'En caso de requerirlo puedes solicitarlo vía mail',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                    foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 255, 255, 255))),
+                    foregroundColor:
+                        MaterialStatePropertyAll(Color(0xFFFFFFFF))),
                 onPressed: () async {
                   String cuerpo =
                       '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
@@ -1247,10 +1214,10 @@ Future<void> configAT() async {
         final FocusNode dOnNode = FocusNode();
         final FocusNode dOffNode = FocusNode();
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 37, 34, 35),
+          backgroundColor: const Color(0xFF252223),
           title: const Text(
             'Configura los parametros del alquiler',
-            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255)),
+            style: TextStyle(color: Color(0xFFFFFFFF)),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -1261,14 +1228,14 @@ Future<void> configAT() async {
                     controller: tenantController,
                     keyboardType: TextInputType.emailAddress,
                     style: const TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                     decoration: const InputDecoration(
                       icon: Icon(Icons.person),
-                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      iconColor: Color(0xFFFFFFFF),
                       labelText: "Email del inquilino",
                       labelStyle: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color(0xFFFFFFFF),
                       ),
                     ),
                     onEditingComplete: () {
@@ -1284,18 +1251,18 @@ Future<void> configAT() async {
                     keyboardType: TextInputType.number,
                     focusNode: dOffNode,
                     style: const TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                     decoration: const InputDecoration(
                       icon: Icon(Icons.map),
-                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      iconColor: Color(0xFFFFFFFF),
                       labelText: "Distancia de apagado",
                       labelStyle: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color(0xFFFFFFFF),
                       ),
                       hintText: 'Entre 100 y 300 metros',
                       hintStyle: TextStyle(
-                        color: Color.fromARGB(255, 141, 141, 141),
+                        color: Color(0xFF8D8D8D),
                       ),
                     ),
                     onEditingComplete: () {
@@ -1313,18 +1280,18 @@ Future<void> configAT() async {
                     keyboardType: TextInputType.number,
                     focusNode: dOnNode,
                     style: const TextStyle(
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: Color(0xFFFFFFFF),
                     ),
                     decoration: const InputDecoration(
                       icon: Icon(Icons.map),
-                      iconColor: Color.fromARGB(255, 255, 255, 255),
+                      iconColor: Color(0xFFFFFFFF),
                       labelText: "Distancia de encendido",
                       labelStyle: TextStyle(
-                        color: Color.fromARGB(255, 255, 255, 255),
+                        color: Color(0xFFFFFFFF),
                       ),
                       hintText: 'Entre 3000 y 5000 metros',
                       hintStyle: TextStyle(
-                        color: Color.fromARGB(255, 141, 141, 141),
+                        color: Color(0xFF8D8D8D),
                       ),
                     ),
                     onEditingComplete: () {
@@ -1341,8 +1308,10 @@ Future<void> configAT() async {
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                    foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 255, 255, 255))),
+                  foregroundColor: MaterialStatePropertyAll(
+                    Color(0xFFFFFFFF),
+                  ),
+                ),
                 onPressed: () {
                   if (dOnOk && dOffOk && tenantController.text != '') {
                     saveATData(
@@ -1759,7 +1728,7 @@ class QRScanPageState extends State<QRScanPage>
                 child: const Center(
                   child: Text('Escanea el QR',
                       style:
-                          TextStyle(color: Color.fromARGB(255, 178, 181, 174))),
+                          TextStyle(color: Color(0xFFB2B5AE))),
                 )),
           ),
           // Abajo
@@ -1806,7 +1775,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 4,
-                    color: const Color.fromARGB(255, 30, 36, 43),
+                    color: const Color(0xFF1E242B),
                   ),
                 ),
                 Positioned(
@@ -1815,7 +1784,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 3,
-                    color: const Color.fromARGB(255, 178, 181, 174),
+                    color: const Color(0xFFB2B5AE),
                   ),
                 ),
                 Positioned(
@@ -1824,7 +1793,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     height: 3,
-                    color: const Color.fromARGB(255, 178, 181, 174),
+                    color: const Color(0xFFB2B5AE),
                   ),
                 ),
                 Positioned(
@@ -1833,7 +1802,7 @@ class QRScanPageState extends State<QRScanPage>
                   left: 0,
                   child: Container(
                     width: 3,
-                    color: const Color.fromARGB(255, 178, 181, 174),
+                    color: const Color(0xFFB2B5AE),
                   ),
                 ),
                 Positioned(
@@ -1842,7 +1811,7 @@ class QRScanPageState extends State<QRScanPage>
                   right: 0,
                   child: Container(
                     width: 3,
-                    color: const Color.fromARGB(255, 178, 181, 174),
+                    color: const Color(0xFFB2B5AE),
                   ),
                 ),
               ],
@@ -1926,7 +1895,7 @@ class MyDrawerState extends State<MyDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+      backgroundColor: const Color(0xFF141824),
       child: previusConnections.isEmpty
           ? ListView(
               children: const [
@@ -1940,7 +1909,7 @@ class MyDrawerState extends State<MyDrawer> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 178, 181, 174),
+                          color: Color(0xFFB2B5AE),
                         ),
                       ),
                     ),
@@ -1949,11 +1918,17 @@ class MyDrawerState extends State<MyDrawer> {
               ],
             )
           : ListView.builder(
-              itemCount: previusConnections.length + 1,
+              itemCount:
+                  highlightedConnections.length + previusConnections.length + 1,
               itemBuilder: (BuildContext context, int index) {
+                for (String device in previusConnections) {
+                  queryItems(
+                      service, command(device), extractSerialNumber(device));
+                }
                 if (index == 0) {
                   // El primer ítem será el DrawerHeader
                   return const DrawerHeader(
+                      key: Key('drawerHeader'),
                       decoration: BoxDecoration(
                           // color: Colors.blue,
                           ),
@@ -1966,14 +1941,14 @@ class MyDrawerState extends State<MyDrawer> {
                               Text(
                                 'Mis equipos\nregistrados:',
                                 style: TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  color: Color(0xFFB2B5AE),
                                   fontSize: 24,
                                 ),
                               ),
                               SizedBox(width: 80),
                               Icon(
                                 Icons.wifi,
-                                color: Color.fromARGB(255, 178, 181, 174),
+                                color: Color(0xFFB2B5AE),
                               )
                             ],
                           ),
@@ -1981,8 +1956,15 @@ class MyDrawerState extends State<MyDrawer> {
                       ));
                 }
 
-                String deviceName = previusConnections[index - 1];
+                bool isHighlighted = index <= highlightedConnections.length;
+
+                String deviceName = isHighlighted
+                    ? highlightedConnections[index - 1]
+                    : previusConnections[
+                        index - highlightedConnections.length - 1];
+
                 return Consumer<GlobalDataNotifier>(
+                  key: Key(deviceName),
                   builder: (context, notifier, child) {
                     String equipo = command(deviceName);
                     Map<String, dynamic> topicData = notifier
@@ -1996,26 +1978,42 @@ class MyDrawerState extends State<MyDrawer> {
                     Map<String, dynamic> deviceDATA = globalDATA[
                         '$equipo/${extractSerialNumber(deviceName)}']!;
                     printLog(deviceDATA);
+
                     bool online = deviceDATA['cstate'] ?? false;
+
+                    List<dynamic> admins = deviceDATA['secondary_admin'] ?? [];
+
+                    bool owner = deviceDATA['owner'] == currentUserEmail ||
+                        admins.contains(deviceName);
+
+                    // printLog('Owner: ${deviceDATA['owner']} $owner');
+                    // printLog('Admins secundarios: $admins');
                     if (equipo == '022000_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
                       bool heaterOn = deviceDATA['f_status'] ?? false;
-                      bool owner = ownedDevices.contains(deviceName);
-                      return ListTile(
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
                           leading: SizedBox(
-                            width: 20,
+                            width: 40,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  color: Color(0xFFB2B5AE),
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  printLog('Eliminando de la lista');
                                   setState(() {
-                                    previusConnections.removeAt(index - 1);
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
                                   });
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
@@ -2036,13 +2034,49 @@ class MyDrawerState extends State<MyDrawer> {
                                           MainAxisAlignment.start,
                                       children: [
                                         Text(
-                                            nicknamesMap[deviceName] ??
-                                                deviceName,
-                                            style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold))
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color(0xFFB2B5AE),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -2101,13 +2135,13 @@ class MyDrawerState extends State<MyDrawer> {
                           trailing: owner
                               ? Switch(
                                   activeColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   activeTrackColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveThumbColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveTrackColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2119,26 +2153,36 @@ class MyDrawerState extends State<MyDrawer> {
                               : const SizedBox(
                                   height: 0,
                                   width: 0,
-                                ));
+                                ),
+                        ),
+                      );
                     } else if (equipo == '027000_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
                       bool heaterOn = deviceDATA['f_status'] ?? false;
-                      bool owner = ownedDevices.contains(deviceName);
-                      return ListTile(
+
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
                           leading: SizedBox(
-                            width: 20,
+                            width: 40,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  color: Color(0xFFB2B5AE),
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  printLog('Eliminando de la lista');
                                   setState(() {
-                                    previusConnections.removeAt(index - 1);
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
                                   });
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
@@ -2159,13 +2203,49 @@ class MyDrawerState extends State<MyDrawer> {
                                           MainAxisAlignment.start,
                                       children: [
                                         Text(
-                                            nicknamesMap[deviceName] ??
-                                                deviceName,
-                                            style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold))
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color(0xFFB2B5AE),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -2224,13 +2304,13 @@ class MyDrawerState extends State<MyDrawer> {
                           trailing: owner
                               ? Switch(
                                   activeColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   activeTrackColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveThumbColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveTrackColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2242,26 +2322,36 @@ class MyDrawerState extends State<MyDrawer> {
                               : const SizedBox(
                                   height: 0,
                                   width: 0,
-                                ));
+                                ),
+                        ),
+                      );
                     } else if (equipo == '041220_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
                       bool heaterOn = deviceDATA['f_status'] ?? false;
-                      bool owner = ownedDevices.contains(deviceName);
-                      return ListTile(
+
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
                           leading: SizedBox(
-                            width: 20,
+                            width: 40,
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: IconButton(
                                 icon: const Icon(
                                   Icons.delete,
-                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  color: Color(0xFFB2B5AE),
                                   size: 20,
                                 ),
                                 onPressed: () {
-                                  printLog('Eliminando de la lista');
                                   setState(() {
-                                    previusConnections.removeAt(index - 1);
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
                                   });
                                   guardarLista(previusConnections);
                                   unSubToTopicMQTT(
@@ -2282,13 +2372,49 @@ class MyDrawerState extends State<MyDrawer> {
                                           MainAxisAlignment.start,
                                       children: [
                                         Text(
-                                            nicknamesMap[deviceName] ??
-                                                deviceName,
-                                            style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.bold))
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color(0xFFB2B5AE),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -2347,13 +2473,13 @@ class MyDrawerState extends State<MyDrawer> {
                           trailing: owner
                               ? Switch(
                                   activeColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   activeTrackColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveThumbColor:
-                                      const Color.fromARGB(255, 178, 181, 174),
+                                      const Color(0xFFB2B5AE),
                                   inactiveTrackColor:
-                                      const Color.fromARGB(255, 156, 157, 152),
+                                      const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2365,129 +2491,172 @@ class MyDrawerState extends State<MyDrawer> {
                               : const SizedBox(
                                   height: 0,
                                   width: 0,
-                                ));
+                                ),
+                        ),
+                      );
                     } else if (equipo == '015773_IOT') {
                       int ppmCO = deviceDATA['ppmco'] ?? 0;
                       int ppmCH4 = deviceDATA['ppmch4'] ?? 0;
                       bool alert = deviceDATA['alert'] == 1;
-                      return ListTile(
-                        leading: SizedBox(
-                          width: 20,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 156, 157, 152),
-                                size: 20,
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 40,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color(0xFFB2B5AE),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
+                                  });
+                                  guardarLista(previusConnections);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                },
                               ),
-                              onPressed: () async {
-                                printLog('Eliminando de la lista');
-                                setState(() {
-                                  previusConnections.removeAt(index - 1);
-                                });
-                                guardarLista(previusConnections);
-                                unSubToTopicMQTT(
-                                    'devices_tx/$equipo/$deviceName');
-                                List<String> tokens = await getTokens(service,
-                                    equipo, extractSerialNumber(deviceName));
-                                tokens.remove(tokensOfDevices[deviceName]);
-                                putTokens(service, equipo,
-                                    extractSerialNumber(deviceName), tokens);
-                              },
                             ),
                           ),
-                        ),
-                        title: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
                                           nicknamesMap[deviceName] ??
                                               deviceName,
                                           style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
+                                              color: Color(0xFFB2B5AE),
                                               fontSize: 15,
-                                              fontWeight: FontWeight.bold))
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              online
-                                  ? const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '● CONECTADO',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                            color: Colors.green,
-                                            fontSize: 12,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ),
-                                      ],
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '● DESCONECTADO',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 12,
-                                          ),
+                                        const SizedBox(
+                                          width: 20,
                                         ),
                                       ],
                                     ),
+                                  ),
+                                ),
+                                online
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● CONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● DESCONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ]),
+                          subtitle: Text.rich(
+                            TextSpan(children: [
+                              const TextSpan(
+                                text: 'PPM CO: ',
+                                style: TextStyle(
+                                  color: Color(0xFF9C9D98),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '$ppmCO\n',
+                                style: const TextStyle(
+                                    color: Color(0xFF9C9D98),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const TextSpan(
+                                text: 'CH4 LIE: ',
+                                style: TextStyle(
+                                  color: Color(0xFF9C9D98),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '${(ppmCH4 / 500).round()}%',
+                                style: const TextStyle(
+                                    color: Color(0xFF9C9D98),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold),
+                              ),
                             ]),
-                        subtitle: Text.rich(
-                          TextSpan(children: [
-                            const TextSpan(
-                              text: 'PPM CO: ',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 156, 157, 152),
-                                fontSize: 15,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '$ppmCO\n',
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 156, 157, 152),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const TextSpan(
-                              text: 'CH4 LIE: ',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 156, 157, 152),
-                                fontSize: 15,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${(ppmCH4 / 500).round()}%',
-                              style: const TextStyle(
-                                  color: Color.fromARGB(255, 156, 157, 152),
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ]),
+                          ),
+                          trailing: alert
+                              ? const Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.red,
+                                )
+                              : null,
                         ),
-                        trailing: alert
-                            ? const Icon(
-                                Icons.warning_amber_rounded,
-                                color: Colors.red,
-                              )
-                            : null,
                       );
                     } else if (equipo == '020010_IOT') {
                       String io =
@@ -2502,98 +2671,127 @@ class MyDrawerState extends State<MyDrawer> {
                         estadoDrawer.add(equipo[1] == '1');
                         comunDrawer.add(equipo[2]);
                       }
-                      return ListTile(
-                        leading: SizedBox(
-                          width: 20,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 156, 157, 152),
-                                size: 20,
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 40,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color(0xFFB2B5AE),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
+                                  });
+                                  guardarLista(previusConnections);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                },
                               ),
-                              onPressed: () async {
-                                printLog('Eliminando de la lista');
-                                setState(() {
-                                  previusConnections.removeAt(index - 1);
-                                });
-                                guardarLista(previusConnections);
-                                unSubToTopicMQTT(
-                                    'devices_tx/$equipo/$deviceName');
-
-                                for (int index = 0; index < 4; index++) {
-                                  List<String> tokens = await getIOTokens(
-                                      service,
-                                      equipo,
-                                      extractSerialNumber(deviceName),
-                                      index);
-                                  tokens.remove(
-                                      tokensOfDevices['$deviceName$index']);
-                                  putIOTokens(
-                                      service,
-                                      equipo,
-                                      extractSerialNumber(deviceName),
-                                      tokens,
-                                      index);
-                                }
-                              },
                             ),
                           ),
-                        ),
-                        title: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: AlignmentDirectional.centerStart,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
                                           nicknamesMap[deviceName] ??
                                               deviceName,
                                           style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
+                                              color: Color(0xFFB2B5AE),
                                               fontSize: 15,
-                                              fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              online
-                                  ? const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '● CONECTADO',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                            color: Colors.green,
-                                            fontSize: 12,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+                                              },
+                                            ),
                                           ),
                                         ),
-                                      ],
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '● DESCONECTADO',
-                                          textAlign: TextAlign.start,
-                                          style: TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 12,
-                                          ),
+                                        const SizedBox(
+                                          width: 20,
                                         ),
                                       ],
                                     ),
-                            ]),
-                        subtitle: SizedBox(
+                                  ),
+                                ),
+                                online
+                                    ? const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● CONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      )
+                                    : const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            '● DESCONECTADO',
+                                            textAlign: TextAlign.start,
+                                            style: TextStyle(
+                                              color: Colors.red,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ]),
+                          subtitle: SizedBox(
                             height: 80,
                             child: PageView.builder(
                               physics: const PageScrollPhysics(
@@ -2610,10 +2808,9 @@ class MyDrawerState extends State<MyDrawer> {
                                       children: [
                                         Text(
                                           subNicknamesMap['$deviceName/-/$i'] ??
-                                              '${tipoDrawer[i]} ${i + 1}',
+                                              '${tipoDrawer[i]} $i',
                                           style: const TextStyle(
-                                              color: Color.fromARGB(
-                                                  255, 178, 181, 174),
+                                              color: Color(0xFFB2B5AE),
                                               fontWeight: FontWeight.bold),
                                           textAlign: TextAlign.start,
                                         ),
@@ -2622,24 +2819,21 @@ class MyDrawerState extends State<MyDrawer> {
                                             ? const Icon(
                                                 Icons.arrow_right_alt,
                                                 size: 30,
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
+                                                color: Color(0xFFB2B5AE),
                                               )
                                             : const SizedBox(width: 0),
                                         index == 1
                                             ? const Icon(
                                                 Icons.compare_arrows,
                                                 size: 30,
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
+                                                color: Color(0xFFB2B5AE),
                                               )
                                             : const SizedBox(width: 0),
                                         index == 2
                                             ? const Icon(
                                                 Icons.compare_arrows,
                                                 size: 30,
-                                                color: Color.fromARGB(
-                                                    255, 178, 181, 174),
+                                                color: Color(0xFFB2B5AE),
                                               )
                                             : const SizedBox(width: 0),
                                         index == 3
@@ -2648,8 +2842,7 @@ class MyDrawerState extends State<MyDrawer> {
                                                 child: Icon(
                                                   Icons.arrow_right_alt,
                                                   size: 30,
-                                                  color: Color.fromARGB(
-                                                      255, 178, 181, 174),
+                                                  color: Color(0xFFB2B5AE),
                                                 ),
                                               )
                                             : const SizedBox(width: 0),
@@ -2715,17 +2908,13 @@ class MyDrawerState extends State<MyDrawer> {
                                                   color: Color(0xff9b9b9b),
                                                 )
                                       : Switch(
-                                          activeColor: const Color.fromARGB(
-                                              255, 156, 157, 152),
+                                          activeColor: const Color(0xFF9C9D98),
                                           activeTrackColor:
-                                              const Color.fromARGB(
-                                                  255, 178, 181, 174),
+                                              const Color(0xFFB2B5AE),
                                           inactiveThumbColor:
-                                              const Color.fromARGB(
-                                                  255, 178, 181, 174),
+                                              const Color(0xFFB2B5AE),
                                           inactiveTrackColor:
-                                              const Color.fromARGB(
-                                                  255, 156, 157, 152),
+                                              const Color(0xFF9C9D98),
                                           value: estadoDrawer[i],
                                           onChanged: (value) {
                                             String fun2 =
@@ -2757,7 +2946,9 @@ class MyDrawerState extends State<MyDrawer> {
                                         ),
                                 );
                               },
-                            )),
+                            ),
+                          ),
+                        ),
                       );
                     } else {
                       return const Text('Un error inesperado ha ocurrido');
@@ -2786,5 +2977,64 @@ class GlobalDataNotifier extends ChangeNotifier {
       _data[topic] = newData;
       notifyListeners(); // Esto notifica a todos los oyentes que algo cambió
     }
+  }
+}
+
+//*-Slider-*//Cositas
+
+class IconThumbSlider extends SliderComponentShape {
+  final IconData iconData;
+  final double thumbRadius;
+
+  const IconThumbSlider({required this.iconData, required this.thumbRadius});
+
+  @override
+  Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+    return Size.fromRadius(thumbRadius);
+  }
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required Animation<double> activationAnimation,
+    required Animation<double> enableAnimation,
+    required bool isDiscrete,
+    required TextPainter labelPainter,
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    required TextDirection textDirection,
+    required double value,
+    required double textScaleFactor,
+    required Size sizeWithOverflow,
+  }) {
+    final Canvas canvas = context.canvas;
+
+    // Draw the thumb as a circle
+    final paint = Paint()
+      ..color = sliderTheme.thumbColor!
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(center, thumbRadius, paint);
+
+    // Draw the icon on the thumb
+    TextSpan span = TextSpan(
+      style: TextStyle(
+        fontSize: thumbRadius,
+        fontFamily: iconData.fontFamily,
+        color: sliderTheme.valueIndicatorColor,
+      ),
+      text: String.fromCharCode(iconData.codePoint),
+    );
+    TextPainter tp = TextPainter(
+        text: span,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr);
+    tp.layout();
+    Offset iconOffset = Offset(
+      center.dx - (tp.width / 2),
+      center.dy - (tp.height / 2),
+    );
+    tp.paint(canvas, iconOffset);
   }
 }

@@ -111,19 +111,19 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                           keyboardType: TextInputType.number,
                           controller: costController,
                           style: const TextStyle(
-                              color: Color.fromARGB(255, 255, 255, 255)),
-                          cursorColor: const Color.fromARGB(255, 189, 189, 189),
+                              color: Color(0xFFFFFFFF)),
+                          cursorColor: const Color(0xFFBDBDBD),
                           decoration: InputDecoration(
                             labelText: 'Ingresa valor $measure',
                             labelStyle: const TextStyle(
-                                color: Color.fromARGB(255, 255, 255, 255)),
+                                color: Color(0xFFFFFFFF)),
                             enabledBorder: const UnderlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
+                                  color: Color(0xFFBDBDBD)),
                             ),
                             focusedBorder: const UnderlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
+                                  color: Color(0xFFBDBDBD)),
                             ),
                           ),
                         )),
@@ -132,7 +132,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       Visibility(
                           visible: loading,
                           child: const CircularProgressIndicator(
-                              color: Color.fromARGB(255, 255, 255, 255))),
+                              color: Color(0xFFFFFFFF))),
                       Visibility(
                           visible: !loading,
                           child: Text('\$$result',
@@ -143,17 +143,17 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
+                                Color(0xFFBDBDBD)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: makeCompute,
                         child: const Text('Hacer calculo')),
                     ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
+                                Color(0xFFBDBDBD)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: () {
                           guardarFecha(widget.device).then(
                               (value) => fechaSeleccionada = DateTime.now());
@@ -174,15 +174,15 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     Transform.scale(
                       scale: 1.5,
                       child: Switch(
-                        activeColor: const Color.fromARGB(255, 189, 189, 189),
+                        activeColor: const Color(0xFFBDBDBD),
                         activeTrackColor:
-                            const Color.fromARGB(255, 255, 255, 255),
+                            const Color(0xFFFFFFFF),
                         inactiveThumbColor:
-                            const Color.fromARGB(255, 255, 255, 255),
+                            const Color(0xFFFFFFFF),
                         inactiveTrackColor:
-                            const Color.fromARGB(255, 189, 189, 189),
+                            const Color(0xFFBDBDBD),
                         trackOutlineColor: const MaterialStatePropertyAll(
-                            Color.fromARGB(255, 189, 189, 189)),
+                            Color(0xFFBDBDBD)),
                         thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
                           (Set<MaterialState> states) {
                             if (states.contains(MaterialState.selected)) {
@@ -190,7 +190,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                   color: Colors.white);
                             } else {
                               return const Icon(Icons.wb_sunny,
-                                  color: Color.fromARGB(255, 189, 189, 189));
+                                  color: Color(0xFFBDBDBD));
                             }
                           },
                         ),
@@ -212,9 +212,9 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 189, 189, 189)),
+                                Color(0xFFBDBDBD)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: () {
                           if (owner != '') {
                             showDialog<void>(
@@ -223,26 +223,25 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                               builder: (BuildContext dialogContext) {
                                 return AlertDialog(
                                   backgroundColor:
-                                      const Color.fromARGB(255, 37, 34, 35),
+                                      const Color(0xFF252223),
                                   title: const Text(
                                     '¿Dejar de ser administrador del calefactor?',
                                     style: TextStyle(
                                         color:
-                                            Color.fromARGB(255, 255, 255, 255)),
+                                            Color(0xFFFFFFFF)),
                                   ),
                                   content: const Text(
                                     'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
                                     style: TextStyle(
                                         color:
-                                            Color.fromARGB(255, 255, 255, 255)),
+                                            Color(0xFFFFFFFF)),
                                   ),
                                   actions: <Widget>[
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
                                               MaterialStatePropertyAll(
-                                                  Color.fromARGB(
-                                                      255, 255, 255, 255))),
+                                                  Color(0xFFFFFFFF))),
                                       child: const Text('Cancelar'),
                                       onPressed: () {
                                         Navigator.of(dialogContext).pop();
@@ -252,8 +251,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                       style: const ButtonStyle(
                                           foregroundColor:
                                               MaterialStatePropertyAll(
-                                                  Color.fromARGB(
-                                                      255, 255, 255, 255))),
+                                                  Color(0xFFFFFFFF))),
                                       child: const Text('Aceptar'),
                                       onPressed: () {
                                         try {
@@ -263,8 +261,6 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                               extractSerialNumber(
                                                   widget.device),
                                               '');
-                                          ownedDevices.remove(deviceName);
-                                          saveOwnedDevices(ownedDevices);
                                           myDevice.device.disconnect();
                                           Navigator.of(dialogContext).pop();
                                         } catch (e, s) {
@@ -312,10 +308,10 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                         ElevatedButton(
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 189, 189, 189),
+                              Color(0xFFBDBDBD),
                             ),
                             foregroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 255, 255, 255),
+                              Color(0xFFFFFFFF),
                             ),
                           ),
                           onPressed: () async {
@@ -331,12 +327,11 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                       TextEditingController();
                                   return AlertDialog(
                                       backgroundColor:
-                                          const Color.fromARGB(255, 37, 34, 35),
+                                          const Color(0xFF252223),
                                       title: const Text(
                                         'Administradores secundarios:',
                                         style: TextStyle(
-                                            color: Color.fromARGB(
-                                                255, 255, 255, 255),
+                                            color: Color(0xFFFFFFFF),
                                             fontWeight: FontWeight.bold),
                                       ),
                                       content: SingleChildScrollView(
@@ -350,8 +345,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                               keyboardType:
                                                   TextInputType.emailAddress,
                                               style: const TextStyle(
-                                                color: Color.fromARGB(
-                                                    255, 255, 255, 255),
+                                                color: Color(0xFFFFFFFF),
                                               ),
                                               onSubmitted: (value) {
                                                 if (adminDevices.length < 3) {
@@ -396,8 +390,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                   labelText:
                                                       'Agrega el correo electronico',
                                                   labelStyle: const TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255),
+                                                    color: Color(0xFFFFFFFF),
                                                   ),
                                                   enabledBorder:
                                                       const UnderlineInputBorder(
@@ -461,8 +454,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                       },
                                                       icon: const Icon(
                                                         Icons.add,
-                                                        color: Color.fromARGB(
-                                                            255, 255, 255, 255),
+                                                        color: Color(0xFFFFFFFF),
                                                       ))),
                                             ),
                                             const SizedBox(
@@ -479,8 +471,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                     child: Text(
                                                       adminDevices[i],
                                                       style: const TextStyle(
-                                                        color: Color.fromARGB(
-                                                            255, 255, 255, 255),
+                                                        color: Color(0xFFFFFFFF),
                                                       ),
                                                     ),
                                                   ),
@@ -500,19 +491,14 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                                       },
                                                       icon: const Icon(
                                                           Icons.delete,
-                                                          color: Color.fromARGB(
-                                                              255,
-                                                              255,
-                                                              255,
-                                                              255))),
+                                                          color: Color(0xFFFFFFFF))),
                                                 )
                                               ]
                                             ] else ...[
                                               const Text(
                                                 'Actualmente no hay ninguna cuenta agregada...',
                                                 style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 255, 255, 255),
+                                                    color: Color(0xFFFFFFFF),
                                                     fontWeight:
                                                         FontWeight.normal),
                                               )
@@ -533,10 +519,10 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                         ElevatedButton(
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 189, 189, 189),
+                              Color(0xFFBDBDBD),
                             ),
                             foregroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 255, 255, 255),
+                              Color(0xFFFFFFFF),
                             ),
                           ),
                           onPressed: () {
@@ -582,12 +568,12 @@ class DeviceDrawerState extends State<DeviceDrawer> {
             Text(
               'Versión de Hardware: $hardwareVersion',
               style: const TextStyle(
-                  fontSize: 10.0, color: Color.fromARGB(255, 255, 255, 255)),
+                  fontSize: 10.0, color: Color(0xFFFFFFFF)),
             ),
             Text(
               'Versión de SoftWare: $softwareVersion',
               style: const TextStyle(
-                  fontSize: 10.0, color: Color.fromARGB(255, 255, 255, 255)),
+                  fontSize: 10.0, color: Color(0xFFFFFFFF)),
             ),
             const SizedBox(
               height: 0,
@@ -597,9 +583,9 @@ class DeviceDrawerState extends State<DeviceDrawer> {
               child: ElevatedButton(
                 style: const ButtonStyle(
                     backgroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 189, 189, 189)),
+                        Color(0xFFBDBDBD)),
                     foregroundColor: MaterialStatePropertyAll(
-                        Color.fromARGB(255, 255, 255, 255))),
+                        Color(0xFFFFFFFF))),
                 onPressed: () {
                   showContactInfo(context);
                 },
@@ -673,7 +659,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color(0xFFFFFFFF),
         child: Column(
           children: [
             Expanded(
@@ -694,19 +680,19 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                           keyboardType: TextInputType.number,
                           controller: costController,
                           style: const TextStyle(
-                              color: Color.fromARGB(255, 0, 0, 0)),
-                          cursorColor: const Color.fromARGB(255, 189, 189, 189),
+                              color: Color(0xFF000000)),
+                          cursorColor: const Color(0xFFBDBDBD),
                           decoration: InputDecoration(
                             labelText: 'Ingresa valor $measure',
                             labelStyle: const TextStyle(
-                                color: Color.fromARGB(255, 0, 0, 0)),
+                                color: Color(0xFF000000)),
                             enabledBorder: const UnderlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
+                                  color: Color(0xFFBDBDBD)),
                             ),
                             focusedBorder: const UnderlineInputBorder(
                               borderSide: BorderSide(
-                                  color: Color.fromARGB(255, 189, 189, 189)),
+                                  color: Color(0xFFBDBDBD)),
                             ),
                           ),
                         )),
@@ -715,29 +701,29 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                       Visibility(
                           visible: loading,
                           child: const CircularProgressIndicator(
-                              color: Color.fromARGB(255, 0, 0, 0))),
+                              color: Color(0xFF000000))),
                       Visibility(
                           visible: !loading,
                           child: Text('\$$result',
                               style: const TextStyle(
                                   fontSize: 50,
-                                  color: Color.fromARGB(255, 0, 0, 0)))),
+                                  color: Color(0xFF000000)))),
                     ],
                     const SizedBox(height: 10),
                     ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 72, 72, 72)),
+                                Color(0xFF484848)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: makeCompute,
                         child: const Text('Hacer calculo')),
                     ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 72, 72, 72)),
+                                Color(0xFF484848)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: () {
                           guardarFecha(widget.device).then(
                               (value) => fechaSeleccionada = DateTime.now());
@@ -750,7 +736,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                             'Ultimo reinicio: ${fechaSeleccionada!.day}/${fechaSeleccionada!.month}/${fechaSeleccionada!.year}',
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Color.fromARGB(255, 0, 0, 0),
+                              color: Color(0xFF000000),
                             ),
                           )
                         : const Text(''),
@@ -759,22 +745,22 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                       'Modo actual: ',
                       style: TextStyle(
                         fontSize: 20,
-                        color: Color.fromARGB(255, 0, 0, 0),
+                        color: Color(0xFF000000),
                       ),
                     ),
                     const SizedBox(height: 5),
                     Transform.scale(
                       scale: 1.5,
                       child: Switch(
-                        activeColor: const Color.fromARGB(255, 72, 72, 72),
+                        activeColor: const Color(0xFF484848),
                         activeTrackColor:
-                            const Color.fromARGB(255, 255, 255, 255),
+                            const Color(0xFFFFFFFF),
                         inactiveThumbColor:
-                            const Color.fromARGB(255, 255, 255, 255),
+                            const Color(0xFFFFFFFF),
                         inactiveTrackColor:
-                            const Color.fromARGB(255, 72, 72, 72),
+                            const Color(0xFF484848),
                         trackOutlineColor: const MaterialStatePropertyAll(
-                            Color.fromARGB(255, 72, 72, 72)),
+                            Color(0xFF484848)),
                         thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
                           (Set<MaterialState> states) {
                             if (states.contains(MaterialState.selected)) {
@@ -782,7 +768,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                   color: Colors.white);
                             } else {
                               return const Icon(Icons.wb_sunny,
-                                  color: Color.fromARGB(255, 72, 72, 72));
+                                  color: Color(0xFF484848));
                             }
                           },
                         ),
@@ -804,9 +790,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                       ElevatedButton(
                         style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 72, 72, 72)),
+                                Color(0xFF484848)),
                             foregroundColor: MaterialStatePropertyAll(
-                                Color.fromARGB(255, 255, 255, 255))),
+                                Color(0xFFFFFFFF))),
                         onPressed: () {
                           if (owner != '') {
                             showDialog<void>(
@@ -815,24 +801,23 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                               builder: (BuildContext dialogContext) {
                                 return AlertDialog(
                                   backgroundColor:
-                                      const Color.fromARGB(255, 255, 255, 255),
+                                      const Color(0xFFFFFFFF),
                                   title: const Text(
                                     '¿Dejar de ser administrador del calefactor?',
                                     style: TextStyle(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
+                                        color: Color(0xFF000000)),
                                   ),
                                   content: const Text(
                                     'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
                                     style: TextStyle(
-                                        color: Color.fromARGB(255, 0, 0, 0)),
+                                        color: Color(0xFF000000)),
                                   ),
                                   actions: <Widget>[
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
                                               MaterialStatePropertyAll(
-                                                  Color.fromARGB(
-                                                      255, 0, 0, 0))),
+                                                  Color(0xFF000000))),
                                       child: const Text('Cancelar'),
                                       onPressed: () {
                                         Navigator.of(dialogContext).pop();
@@ -842,8 +827,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                       style: const ButtonStyle(
                                           foregroundColor:
                                               MaterialStatePropertyAll(
-                                                  Color.fromARGB(
-                                                      255, 0, 0, 0))),
+                                                  Color(0xFF000000))),
                                       child: const Text('Aceptar'),
                                       onPressed: () {
                                         try {
@@ -853,8 +837,6 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                               extractSerialNumber(
                                                   widget.device),
                                               '');
-                                          ownedDevices.remove(deviceName);
-                                          saveOwnedDevices(ownedDevices);
                                           myDevice.device.disconnect();
                                           Navigator.of(dialogContext).pop();
                                         } catch (e, s) {
@@ -902,9 +884,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         ElevatedButton(
                           style: const ButtonStyle(
                               backgroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 72, 72, 72)),
+                                  Color(0xFF484848)),
                               foregroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 255, 255, 255))),
+                                  Color(0xFFFFFFFF))),
                           onPressed: () async {
                             adminDevices = await getSecondaryAdmins(
                                 service,
@@ -917,12 +899,11 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                   TextEditingController admins =
                                       TextEditingController();
                                   return AlertDialog(
-                                    backgroundColor: const Color.fromARGB(
-                                        255, 255, 255, 255),
+                                    backgroundColor: const Color(0xFFFFFFFF),
                                     title: const Text(
                                       'Administradores secundarios:',
                                       style: TextStyle(
-                                          color: Color.fromARGB(255, 0, 0, 0),
+                                          color: Color(0xFF000000),
                                           fontWeight: FontWeight.bold),
                                     ),
                                     content: SingleChildScrollView(
@@ -937,7 +918,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                 TextInputType.emailAddress,
                                             style: const TextStyle(
                                               color:
-                                                  Color.fromARGB(255, 0, 0, 0),
+                                                  Color(0xFF000000),
                                             ),
                                             onSubmitted: (value) {
                                               if (adminDevices.length < 3) {
@@ -980,8 +961,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                 labelText:
                                                     'Agrega el correo electronico',
                                                 labelStyle: const TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 0, 0, 0),
+                                                  color: Color(0xFF000000),
                                                 ),
                                                 enabledBorder:
                                                     const UnderlineInputBorder(
@@ -1041,8 +1021,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                     },
                                                     icon: const Icon(
                                                       Icons.add,
-                                                      color: Color.fromARGB(
-                                                          255, 0, 0, 0),
+                                                      color: Color(0xFF000000),
                                                     ))),
                                           ),
                                           const SizedBox(
@@ -1059,8 +1038,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                   child: Text(
                                                     adminDevices[i],
                                                     style: const TextStyle(
-                                                      color: Color.fromARGB(
-                                                          255, 0, 0, 0),
+                                                      color: Color(0xFF000000),
                                                     ),
                                                   ),
                                                 ),
@@ -1080,16 +1058,14 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                                     },
                                                     icon: const Icon(
                                                         Icons.delete,
-                                                        color: Color.fromARGB(
-                                                            255, 0, 0, 0))),
+                                                        color: Color(0xFF000000))),
                                               )
                                             ]
                                           ] else ...[
                                             const Text(
                                               'Actualmente no hay ninguna cuenta agregada...',
                                               style: TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 0, 0, 0),
+                                                  color: Color(0xFF000000),
                                                   fontWeight:
                                                       FontWeight.normal),
                                             )
@@ -1111,10 +1087,10 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         ElevatedButton(
                           style: const ButtonStyle(
                             backgroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 72, 72, 72),
+                              Color(0xFF484848),
                             ),
                             foregroundColor: MaterialStatePropertyAll(
-                              Color.fromARGB(255, 255, 255, 255),
+                              Color(0xFFFFFFFF),
                             ),
                           ),
                           onPressed: () {
@@ -1160,12 +1136,12 @@ class SilemaDrawerState extends State<SilemaDrawer> {
             Text(
               'Versión de Hardware: $hardwareVersion',
               style: const TextStyle(
-                  fontSize: 10.0, color: Color.fromARGB(255, 72, 72, 72)),
+                  fontSize: 10.0, color: Color(0xFF484848)),
             ),
             Text(
               'Versión de SoftWare: $softwareVersion',
               style: const TextStyle(
-                  fontSize: 10.0, color: Color.fromARGB(255, 72, 72, 72)),
+                  fontSize: 10.0, color: Color(0xFF484848)),
             ),
             const SizedBox(
               height: 0,
@@ -1175,9 +1151,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                 child: ElevatedButton(
                     style: const ButtonStyle(
                         backgroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 72, 72, 72)),
+                            Color(0xFF484848)),
                         foregroundColor: MaterialStatePropertyAll(
-                            Color.fromARGB(255, 255, 255, 255))),
+                            Color(0xFFFFFFFF))),
                     onPressed: () {
                       showContactInfo(context);
                     },

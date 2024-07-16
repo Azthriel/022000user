@@ -178,25 +178,25 @@ class RadiadorPageState extends State<RadiadorPage> {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+          backgroundColor: const Color(0xFFFFFFFF),
           title: const Text(
             'Editar identificación del dispositivo',
-            style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+            style: TextStyle(color: Color(0xFF000000)),
           ),
           content: TextField(
-            style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
-            cursorColor: const Color.fromARGB(255, 189, 189, 189),
+            style: const TextStyle(color: Color(0xFF000000)),
+            cursorColor: const Color(0xFFBDBDBD),
             controller: nicknameController,
             decoration: const InputDecoration(
               hintText: "Introduce tu nueva identificación del dispositivo",
-              hintStyle: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+              hintStyle: TextStyle(color: Color(0xFF000000)),
               enabledBorder: UnderlineInputBorder(
                 borderSide:
-                    BorderSide(color: Color.fromARGB(255, 189, 189, 189)),
+                    BorderSide(color: Color(0xFFBDBDBD)),
               ),
               focusedBorder: UnderlineInputBorder(
                 borderSide:
-                    BorderSide(color: Color.fromARGB(255, 189, 189, 189)),
+                    BorderSide(color: Color(0xFFBDBDBD)),
               ),
             ),
           ),
@@ -204,7 +204,7 @@ class RadiadorPageState extends State<RadiadorPage> {
             TextButton(
               style: const ButtonStyle(
                   foregroundColor:
-                      MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
+                      MaterialStatePropertyAll(Color(0xFF000000))),
               child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -213,7 +213,7 @@ class RadiadorPageState extends State<RadiadorPage> {
             TextButton(
               style: const ButtonStyle(
                   foregroundColor:
-                      MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
+                      MaterialStatePropertyAll(Color(0xFF000000))),
               child: const Text('Guardar'),
               onPressed: () {
                 setState(() {
@@ -299,19 +299,19 @@ class RadiadorPageState extends State<RadiadorPage> {
         barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+            backgroundColor: const Color(0xFFFFFFFF),
             title: const Text(
               'Habilita la ubicación todo el tiempo',
-              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+              style: TextStyle(color: Color(0xFF000000)),
             ),
             content: Text(
                 '$appName utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+                style: const TextStyle(color: Color(0xFF000000))),
             actions: <Widget>[
               TextButton(
                 style: const ButtonStyle(
                     foregroundColor:
-                        MaterialStatePropertyAll(Color.fromARGB(255, 0, 0, 0))),
+                        MaterialStatePropertyAll(Color(0xFF000000))),
                 child: const Text('Habilitar'),
                 onPressed: () async {
                   var permissionStatus4 =
@@ -351,16 +351,16 @@ class RadiadorPageState extends State<RadiadorPage> {
           barrierDismissible: false,
           builder: (context) {
             return AlertDialog(
-              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              backgroundColor: const Color(0xFFFFFFFF),
               content: Row(
                 children: [
                   const CircularProgressIndicator(
-                      color: Color.fromARGB(255, 0, 0, 0)),
+                      color: Color(0xFF000000)),
                   Container(
                       margin: const EdgeInsets.only(left: 15),
                       child: const Text(
                         "Desconectando...",
-                        style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+                        style: TextStyle(color: Color(0xFF000000)),
                       )),
                 ],
               ),
@@ -377,10 +377,10 @@ class RadiadorPageState extends State<RadiadorPage> {
         return; // Retorna según la lógica de tu app
       },
       child: Scaffold(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+        backgroundColor: const Color(0xFFFFFFFF),
         appBar: AppBar(
             backgroundColor: Colors.transparent,
-            foregroundColor: const Color.fromARGB(255, 0, 0, 0),
+            foregroundColor: const Color(0xFF000000),
             title: GestureDetector(
               onTap: () async {
                 await _showEditNicknameDialog(context);
@@ -431,17 +431,17 @@ class RadiadorPageState extends State<RadiadorPage> {
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 28,
-                                color: Color.fromARGB(255, 0, 0, 0))),
+                                color: Color(0xFF000000))),
                         Text('Espere a que se desconecte para poder usarla',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                                 fontSize: 28,
-                                color: Color.fromARGB(255, 0, 0, 0))),
+                                color: Color(0xFF000000))),
                         SizedBox(
                           height: 20,
                         ),
                         CircularProgressIndicator(
-                          color: Color.fromARGB(255, 0, 0, 0),
+                          color: Color(0xFF000000),
                         ),
                       ],
                     ),
@@ -459,13 +459,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                     fontSize: 25,
-                                    color: Color.fromARGB(255, 0, 0, 0)),
+                                    color: Color(0xFF000000)),
                               ),
                               SizedBox(
                                 height: 10,
                               ),
                               CircularProgressIndicator(
-                                  color: Color.fromARGB(255, 0, 0, 0)),
+                                  color: Color(0xFF000000)),
                               SizedBox(
                                 height: 200,
                               ),
@@ -509,13 +509,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 scale: 3.0,
                                 child: Switch(
                                   activeColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                      const Color(0xFFBDBDBD),
                                   activeTrackColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
+                                      const Color(0xFF484848),
                                   inactiveThumbColor:
-                                      const Color.fromARGB(255, 72, 72, 72),
+                                      const Color(0xFF484848),
                                   inactiveTrackColor:
-                                      const Color.fromARGB(255, 189, 189, 189),
+                                      const Color(0xFFBDBDBD),
                                   value: turnOn,
                                   onChanged: (value) {
                                     turnDeviceOn(value);
@@ -529,7 +529,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                               const Text('Temperatura de corte:',
                                   style: TextStyle(
                                       fontSize: 25,
-                                      color: Color.fromARGB(255, 0, 0, 0))),
+                                      color: Color(0xFF000000))),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -538,7 +538,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       text: tempValue.round().toString(),
                                       style: const TextStyle(
                                         fontSize: 30,
-                                        color: Color.fromARGB(255, 0, 0, 0),
+                                        color: Color(0xFF000000),
                                       ),
                                     ),
                                   ),
@@ -547,7 +547,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                       text: '°C',
                                       style: TextStyle(
                                         fontSize: 30,
-                                        color: Color.fromARGB(255, 0, 0, 0),
+                                        color: Color(0xFF000000),
                                       ),
                                     ),
                                   ),
@@ -570,11 +570,10 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   ),
                                   child: Slider(
                                     activeColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
-                                    inactiveColor: const Color.fromARGB(
-                                        255, 189, 189, 189),
+                                        const Color(0xFF484848),
+                                    inactiveColor: const Color(0xFFBDBDBD),
                                     thumbColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
+                                        const Color(0xFF484848),
                                     value: tempValue,
                                     onChanged: (value) {
                                       setState(() {
@@ -601,21 +600,17 @@ class RadiadorPageState extends State<RadiadorPage> {
                                         style: TextStyle(
                                             fontSize: 25,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0))),
+                                                Color(0xFF000000))),
                                     const SizedBox(width: 30),
                                     Transform.scale(
                                       scale: 1.5,
                                       child: Switch(
-                                        activeColor: const Color.fromARGB(
-                                            255, 189, 189, 189),
-                                        activeTrackColor: const Color.fromARGB(
-                                            255, 72, 72, 72),
+                                        activeColor: const Color(0xFFBDBDBD),
+                                        activeTrackColor: const Color(0xFF484848),
                                         inactiveThumbColor:
-                                            const Color.fromARGB(
-                                                255, 72, 72, 72),
+                                            const Color(0xFF484848),
                                         inactiveTrackColor:
-                                            const Color.fromARGB(
-                                                255, 189, 189, 189),
+                                            const Color(0xFFBDBDBD),
                                         value: isTaskScheduled[deviceName] ??
                                             false,
                                         onChanged: (value) {
@@ -646,7 +641,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                               : const Text('Estado:',
                                   style: TextStyle(
                                       fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0))),
+                                      color: Color(0xFF000000))),
                           Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -674,13 +669,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                               scale: 3.0,
                               child: Switch(
                                 activeColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                    const Color(0xFFBDBDBD),
                                 activeTrackColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 inactiveThumbColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 inactiveTrackColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                    const Color(0xFFBDBDBD),
                                 value: turnOn,
                                 onChanged: (value) {
                                   turnDeviceOn(value);
@@ -695,7 +690,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                           const Text('Temperatura de corte:',
                               style: TextStyle(
                                   fontSize: 25,
-                                  color: Color.fromARGB(255, 0, 0, 0))),
+                                  color: Color(0xFF000000))),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -703,12 +698,12 @@ class RadiadorPageState extends State<RadiadorPage> {
                                   text: tempValue.round().toString(),
                                   style: const TextStyle(
                                       fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0)))),
+                                      color: Color(0xFF000000)))),
                               const Text.rich(TextSpan(
                                   text: '°C',
                                   style: TextStyle(
                                       fontSize: 30,
-                                      color: Color.fromARGB(255, 0, 0, 0)))),
+                                      color: Color(0xFF000000)))),
                             ],
                           ),
                           if (deviceOwner) ...[
@@ -716,7 +711,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                               data: SliderTheme.of(context).copyWith(
                                 trackHeight: 50.0,
                                 thumbColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 thumbShape: const RoundSliderThumbShape(
                                     enabledThumbRadius: 26.0,
                                     disabledThumbRadius: 26.0,
@@ -725,9 +720,9 @@ class RadiadorPageState extends State<RadiadorPage> {
                               ),
                               child: Slider(
                                 activeColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 inactiveColor:
-                                    const Color.fromARGB(255, 189, 189, 189),
+                                    const Color(0xFFBDBDBD),
                                 value: tempValue,
                                 onChanged: (value) {
                                   setState(() {
@@ -752,21 +747,17 @@ class RadiadorPageState extends State<RadiadorPage> {
                                         style: TextStyle(
                                             fontSize: 25,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0))),
+                                                Color(0xFF000000))),
                                     const SizedBox(width: 30),
                                     Transform.scale(
                                       scale: 1.5,
                                       child: Switch(
-                                        activeColor: const Color.fromARGB(
-                                            255, 189, 189, 189),
-                                        activeTrackColor: const Color.fromARGB(
-                                            255, 72, 72, 72),
+                                        activeColor: const Color(0xFFBDBDBD),
+                                        activeTrackColor: const Color(0xFF484848),
                                         inactiveThumbColor:
-                                            const Color.fromARGB(
-                                                255, 72, 72, 72),
+                                            const Color(0xFF484848),
                                         inactiveTrackColor:
-                                            const Color.fromARGB(
-                                                255, 189, 189, 189),
+                                            const Color(0xFFBDBDBD),
                                         value: isTaskScheduled[deviceName] ??
                                             false,
                                         onChanged: (value) {
@@ -795,7 +786,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           style: TextStyle(
                                               fontSize: 20,
                                               color:
-                                                  Color.fromARGB(255, 0, 0, 0)))
+                                                  Color(0xFF000000)))
                                     ]),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -805,20 +796,20 @@ class RadiadorPageState extends State<RadiadorPage> {
                                         style: const TextStyle(
                                             fontSize: 30,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0)))),
+                                                Color(0xFF000000)))),
                                     const Text.rich(TextSpan(
                                         text: 'Metros',
                                         style: TextStyle(
                                             fontSize: 30,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0)))),
+                                                Color(0xFF000000)))),
                                   ],
                                 ),
                                 SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
                                       trackHeight: 30.0,
                                       thumbColor:
-                                          const Color.fromARGB(255, 72, 72, 72),
+                                          const Color(0xFF484848),
                                       thumbShape: const RoundSliderThumbShape(
                                           enabledThumbRadius: 16.0,
                                           disabledThumbRadius: 16.0,
@@ -826,9 +817,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           pressedElevation: 0.0)),
                                   child: Slider(
                                     activeColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
-                                    inactiveColor: const Color.fromARGB(
-                                        255, 189, 189, 189),
+                                        const Color(0xFF484848),
+                                    inactiveColor: const Color(0xFFBDBDBD),
                                     value: distOffValue,
                                     divisions: 20,
                                     onChanged: (value) {
@@ -857,7 +847,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           style: TextStyle(
                                               fontSize: 20,
                                               color:
-                                                  Color.fromARGB(255, 0, 0, 0)))
+                                                  Color(0xFF000000)))
                                     ]),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
@@ -867,20 +857,20 @@ class RadiadorPageState extends State<RadiadorPage> {
                                         style: const TextStyle(
                                             fontSize: 30,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0)))),
+                                                Color(0xFF000000)))),
                                     const Text.rich(TextSpan(
                                         text: 'Metros',
                                         style: TextStyle(
                                             fontSize: 30,
                                             color:
-                                                Color.fromARGB(255, 0, 0, 0)))),
+                                                Color(0xFF000000)))),
                                   ],
                                 ),
                                 SliderTheme(
                                   data: SliderTheme.of(context).copyWith(
                                       trackHeight: 30.0,
                                       thumbColor:
-                                          const Color.fromARGB(255, 72, 72, 72),
+                                          const Color(0xFF484848),
                                       thumbShape: const RoundSliderThumbShape(
                                           enabledThumbRadius: 16.0,
                                           disabledThumbRadius: 16.0,
@@ -888,9 +878,8 @@ class RadiadorPageState extends State<RadiadorPage> {
                                           pressedElevation: 0.0)),
                                   child: Slider(
                                     activeColor:
-                                        const Color.fromARGB(255, 72, 72, 72),
-                                    inactiveColor: const Color.fromARGB(
-                                        255, 189, 189, 189),
+                                        const Color(0xFF484848),
+                                    inactiveColor: const Color(0xFFBDBDBD),
                                     value: distOnValue,
                                     divisions: 20,
                                     onChanged: (value) {
@@ -919,7 +908,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                               'Modo actual: ',
                               style: TextStyle(
                                 fontSize: 20,
-                                color: Color.fromARGB(255, 0, 0, 0),
+                                color: Color(0xFF000000),
                               ),
                             ),
                             const SizedBox(height: 5),
@@ -927,16 +916,16 @@ class RadiadorPageState extends State<RadiadorPage> {
                               scale: 1.5,
                               child: Switch(
                                 activeColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 activeTrackColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
+                                    const Color(0xFFFFFFFF),
                                 inactiveThumbColor:
-                                    const Color.fromARGB(255, 255, 255, 255),
+                                    const Color(0xFFFFFFFF),
                                 inactiveTrackColor:
-                                    const Color.fromARGB(255, 72, 72, 72),
+                                    const Color(0xFF484848),
                                 trackOutlineColor:
                                     const MaterialStatePropertyAll(
-                                        Color.fromARGB(255, 72, 72, 72)),
+                                        Color(0xFF484848)),
                                 thumbIcon:
                                     MaterialStateProperty.resolveWith<Icon?>(
                                   (Set<MaterialState> states) {
@@ -947,7 +936,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                     } else {
                                       return const Icon(Icons.wb_sunny,
                                           color:
-                                              Color.fromARGB(255, 72, 72, 72));
+                                              Color(0xFF484848));
                                     }
                                   },
                                 ),
@@ -975,17 +964,17 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 25,
-                                  color: Color.fromARGB(255, 0, 0, 0),
+                                  color: Color(0xFF000000),
                                 ),
                               ),
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 style: const ButtonStyle(
                                   backgroundColor: MaterialStatePropertyAll(
-                                    Color.fromARGB(255, 72, 72, 72),
+                                    Color(0xFF484848),
                                   ),
                                   foregroundColor: MaterialStatePropertyAll(
-                                    Color.fromARGB(255, 255, 255, 255),
+                                    Color(0xFFFFFFFF),
                                   ),
                                 ),
                                 onPressed: () async {

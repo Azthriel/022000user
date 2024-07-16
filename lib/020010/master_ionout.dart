@@ -319,8 +319,6 @@ class DrawerIOState extends State<DrawerIO> {
                               try {
                                 putOwner(service, command(deviceName),
                                     extractSerialNumber(deviceName), '');
-                                ownedDevices.remove(deviceName);
-                                saveOwnedDevices(ownedDevices);
                                 myDevice.device.disconnect();
                                 Navigator.of(dialogContext).pop();
                               } catch (e, s) {

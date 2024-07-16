@@ -20,10 +20,10 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
         printLog("-----------Inicio de un item-----------");
         for (var key in item.keys) {
           var value = item[key];
-          String displayValue = value?.s ??
+          var displayValue = value?.s ??
               value?.n ??
               value?.boolValue.toString() ??
-              value?.ss.toString() ??
+              value?.ss?.join('/') ??
               "Desconocido";
           if (value != null) {
             switch (key) {
@@ -81,6 +81,16 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
                 globalDATA
                     .putIfAbsent('$pc/$sn', () => {})
                     .addAll({key: value.s ?? ''});
+                break;
+              case 'secondary_admin':
+                List<String> secAdm = value.ss ?? [];
+                if (secAdm.contains('') && secAdm.length == 1) {
+                  globalDATA.putIfAbsent('$pc/$sn', () => {}).addAll({key: []});
+                } else {
+                  globalDATA
+                      .putIfAbsent('$pc/$sn', () => {})
+                      .addAll({key: secAdm});
+                }
                 break;
             }
           }

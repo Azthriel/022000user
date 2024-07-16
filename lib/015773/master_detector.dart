@@ -41,7 +41,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color.fromARGB(255, 1, 18, 28),
+      backgroundColor: const Color(0xFF01121C),
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: Column(
@@ -64,7 +64,35 @@ class DrawerDetectorState extends State<DrawerDetector> {
             ),
             RotatedBox(
               quarterTurns: 3,
-              child: _buildCustomSlider(),
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                    valueIndicatorColor: const Color(0xFFFFFFFF),
+                    activeTrackColor: const Color(0xFF1DA3A9),
+                    inactiveTrackColor: const Color(0xFFFFFFFF),
+                    trackHeight: 48.0,
+                    thumbColor: const Color(0xFF1DA3A9),
+                    thumbShape: IconThumbSlider(
+                        iconData: _sliderValue > 50
+                            ? Icons.light_mode
+                            : Icons.nightlight,
+                        thumbRadius: 25)),
+                child: Slider(
+                  value: _sliderValue,
+                  min: 0.0,
+                  max: 100.0,
+                  onChanged: (double value) {
+                    setState(() {
+                      _sliderValue = value;
+                    });
+                  },
+                  onChangeEnd: (value) {
+                    setState(() {
+                      _sliderValue = value;
+                    });
+                    _sendValueToBle(_sliderValue.toInt());
+                  },
+                ),
+              ),
             ),
             const SizedBox(
               height: 30,
@@ -89,10 +117,10 @@ class DrawerDetectorState extends State<DrawerDetector> {
             ),
             ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(
-                      const Color.fromARGB(255, 29, 163, 169)),
-                  foregroundColor: MaterialStateProperty.all<Color>(
-                      const Color.fromARGB(255, 255, 255, 255)),
+                  backgroundColor:
+                      MaterialStateProperty.all<Color>(const Color(0xFF1DA3A9)),
+                  foregroundColor:
+                      MaterialStateProperty.all<Color>(const Color(0xFFFFFFFF)),
                   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18.0),
@@ -108,38 +136,30 @@ class DrawerDetectorState extends State<DrawerDetector> {
       ),
     );
   }
+}
 
-  Widget _buildCustomSlider() {
-    return SizedBox(
-      width: 200,
-      height: 30,
-      child: SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-          activeTrackColor: const Color.fromARGB(255, 29, 163, 169),
-          inactiveTrackColor: const Color.fromARGB(255, 255, 255, 255),
-          trackHeight: 30.0,
-          thumbColor: const Color.fromARGB(255, 29, 163, 169),
-          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 0.0),
-          overlayColor: const Color.fromARGB(255, 29, 163, 169).withAlpha(32),
-          overlayShape: const RoundSliderOverlayShape(overlayRadius: 0.0),
-        ),
-        child: Slider(
-          value: _sliderValue,
-          min: 0.0,
-          max: 100.0,
-          onChanged: (double value) {
-            setState(() {
-              _sliderValue = value;
-            });
-          },
-          onChangeEnd: (double value) {
-            setState(() {
-              _sliderValue = value;
-            });
-            _sendValueToBle(_sliderValue.toInt());
-          },
-        ),
-      ),
-    );
+class IOSDrawerDetector extends StatefulWidget {
+  const IOSDrawerDetector({super.key});
+  @override
+  State<IOSDrawerDetector> createState() => IOSDrawerDetectorState();
+}
+
+class IOSDrawerDetectorState extends State<IOSDrawerDetector> {
+  //static double _sliderValue = 100.0;
+
+  // void _sendValueToBle(int value) async {
+  //   try {
+  //     final data = [value];
+  //     myDevice.lightUuid.write(data, withoutResponse: true);
+  //   } catch (e, stackTrace) {
+  //     printLog('Error al mandar el valor del brillo $e $stackTrace');
+  //     // handleManualError(e, stackTrace);
+  //   }
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
   }
 }

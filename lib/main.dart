@@ -43,18 +43,18 @@ Future<void> main() async {
             message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
 
         return AlertDialog(
-            backgroundColor: const Color.fromARGB(255, 230, 254, 255),
+            backgroundColor: const Color(0xFF1E242B),
             title: Text(
               displayTitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: Color.fromARGB(255, 255, 0, 0),
+                  color: Color(0xFFFF0000),
                   fontWeight: FontWeight.bold),
             ),
             content: Text(
               displayMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
+              style: const TextStyle(color: Color(0xFFB2B5AE)),
             ));
       },
     );
@@ -79,7 +79,11 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    //! IOS O ANDROID !\\
     android = Platform.isAndroid;
+    //! IOS O ANDROID !\\
+
     loadValues();
     _configureAmplify();
     setupMqtt().then((value) {
@@ -111,17 +115,17 @@ class MyAppState extends State<MyApp> {
       navigatorKey: navigatorKey,
       title: biocalden ? 'Biocalden Smart Life' : 'Silema calefactores',
       theme: ThemeData(
-        primaryColor: const Color.fromRGBO(30, 36, 43, 1),
-        primaryColorLight: const Color.fromARGB(255, 178, 181, 174),
+        primaryColor: const Color(0xFF1E242B),
+        primaryColorLight: const Color(0xFFB2B5AE),
         textSelectionTheme: const TextSelectionThemeData(
-          selectionColor: Color.fromARGB(255, 178, 181, 174),
-          selectionHandleColor: Color.fromARGB(255, 178, 181, 174),
+          selectionColor: Color(0xFFB2B5AE),
+          selectionHandleColor: Color(0xFFB2B5AE),
         ),
         bottomSheetTheme: const BottomSheetThemeData(
             surfaceTintColor: Colors.transparent,
             backgroundColor: Colors.transparent),
         colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color.fromARGB(255, 30, 36, 43)),
+            seedColor: const Color(0xFF1E242B)),
         useMaterial3: true,
       ),
       initialRoute: '/perm',
@@ -210,7 +214,7 @@ class PermissionHandlerState extends State<PermissionHandler> {
         }
         return const Center(
           child: CircularProgressIndicator(
-            color: Color.fromARGB(255, 189, 189, 189),
+            color: Color(0xFFBDBDBD),
           ),
         );
       },

@@ -63,7 +63,8 @@ class ScanPageState extends State<ScanPage> {
               'Gas',
               'Detector',
               'Radiador',
-              'Módulo'
+              'Módulo',
+              'Domótica'
             ],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
@@ -165,23 +166,23 @@ class ScanPageState extends State<ScanPage> {
   Widget build(BuildContext context) {
     return android
         ? Scaffold(
-            backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+            backgroundColor: const Color(0xFF1E242B),
             appBar: AppBar(
               backgroundColor: Colors.transparent,
-              foregroundColor: const Color.fromARGB(255, 156, 157, 152),
+              foregroundColor: const Color(0xFF9C9D98),
               title: TextField(
                 focusNode: searchFocusNode,
                 controller: searchController,
                 keyboardType: TextInputType.text,
                 style: const TextStyle(
-                  color: Color.fromARGB(255, 178, 181, 174),
+                  color: Color(0xFFB2B5AE),
                 ),
                 decoration: const InputDecoration(
                   icon: Icon(Icons.search),
-                  iconColor: Color.fromARGB(255, 178, 181, 174),
+                  iconColor: Color(0xFFB2B5AE),
                   hintText: "Filtrar por nombre",
                   hintStyle: TextStyle(
-                    color: Color.fromARGB(255, 178, 181, 174),
+                    color: Color(0xFFB2B5AE),
                   ),
                   border: InputBorder.none,
                 ),
@@ -204,22 +205,22 @@ class ScanPageState extends State<ScanPage> {
                       builder: (BuildContext dialogContext) {
                         return AlertDialog(
                           backgroundColor:
-                              const Color.fromARGB(255, 30, 36, 43),
+                              const Color(0xFF1E242B),
                           title: const Row(
                             children: [
                               Text(
                                 'Mi perfil:',
                                 style: TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  color: Color(0xFFB2B5AE),
                                 ),
                               ),
                               Spacer(),
                               CircleAvatar(
                                 radius: 20,
                                 backgroundColor:
-                                    Color.fromARGB(255, 178, 181, 174),
+                                    Color(0xFFB2B5AE),
                                 child: Icon(Icons.person,
-                                    color: Color.fromARGB(255, 30, 36, 43)),
+                                    color: Color(0xFF1E242B)),
                               ),
                               SizedBox(
                                 width: 20,
@@ -233,25 +234,25 @@ class ScanPageState extends State<ScanPage> {
                               const Text(
                                 'Cuenta conectada:',
                                 style: TextStyle(
-                                    color: Color.fromARGB(255, 178, 181, 174),
+                                    color: Color(0xFFB2B5AE),
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 currentUserEmail,
                                 style: const TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  color: Color(0xFFB2B5AE),
                                 ),
                               ),
                               const Text(
                                 'Cantidad de equipos registrados:',
                                 style: TextStyle(
-                                    color: Color.fromARGB(255, 178, 181, 174),
+                                    color: Color(0xFFB2B5AE),
                                     fontWeight: FontWeight.bold),
                               ),
                               Text(
                                 previusConnections.length.toString(),
                                 style: const TextStyle(
-                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  color: Color(0xFFB2B5AE),
                                 ),
                               ),
                             ],
@@ -260,7 +261,7 @@ class ScanPageState extends State<ScanPage> {
                             TextButton(
                               style: const ButtonStyle(
                                 foregroundColor: MaterialStatePropertyAll(
-                                  Color.fromARGB(255, 178, 181, 174),
+                                  Color(0xFFB2B5AE),
                                 ),
                               ),
                               child: const Text('Cerrar sesión'),
@@ -268,8 +269,6 @@ class ScanPageState extends State<ScanPage> {
                                 Amplify.Auth.signOut();
                                 asking();
                                 previusConnections.clear();
-                                ownedDevices.clear();
-                                saveOwnedDevices(ownedDevices);
                                 guardarLista(previusConnections);
                                 for (int i = 0; i < topicsToSub.length; i++) {
                                   unSubToTopicMQTT(topicsToSub[i]);
@@ -287,7 +286,7 @@ class ScanPageState extends State<ScanPage> {
                   },
                   icon: const Icon(
                     Icons.person,
-                    color: Color.fromARGB(255, 156, 157, 152),
+                    color: Color(0xFF9C9D98),
                   ),
                 )
               ],
@@ -303,9 +302,9 @@ class ScanPageState extends State<ScanPage> {
                 processingText: 'Reescaneando dispositivos',
                 processedText: 'Reescaneo completo',
                 showMessage: false,
-                textStyle: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                textStyle: TextStyle(color: Color(0xFFB2B5AE)),
                 iconTheme:
-                    IconThemeData(color: Color.fromARGB(255, 156, 157, 152)),
+                    IconThemeData(color: Color(0xFF9C9D98)),
               ),
               onRefresh: () async {
                 await FlutterBluePlus.stopScan();
@@ -329,7 +328,7 @@ class ScanPageState extends State<ScanPage> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Color.fromARGB(255, 178, 181, 174),
+                                  color: Color(0xFFB2B5AE),
                                 ),
                               ),
                             ),
@@ -349,12 +348,12 @@ class ScanPageState extends State<ScanPage> {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 178, 181, 174),
+                                color: Color(0xFFB2B5AE),
                               ),
                             ),
                             const SizedBox(width: 10),
                             const Icon(Icons.bluetooth,
-                                color: Color.fromARGB(255, 178, 181, 174)),
+                                color: Color(0xFFB2B5AE)),
                             // const SizedBox(width: double.infinity),
                             if (filteredDevices[index]
                                 .platformName
@@ -400,7 +399,7 @@ class ScanPageState extends State<ScanPage> {
                                 : filteredDevices[index].remoteId.toString(),
                             style: const TextStyle(
                               fontSize: 18,
-                              color: Color.fromARGB(255, 156, 157, 152),
+                              color: Color(0xFF9C9D98),
                             ),
                           ),
                           onTap: () {
@@ -416,9 +415,9 @@ class ScanPageState extends State<ScanPage> {
         :
         //!-------------------------------------IOS Widget-------------------------------------!\\ //TODO: Terminar esto
         CupertinoPageScaffold(
-            backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+            backgroundColor: const Color(0xFF1E242B),
             navigationBar: CupertinoNavigationBar(
-              backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+              backgroundColor: const Color(0xFF1E242B),
               middle: CupertinoTextField(
                 controller: searchController,
                 keyboardType: TextInputType.text,
@@ -429,7 +428,7 @@ class ScanPageState extends State<ScanPage> {
                 prefix: const Icon(CupertinoIcons.search,
                     color: CupertinoColors.systemGrey),
                 decoration: const BoxDecoration(
-                  color: Color.fromARGB(255, 30, 36, 43),
+                  color: Color(0xFF1E242B),
                 ),
                 onChanged: (value) {
                   filteredDevices = devices
@@ -470,8 +469,6 @@ class ScanPageState extends State<ScanPage> {
                               Amplify.Auth.signOut();
                               asking();
                               previusConnections.clear();
-                              ownedDevices.clear();
-                              saveOwnedDevices(ownedDevices);
                               guardarLista(previusConnections);
                               for (int i = 0; i < topicsToSub.length; i++) {
                                 unSubToTopicMQTT(topicsToSub[i]);
@@ -500,9 +497,9 @@ class ScanPageState extends State<ScanPage> {
                   processedText: 'Reescaneo completo',
                   showMessage: false,
                   textStyle:
-                      TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                      TextStyle(color: Color(0xFFB2B5AE)),
                   iconTheme:
-                      IconThemeData(color: Color.fromARGB(255, 156, 157, 152)),
+                      IconThemeData(color: Color(0xFF9C9D98)),
                 ),
                 onRefresh: () async {
                   await FlutterBluePlus.stopScan();
@@ -533,13 +530,12 @@ class ScanPageState extends State<ScanPage> {
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 178, 181, 174),
+                                    color: Color(0xFFB2B5AE),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 const Icon(Icons.bluetooth,
-                                    color: Color.fromARGB(255, 178, 181, 174)),
-                                // const SizedBox(width: double.infinity),
+                                    color: Color(0xFFB2B5AE)),
                                 if (filteredDevices[index]
                                     .platformName
                                     .contains('Detector')) ...[
@@ -587,7 +583,7 @@ class ScanPageState extends State<ScanPage> {
                                         .toString(),
                                 style: const TextStyle(
                                   fontSize: 18,
-                                  color: Color.fromARGB(255, 156, 157, 152),
+                                  color: Color(0xFF9C9D98),
                                 ),
                               ),
                               onTap: () {
@@ -692,33 +688,19 @@ class LoadState extends State<LoadingPage> {
         if (owner != '') {
           if (owner == currentUserEmail) {
             deviceOwner = true;
-            if (!ownedDevices.contains(deviceName)) {
-              ownedDevices.add(deviceName);
-              saveOwnedDevices(ownedDevices);
-            }
           } else {
             deviceOwner = false;
             if (userConnected) {
             } else {
               if (adminDevices.contains(currentUserEmail)) {
                 secondaryAdmin = true;
-                if (!ownedDevices.contains(deviceName)) {
-                  ownedDevices.add(deviceName);
-                  saveOwnedDevices(ownedDevices);
-                }
               } else {
                 secondaryAdmin = false;
-                if (ownedDevices.contains(deviceName)) {
-                  ownedDevices.remove(deviceName);
-                  saveOwnedDevices(ownedDevices);
-                }
               }
             }
           }
         } else {
           deviceOwner = true;
-          ownedDevices.add(deviceName);
-          saveOwnedDevices(ownedDevices);
         }
 
         await analizePayment(
@@ -809,33 +791,19 @@ class LoadState extends State<LoadingPage> {
         if (owner != '') {
           if (owner == currentUserEmail) {
             deviceOwner = true;
-            if (!ownedDevices.contains(deviceName)) {
-              ownedDevices.add(deviceName);
-              saveOwnedDevices(ownedDevices);
-            }
           } else {
             deviceOwner = false;
             if (userConnected) {
             } else {
               if (adminDevices.contains(currentUserEmail)) {
                 secondaryAdmin = true;
-                if (!ownedDevices.contains(deviceName)) {
-                  ownedDevices.add(deviceName);
-                  saveOwnedDevices(ownedDevices);
-                }
               } else {
                 secondaryAdmin = false;
-                if (ownedDevices.contains(deviceName)) {
-                  ownedDevices.remove(deviceName);
-                  saveOwnedDevices(ownedDevices);
-                }
               }
             }
           }
         } else {
           deviceOwner = true;
-          ownedDevices.add(deviceName);
-          saveOwnedDevices(ownedDevices);
         }
 
         await analizePayment(
@@ -869,7 +837,7 @@ class LoadState extends State<LoadingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 30, 36, 43),
+      backgroundColor: const Color(0xFF1E242B),
       body: Center(
           child: Stack(
         children: <Widget>[
@@ -877,14 +845,14 @@ class LoadState extends State<LoadingPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CircularProgressIndicator(
-                color: Color.fromARGB(255, 178, 181, 174),
+                color: Color(0xFFB2B5AE),
               ),
               SizedBox(height: 20),
               Align(
                   alignment: Alignment.center,
                   child: Text(
                     'Cargando...',
-                    style: TextStyle(color: Color.fromARGB(255, 178, 181, 174)),
+                    style: TextStyle(color: Color(0xFFB2B5AE)),
                   )),
             ],
           ),
@@ -897,7 +865,7 @@ class LoadState extends State<LoadingPage> {
                   child: Text(
                     'Versión $appVersionNumber',
                     style: const TextStyle(
-                        color: Color.fromARGB(255, 156, 157, 152),
+                        color: Color(0xFF9C9D98),
                         fontSize: 12),
                   )),
               const SizedBox(height: 20),
