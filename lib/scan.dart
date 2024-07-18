@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:amplify_flutter/amplify_flutter.dart';
-import 'package:flutter/cupertino.dart';
 import 'aws/dynamo/dynamo.dart';
 import 'aws/dynamo/dynamo_certificates.dart';
 import 'aws/mqtt/mqtt.dart';
@@ -164,437 +163,242 @@ class ScanPageState extends State<ScanPage> {
 //! Visual
   @override
   Widget build(BuildContext context) {
-    return android
-        ? Scaffold(
-            backgroundColor: const Color(0xFF1E242B),
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              foregroundColor: const Color(0xFF9C9D98),
-              title: TextField(
-                focusNode: searchFocusNode,
-                controller: searchController,
-                keyboardType: TextInputType.text,
-                style: const TextStyle(
-                  color: Color(0xFFB2B5AE),
-                ),
-                decoration: const InputDecoration(
-                  icon: Icon(Icons.search),
-                  iconColor: Color(0xFFB2B5AE),
-                  hintText: "Filtrar por nombre",
-                  hintStyle: TextStyle(
-                    color: Color(0xFFB2B5AE),
-                  ),
-                  border: InputBorder.none,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    filteredDevices = devices
-                        .where((device) => device.platformName
-                            .toLowerCase()
-                            .contains(value.toLowerCase()))
-                        .toList();
-                  });
-                },
-              ),
-              actions: <Widget>[
-                IconButton(
-                  onPressed: () {
-                    showDialog<void>(
-                      context: context,
-                      barrierDismissible: true,
-                      builder: (BuildContext dialogContext) {
-                        return AlertDialog(
-                          backgroundColor:
-                              const Color(0xFF1E242B),
-                          title: const Row(
-                            children: [
-                              Text(
-                                'Mi perfil:',
-                                style: TextStyle(
-                                  color: Color(0xFFB2B5AE),
-                                ),
-                              ),
-                              Spacer(),
-                              CircleAvatar(
-                                radius: 20,
-                                backgroundColor:
-                                    Color(0xFFB2B5AE),
-                                child: Icon(Icons.person,
-                                    color: Color(0xFF1E242B)),
-                              ),
-                              SizedBox(
-                                width: 20,
-                              ),
-                            ],
-                          ),
-                          content: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Cuenta conectada:',
-                                style: TextStyle(
-                                    color: Color(0xFFB2B5AE),
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                currentUserEmail,
-                                style: const TextStyle(
-                                  color: Color(0xFFB2B5AE),
-                                ),
-                              ),
-                              const Text(
-                                'Cantidad de equipos registrados:',
-                                style: TextStyle(
-                                    color: Color(0xFFB2B5AE),
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                previusConnections.length.toString(),
-                                style: const TextStyle(
-                                  color: Color(0xFFB2B5AE),
-                                ),
-                              ),
-                            ],
-                          ),
-                          actions: <Widget>[
-                            TextButton(
-                              style: const ButtonStyle(
-                                foregroundColor: MaterialStatePropertyAll(
-                                  Color(0xFFB2B5AE),
-                                ),
-                              ),
-                              child: const Text('Cerrar sesión'),
-                              onPressed: () {
-                                Amplify.Auth.signOut();
-                                asking();
-                                previusConnections.clear();
-                                guardarLista(previusConnections);
-                                for (int i = 0; i < topicsToSub.length; i++) {
-                                  unSubToTopicMQTT(topicsToSub[i]);
-                                }
-                                topicsToSub.clear();
-                                saveTopicList(topicsToSub);
-                                backTimer?.cancel();
-                                Navigator.of(dialogContext).pop();
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.person,
-                    color: Color(0xFF9C9D98),
-                  ),
-                )
-              ],
+    return Scaffold(
+      backgroundColor: const Color(0xFF1E242B),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        foregroundColor: const Color(0xFF9C9D98),
+        title: TextField(
+          focusNode: searchFocusNode,
+          controller: searchController,
+          keyboardType: TextInputType.text,
+          style: const TextStyle(
+            color: Color(0xFFB2B5AE),
+          ),
+          decoration: const InputDecoration(
+            icon: Icon(Icons.search),
+            iconColor: Color(0xFFB2B5AE),
+            hintText: "Filtrar por nombre",
+            hintStyle: TextStyle(
+              color: Color(0xFFB2B5AE),
             ),
-            drawer: MyDrawer(userMail: currentUserEmail),
-            body: EasyRefresh(
-              controller: _controller,
-              header: const ClassicHeader(
-                dragText: 'Desliza para reescanear',
-                armedText:
-                    'Suelta para reescanear\nO desliza para arriba para cancelar',
-                readyText: 'Reescaneando dispositivos',
-                processingText: 'Reescaneando dispositivos',
-                processedText: 'Reescaneo completo',
-                showMessage: false,
-                textStyle: TextStyle(color: Color(0xFFB2B5AE)),
-                iconTheme:
-                    IconThemeData(color: Color(0xFF9C9D98)),
-              ),
-              onRefresh: () async {
-                await FlutterBluePlus.stopScan();
-                await Future.delayed(const Duration(seconds: 2));
-                setState(() {
-                  devices.clear();
-                });
-                scan();
-                _controller.finishRefresh();
-              },
-              child: filteredDevices.isEmpty
-                  ? ListView(
-                      children: const [
-                        Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(20),
-                            child: Center(
-                              child: Text(
-                                'Deslice el dedo hacia abajo para buscar nuevos dispositivos cercanos',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFB2B5AE),
-                                ),
-                              ),
-                            ),
+            border: InputBorder.none,
+          ),
+          onChanged: (value) {
+            setState(() {
+              filteredDevices = devices
+                  .where((device) => device.platformName
+                      .toLowerCase()
+                      .contains(value.toLowerCase()))
+                  .toList();
+            });
+          },
+        ),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () {
+              showDialog<void>(
+                context: context,
+                barrierDismissible: true,
+                builder: (BuildContext dialogContext) {
+                  return AlertDialog(
+                    backgroundColor: const Color(0xFF1E242B),
+                    title: const Row(
+                      children: [
+                        Text(
+                          'Mi perfil:',
+                          style: TextStyle(
+                            color: Color(0xFFB2B5AE),
+                          ),
+                        ),
+                        Spacer(),
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Color(0xFFB2B5AE),
+                          child: Icon(Icons.person, color: Color(0xFF1E242B)),
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                      ],
+                    ),
+                    content: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Cuenta conectada:',
+                          style: TextStyle(
+                              color: Color(0xFFB2B5AE),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          currentUserEmail,
+                          style: const TextStyle(
+                            color: Color(0xFFB2B5AE),
+                          ),
+                        ),
+                        const Text(
+                          'Cantidad de equipos registrados:',
+                          style: TextStyle(
+                              color: Color(0xFFB2B5AE),
+                              fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          previusConnections.length.toString(),
+                          style: const TextStyle(
+                            color: Color(0xFFB2B5AE),
                           ),
                         ),
                       ],
-                    )
-                  : ListView.builder(
-                      itemCount: filteredDevices.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Row(children: [
-                            Text(
-                              nicknamesMap[
-                                      filteredDevices[index].platformName] ??
-                                  filteredDevices[index].platformName,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFB2B5AE),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(Icons.bluetooth,
-                                color: Color(0xFFB2B5AE)),
-                            // const SizedBox(width: double.infinity),
-                            if (filteredDevices[index]
-                                .platformName
-                                .contains('Detector')) ...[
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: Image.asset(
-                                      'assets/IntelligentGas/G.png'),
-                                ),
-                              ),
-                            ] else if (filteredDevices[index]
-                                .platformName
-                                .contains('Radiador')) ...[
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: SizedBox(
-                                  height: 40,
-                                  width: 40,
-                                  child:
-                                      Image.asset('assets/Silema/WB_logo.png'),
-                                ),
-                              ),
-                            ] else ...[
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  // child: Icon(Bio.bio, color: Colors.green)
-                                  child: Image.asset(
-                                      'assets/Biocalden/B_negra.png'),
-                                ),
-                              )
-                            ],
-                          ]),
-                          subtitle: Text(
-                            nicknamesMap[filteredDevices[index].platformName] !=
-                                    null
-                                ? filteredDevices[index].platformName
-                                : filteredDevices[index].remoteId.toString(),
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Color(0xFF9C9D98),
-                            ),
-                          ),
-                          onTap: () {
-                            connectToDevice(filteredDevices[index]);
-                            showToast(
-                                'Intentando conectarse al dispositivo...');
-                          },
-                        );
-                      },
                     ),
+                    actions: <Widget>[
+                      TextButton(
+                        style: const ButtonStyle(
+                          foregroundColor: MaterialStatePropertyAll(
+                            Color(0xFFB2B5AE),
+                          ),
+                        ),
+                        child: const Text('Cerrar sesión'),
+                        onPressed: () {
+                          Amplify.Auth.signOut();
+                          asking();
+                          previusConnections.clear();
+                          guardarLista(previusConnections);
+                          for (int i = 0; i < topicsToSub.length; i++) {
+                            unSubToTopicMQTT(topicsToSub[i]);
+                          }
+                          topicsToSub.clear();
+                          saveTopicList(topicsToSub);
+                          backTimer?.cancel();
+                          Navigator.of(dialogContext).pop();
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+            icon: const Icon(
+              Icons.person,
+              color: Color(0xFF9C9D98),
             ),
           )
-        :
-        //!-------------------------------------IOS Widget-------------------------------------!\\ //TODO: Terminar esto
-        CupertinoPageScaffold(
-            backgroundColor: const Color(0xFF1E242B),
-            navigationBar: CupertinoNavigationBar(
-              backgroundColor: const Color(0xFF1E242B),
-              middle: CupertinoTextField(
-                controller: searchController,
-                keyboardType: TextInputType.text,
-                placeholder: 'Filtrar por nombre',
-                placeholderStyle: const TextStyle(
-                  color: CupertinoColors.systemGrey,
-                ),
-                prefix: const Icon(CupertinoIcons.search,
-                    color: CupertinoColors.systemGrey),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1E242B),
-                ),
-                onChanged: (value) {
-                  filteredDevices = devices
-                      .where((device) => device
-                          .toString()
-                          .toLowerCase()
-                          .contains(value.toLowerCase()))
-                      .toList();
-                },
-              ),
-              trailing: CupertinoButton(
-                child: const Icon(CupertinoIcons.person,
-                    color: CupertinoColors.systemGrey),
-                onPressed: () {
-                  showCupertinoDialog<void>(
-                    context: context,
-                    barrierDismissible: true,
-                    builder: (BuildContext dialogContext) {
-                      return CupertinoAlertDialog(
-                        title: const Text('Mi perfil:'),
-                        content: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            Text(
-                              currentUserEmail,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                                'Cantidad de equipos registrados:\n ${previusConnections.length}'),
-                          ],
-                        ),
-                        actions: <Widget>[
-                          CupertinoDialogAction(
-                            child: const Text('Cerrar sesión'),
-                            onPressed: () {
-                              Amplify.Auth.signOut();
-                              asking();
-                              previusConnections.clear();
-                              guardarLista(previusConnections);
-                              for (int i = 0; i < topicsToSub.length; i++) {
-                                unSubToTopicMQTT(topicsToSub[i]);
-                              }
-                              topicsToSub.clear();
-                              saveTopicList(topicsToSub);
-                              backTimer?.cancel();
-                              Navigator.of(dialogContext).pop();
-                            },
+        ],
+      ),
+      drawer: MyDrawer(userMail: currentUserEmail),
+      body: EasyRefresh(
+        controller: _controller,
+        header: const ClassicHeader(
+          dragText: 'Desliza para reescanear',
+          armedText:
+              'Suelta para reescanear\nO desliza para arriba para cancelar',
+          readyText: 'Reescaneando dispositivos',
+          processingText: 'Reescaneando dispositivos',
+          processedText: 'Reescaneo completo',
+          showMessage: false,
+          textStyle: TextStyle(color: Color(0xFFB2B5AE)),
+          iconTheme: IconThemeData(color: Color(0xFF9C9D98)),
+        ),
+        onRefresh: () async {
+          await FlutterBluePlus.stopScan();
+          await Future.delayed(const Duration(seconds: 2));
+          setState(() {
+            devices.clear();
+          });
+          scan();
+          _controller.finishRefresh();
+        },
+        child: filteredDevices.isEmpty
+            ? ListView(
+                children: const [
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Center(
+                        child: Text(
+                          'Deslice el dedo hacia abajo para buscar nuevos dispositivos cercanos',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFB2B5AE),
                           ),
-                        ],
-                      );
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            : ListView.builder(
+                itemCount: filteredDevices.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Row(children: [
+                      Text(
+                        nicknamesMap[filteredDevices[index].platformName] ??
+                            filteredDevices[index].platformName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFB2B5AE),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.bluetooth, color: Color(0xFFB2B5AE)),
+                      // const SizedBox(width: double.infinity),
+                      if (filteredDevices[index]
+                          .platformName
+                          .contains('Detector')) ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: Image.asset('assets/IntelligentGas/G.png'),
+                          ),
+                        ),
+                      ] else if (filteredDevices[index]
+                          .platformName
+                          .contains('Radiador')) ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 40,
+                            width: 40,
+                            child: Image.asset('assets/Silema/WB_logo.png'),
+                          ),
+                        ),
+                      ] else ...[
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            // child: Icon(Bio.bio, color: Colors.green)
+                            child: Image.asset('assets/Biocalden/B_negra.png'),
+                          ),
+                        )
+                      ],
+                    ]),
+                    subtitle: Text(
+                      nicknamesMap[filteredDevices[index].platformName] != null
+                          ? filteredDevices[index].platformName
+                          : filteredDevices[index].remoteId.toString(),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF9C9D98),
+                      ),
+                    ),
+                    onTap: () {
+                      connectToDevice(filteredDevices[index]);
+                      showToast('Intentando conectarse al dispositivo...');
                     },
                   );
                 },
               ),
-            ),
-            child: EasyRefresh(
-                controller: _controller,
-                header: const ClassicHeader(
-                  dragText: 'Desliza para reescanear',
-                  armedText:
-                      'Suelta para reescanear\nO desliza para arriba para cancelar',
-                  readyText: 'Reescaneando dispositivos',
-                  processingText: 'Reescaneando dispositivos',
-                  processedText: 'Reescaneo completo',
-                  showMessage: false,
-                  textStyle:
-                      TextStyle(color: Color(0xFFB2B5AE)),
-                  iconTheme:
-                      IconThemeData(color: Color(0xFF9C9D98)),
-                ),
-                onRefresh: () async {
-                  await FlutterBluePlus.stopScan();
-                  await Future.delayed(const Duration(seconds: 2));
-                  setState(() {
-                    devices.clear();
-                  });
-                  scan();
-                  _controller.finishRefresh();
-                },
-                child: CupertinoScrollbar(
-                  child: filteredDevices.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'Deslice hacia abajo para buscar nuevos dispositivos cercanos',
-                            style: TextStyle(color: CupertinoColors.systemGrey),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: filteredDevices.length,
-                          itemBuilder: (context, index) {
-                            return CupertinoListTile(
-                              title: Row(children: [
-                                Text(
-                                  nicknamesMap[filteredDevices[index]
-                                          .platformName] ??
-                                      filteredDevices[index].platformName,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFB2B5AE),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                const Icon(Icons.bluetooth,
-                                    color: Color(0xFFB2B5AE)),
-                                if (filteredDevices[index]
-                                    .platformName
-                                    .contains('Detector')) ...[
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: Image.asset(
-                                          'assets/IntelligentGas/G.png'),
-                                    ),
-                                  ),
-                                ] else if (filteredDevices[index]
-                                    .platformName
-                                    .contains('Radiador')) ...[
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: SizedBox(
-                                      height: 40,
-                                      width: 40,
-                                      child: Image.asset(
-                                          'assets/Silema/WB_logo.png'),
-                                    ),
-                                  ),
-                                ] else ...[
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      // child: Icon(Bio.bio, color: Colors.green)
-                                      child: Image.asset(
-                                          'assets/Biocalden/B_negra.png'),
-                                    ),
-                                  )
-                                ],
-                              ]),
-                              subtitle: Text(
-                                nicknamesMap[filteredDevices[index]
-                                            .platformName] !=
-                                        null
-                                    ? filteredDevices[index].platformName
-                                    : filteredDevices[index]
-                                        .remoteId
-                                        .toString(),
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  color: Color(0xFF9C9D98),
-                                ),
-                              ),
-                              onTap: () {
-                                connectToDevice(filteredDevices[index]);
-                                showToast(
-                                    'Intentando conectarse al dispositivo...');
-                              },
-                            );
-                          },
-                        ),
-                )));
+      ),
+    );
   }
 }
 
@@ -864,9 +668,8 @@ class LoadState extends State<LoadingPage> {
                   alignment: Alignment.bottomCenter,
                   child: Text(
                     'Versión $appVersionNumber',
-                    style: const TextStyle(
-                        color: Color(0xFF9C9D98),
-                        fontSize: 12),
+                    style:
+                        const TextStyle(color: Color(0xFF9C9D98), fontSize: 12),
                   )),
               const SizedBox(height: 20),
             ],

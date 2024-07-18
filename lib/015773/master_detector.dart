@@ -138,28 +138,3 @@ class DrawerDetectorState extends State<DrawerDetector> {
   }
 }
 
-class IOSDrawerDetector extends StatefulWidget {
-  const IOSDrawerDetector({super.key});
-  @override
-  State<IOSDrawerDetector> createState() => IOSDrawerDetectorState();
-}
-
-class IOSDrawerDetectorState extends State<IOSDrawerDetector> {
-  //static double _sliderValue = 100.0;
-
-  // void _sendValueToBle(int value) async {
-  //   try {
-  //     final data = [value];
-  //     myDevice.lightUuid.write(data, withoutResponse: true);
-  //   } catch (e, stackTrace) {
-  //     printLog('Error al mandar el valor del brillo $e $stackTrace');
-  //     // handleManualError(e, stackTrace);
-  //   }
-  // }
-
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
-  }
-}

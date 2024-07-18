@@ -2,7 +2,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:biocalden_smart_life/aws/dynamo/dynamo.dart';
+import '../aws/dynamo/dynamo.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../aws/dynamo/dynamo_certificates.dart';

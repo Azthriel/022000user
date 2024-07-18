@@ -19,12 +19,13 @@ void controlOut(bool value, int index) {
   String fun = '$index#${value ? '1' : '0'}';
   myDevice.ioUuid.write(fun.codeUnits);
 
-  String fun2 = '$index:${value ? '1' : '0'}';
+  String fun2 = '${tipo[index] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${common[index]}';
   deviceSerialNumber = extractSerialNumber(deviceName);
   String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
   String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
-  String message = jsonEncode({'io': fun2});
+  String message = jsonEncode({'io$index': fun2});
   sendMessagemqtt(topic, message);
+  sendMessagemqtt(topic2, message);
   estado[index] = value ? '1' : '0';
   for (int i = 0; i < estado.length; i++) {
     String device =
@@ -33,9 +34,6 @@ void controlOut(bool value, int index) {
   }
 
   saveGlobalData(globalDATA);
-  String message2 =
-      jsonEncode(globalDATA['${command(deviceName)}/$deviceSerialNumber']);
-  sendMessagemqtt(topic2, message2);
 }
 
 Future<void> changeModes(BuildContext context) {

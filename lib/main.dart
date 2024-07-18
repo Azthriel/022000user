@@ -48,8 +48,7 @@ Future<void> main() async {
               displayTitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                  color: Color(0xFFFF0000),
-                  fontWeight: FontWeight.bold),
+                  color: Color(0xFFFF0000), fontWeight: FontWeight.bold),
             ),
             content: Text(
               displayMessage,
@@ -80,8 +79,9 @@ class MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+
     //! IOS O ANDROID !\\
-    android = Platform.isAndroid;
+    android = Platform.isIOS;
     //! IOS O ANDROID !\\
 
     loadValues();
@@ -124,8 +124,7 @@ class MyAppState extends State<MyApp> {
         bottomSheetTheme: const BottomSheetThemeData(
             surfaceTintColor: Colors.transparent,
             backgroundColor: Colors.transparent),
-        colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF1E242B)),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E242B)),
         useMaterial3: true,
       ),
       initialRoute: '/perm',
@@ -135,7 +134,7 @@ class MyAppState extends State<MyApp> {
         '/scan': (context) => const ScanPage(),
         '/loading': (context) => const LoadingPage(),
         '/calefactor': (context) => const ControlPage(),
-        '/detector': (context) => const DetectorPage(),
+        '/detector': (context) => android ? const DetectorPage() : const IOSDetector(),
         '/radiador': (context) => const RadiadorPage(),
         '/io': (context) => const IODevices(),
       },

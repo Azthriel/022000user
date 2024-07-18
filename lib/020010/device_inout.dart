@@ -303,11 +303,10 @@ class IODevicesState extends State<IODevices> {
                   printLog('$subNicknamesMap');
                   String nick =
                       '${nicknamesMap[deviceName] ?? deviceName}/-/${subNicknamesMap['$deviceName/-/$index'] ?? '${tipo[index]} $index'}';
-                  // printLog('Nick: $nick');
                   setupIOToken(nick, index, command(deviceName),
                       extractSerialNumber(deviceName), deviceName);
                 });
-                Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
+                Navigator.of(dialogContext).pop();
               },
             ),
           ],
@@ -712,3 +711,5 @@ class IODevicesState extends State<IODevices> {
     );
   }
 }
+
+

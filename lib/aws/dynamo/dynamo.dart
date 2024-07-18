@@ -15,7 +15,7 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
 
     if (response.items != null) {
       printLog('Items encontrados');
-      printLog(response.items);
+      // printLog(response.items);
       for (var item in response.items!) {
         printLog("-----------Inicio de un item-----------");
         for (var key in item.keys) {

@@ -119,7 +119,6 @@ void listenToTopics() {
 
       globalDATA.putIfAbsent(keyName, () => {}).addAll(messageMap);
       saveGlobalData(globalDATA);
-      printLog(globalDATA[keyName]);
       GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
           navigatorKey.currentContext!,
           listen: false);

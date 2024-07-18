@@ -21,6 +21,7 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 
 //!-----DATA MASTER-----!\\
 Map<String, Map<String, dynamic>> globalDATA = {};
@@ -90,7 +91,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24071500';
+String appVersionNumber = '24071800';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -145,7 +146,7 @@ String command(String device) {
     return '015773_IOT';
   } else if (device.contains('Radiador')) {
     return '041220_IOT';
-  } else if (device.contains('Módulo')) {
+  } else if (device.contains('Módulo') || device.contains('Domótica')) {
     return '020010_IOT';
   } else {
     return '';
@@ -558,117 +559,319 @@ String extractSerialNumber(String productName) {
 
 void showContactInfo(BuildContext context) {
   showDialog(
-      barrierDismissible: true,
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-            content: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-              const Text('Contacto comercial:',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                      onPressed: () => _sendWhatsAppMessage('5491162234181',
-                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
-                      icon: const Icon(
-                        Icons.phone,
-                        size: 20,
-                      )),
-                  const Text('+54 9 11 6223-4181',
-                      style: TextStyle(fontSize: 20))
-                ],
-              ),
-              SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () => _launchEmail(
-                            'ceat@ibsanitarios.com.ar',
-                            'Consulta comercial acerca de la linea $appName',
-                            '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
-                        icon: const Icon(
-                          Icons.mail,
-                          size: 20,
-                        ),
-                      ),
-                      const Text('ceat@ibsanitarios.com.ar',
-                          style: TextStyle(fontSize: 20))
-                    ],
-                  )),
-              const SizedBox(height: 20),
-              const Text('Consulta técnica:',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SingleChildScrollView(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Contacto comercial:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                    onPressed: () => _sendWhatsAppMessage('5491162234181',
+                        '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                    icon: const Icon(
+                      Icons.phone,
+                      size: 20,
+                    )),
+                const Text('+54 9 11 6223-4181', style: TextStyle(fontSize: 20))
+              ],
+            ),
+            SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     IconButton(
                       onPressed: () => _launchEmail(
-                          'pablo@intelligentgas.com.ar',
-                          'Consulta ref. $deviceName',
-                          '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                          'ceat@ibsanitarios.com.ar',
+                          'Consulta comercial acerca de la linea $appName',
+                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
                       icon: const Icon(
                         Icons.mail,
                         size: 20,
                       ),
                     ),
-                    const Text(
-                      'pablo@intelligentgas.com.ar',
-                      style: TextStyle(fontSize: 20),
-                      overflow: TextOverflow.ellipsis,
-                    )
+                    const Text('ceat@ibsanitarios.com.ar',
+                        style: TextStyle(fontSize: 20))
                   ],
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text('Customer service:',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Row(
+                )),
+            const SizedBox(height: 20),
+            const Text('Consulta técnica:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   IconButton(
+                    onPressed: () => _launchEmail(
+                        'pablo@intelligentgas.com.ar',
+                        'Consulta ref. $deviceName',
+                        '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                    icon: const Icon(
+                      Icons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'pablo@intelligentgas.com.ar',
+                    style: TextStyle(fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Customer service:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                    onPressed: () => _sendWhatsAppMessage('5491162232619',
+                        '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
+                    icon: const Icon(
+                      Icons.phone,
+                      size: 20,
+                    )),
+                const Text('+54 9 11 6223-2619', style: TextStyle(fontSize: 20))
+              ],
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () => _launchEmail(
+                        'service@calefactorescalden.com.ar',
+                        'Consulta ${command(deviceName)}',
+                        'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                    icon: const Icon(
+                      Icons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'service@calefactorescalden.com.ar',
+                    style: TextStyle(color: Color(0xFF000000), fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void showCupertinoContactInfo(BuildContext context) {
+  //TODO: Todo cupertino
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Contacto comercial:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                      onPressed: () => _sendWhatsAppMessage('5491162234181',
+                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                      child: const Icon(
+                        CupertinoIcons.phone,
+                        size: 20,
+                      )),
+                  const Text('+54 9 11 6223-4181',
+                      style: TextStyle(fontSize: 20))
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => _launchEmail(
+                          'ceat@ibsanitarios.com.ar',
+                          'Consulta comercial acerca de la linea $appName',
+                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                      child: const Icon(
+                        CupertinoIcons.mail,
+                        size: 20,
+                      ),
+                    ),
+                    const Text('ceat@ibsanitarios.com.ar',
+                        style: TextStyle(fontSize: 20))
+                  ],
+                )),
+            const SizedBox(height: 20),
+            const Text('Consulta técnica:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _launchEmail(
+                        'pablo@intelligentgas.com.ar',
+                        'Consulta ref. $deviceName',
+                        '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                    child: const Icon(
+                      CupertinoIcons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'pablo@intelligentgas.com.ar',
+                    style: TextStyle(fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Customer service:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
                       onPressed: () => _sendWhatsAppMessage('5491162232619',
                           '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
-                      icon: const Icon(
-                        Icons.phone,
+                      child: const Icon(
+                        CupertinoIcons.phone,
                         size: 20,
                       )),
                   const Text('+54 9 11 6223-2619',
                       style: TextStyle(fontSize: 20))
                 ],
               ),
-              SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () => _launchEmail(
-                            'service@calefactorescalden.com.ar',
-                            'Consulta ${command(deviceName)}',
-                            'Tengo una consulta referida a mi equipo $deviceName: \n'),
-                        icon: const Icon(
-                          Icons.mail,
-                          size: 20,
-                        ),
-                      ),
-                      const Text(
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _launchEmail(
                         'service@calefactorescalden.com.ar',
-                        style:
-                            TextStyle(color: Color(0xFF000000), fontSize: 20),
-                        overflow: TextOverflow.ellipsis,
-                      )
-                    ],
-                  )),
-            ]));
-      });
+                        'Consulta ${command(deviceName)}',
+                        'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                    child: const Icon(
+                      CupertinoIcons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'service@calefactorescalden.com.ar',
+                    style: TextStyle(color: Color(0xFF000000), fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void showSilemaContactInfo(BuildContext context) {
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Servicio técnico:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                    onPressed: () => _sendWhatsAppMessage('5491122845561',
+                        '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                    icon: const Icon(
+                      Icons.phone,
+                      size: 20,
+                    )),
+                const Text('+54 9 11 2284-5561', style: TextStyle(fontSize: 20))
+              ],
+            ),
+            SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () => _launchEmail(
+                          'silemacalefaccion@gmail.com',
+                          'Consulta comercial acerca de la linea IOT',
+                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                      icon: const Icon(
+                        Icons.mail,
+                        size: 20,
+                      ),
+                    ),
+                    const Text('silemacalefaccion@gmail.com',
+                        style: TextStyle(fontSize: 20))
+                  ],
+                )),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: () async {
+                    String url = 'http://www.silema.com.ar/';
+                    var uri = Uri.parse(url);
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        printLog('No se pudo abrir la URL: $url');
+                      }
+                    } catch (e, s) {
+                      printLog('Error url $e Stacktrace: $s');
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.language,
+                    size: 20,
+                  ),
+                ),
+                const Text('silema.com.ar', style: TextStyle(fontSize: 20))
+              ],
+            )
+          ],
+        ),
+      );
+    },
+  );
 }
 
 Future<void> _sendWhatsAppMessage(String phoneNumber, String message) async {
@@ -983,6 +1186,184 @@ void wifiText(BuildContext context) {
               'Aceptar',
               style: TextStyle(
                 color: Color(0xFFFFFFFF),
+              ),
+            ),
+            onPressed: () {
+              sendWifitoBle();
+              navigatorKey.currentState?.pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void cupertinoWifiText(BuildContext context) {
+  //TODO: Esto tiene que ser cupertino
+  showCupertinoDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Estado de conexión: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.label,
+                  ),
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  text: textState,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (werror) ...[
+                Text.rich(
+                  TextSpan(
+                    text: 'Error: $errorMessage',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'Sintax: $errorSintax',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  const Text.rich(
+                    TextSpan(
+                      text: 'Red actual: ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: CupertinoColors.label,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    nameOfWifi,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              const Text.rich(
+                TextSpan(
+                  text: 'Ingrese los datos de WiFi:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: CupertinoColors.label,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.qr_code,
+                  color: CupertinoColors.label,
+                ),
+                iconSize: 50,
+                onPressed: () async {
+                  PermissionStatus permissionStatusC =
+                      await Permission.camera.request();
+                  if (!permissionStatusC.isGranted) {
+                    await Permission.camera.request();
+                  }
+                  permissionStatusC = await Permission.camera.status;
+                  if (permissionStatusC.isGranted) {
+                    openQRScanner(navigatorKey.currentContext!);
+                  }
+                },
+              ),
+              CupertinoTextField(
+                placeholder: 'Nombre de Red',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                onChanged: (value) {
+                  wifiName = value;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              CupertinoTextField(
+                placeholder: 'Contraseña',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                obscureText: true,
+                onChanged: (value) {
+                  wifiPassword = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              navigatorKey.currentState?.pop();
+            },
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              ),
+            ),
+          ),
+          TextButton(
+            style: const ButtonStyle(),
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(
+                color: CupertinoColors.label,
               ),
             ),
             onPressed: () {
@@ -1727,8 +2108,7 @@ class QRScanPageState extends State<QRScanPage>
                 color: Colors.black54,
                 child: const Center(
                   child: Text('Escanea el QR',
-                      style:
-                          TextStyle(color: Color(0xFFB2B5AE))),
+                      style: TextStyle(color: Color(0xFFB2B5AE))),
                 )),
           ),
           // Abajo
@@ -1879,6 +2259,14 @@ class MyDrawerState extends State<MyDrawer> {
   int fun1 = 0;
   bool fun2 = false;
 
+  @override
+  void initState() {
+    super.initState();
+    for (String device in previusConnections) {
+      queryItems(service, command(device), extractSerialNumber(device));
+    }
+  }
+
   void toggleState(String deviceName, bool newState) async {
     deviceSerialNumber = extractSerialNumber(deviceName);
     globalDATA['${command(deviceName)}/$deviceSerialNumber']!['w_status'] =
@@ -1889,7 +2277,6 @@ class MyDrawerState extends State<MyDrawer> {
     String message = jsonEncode({"w_status": newState});
     sendMessagemqtt(topic, message);
     sendMessagemqtt(topic2, message);
-    printLog(globalDATA['${command(deviceName)}/$deviceSerialNumber']);
   }
 
   @override
@@ -1921,10 +2308,6 @@ class MyDrawerState extends State<MyDrawer> {
               itemCount:
                   highlightedConnections.length + previusConnections.length + 1,
               itemBuilder: (BuildContext context, int index) {
-                for (String device in previusConnections) {
-                  queryItems(
-                      service, command(device), extractSerialNumber(device));
-                }
                 if (index == 0) {
                   // El primer ítem será el DrawerHeader
                   return const DrawerHeader(
@@ -1986,8 +2369,6 @@ class MyDrawerState extends State<MyDrawer> {
                     bool owner = deviceDATA['owner'] == currentUserEmail ||
                         admins.contains(deviceName);
 
-                    // printLog('Owner: ${deviceDATA['owner']} $owner');
-                    // printLog('Admins secundarios: $admins');
                     if (equipo == '022000_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
                       bool heaterOn = deviceDATA['f_status'] ?? false;
@@ -2134,14 +2515,10 @@ class MyDrawerState extends State<MyDrawer> {
                                       color: Colors.red, fontSize: 15)),
                           trailing: owner
                               ? Switch(
-                                  activeColor:
-                                      const Color(0xFF9C9D98),
-                                  activeTrackColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveThumbColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveTrackColor:
-                                      const Color(0xFF9C9D98),
+                                  activeColor: const Color(0xFF9C9D98),
+                                  activeTrackColor: const Color(0xFFB2B5AE),
+                                  inactiveThumbColor: const Color(0xFFB2B5AE),
+                                  inactiveTrackColor: const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2303,14 +2680,10 @@ class MyDrawerState extends State<MyDrawer> {
                                       color: Colors.red, fontSize: 15)),
                           trailing: owner
                               ? Switch(
-                                  activeColor:
-                                      const Color(0xFF9C9D98),
-                                  activeTrackColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveThumbColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveTrackColor:
-                                      const Color(0xFF9C9D98),
+                                  activeColor: const Color(0xFF9C9D98),
+                                  activeTrackColor: const Color(0xFFB2B5AE),
+                                  inactiveThumbColor: const Color(0xFFB2B5AE),
+                                  inactiveTrackColor: const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2472,14 +2845,10 @@ class MyDrawerState extends State<MyDrawer> {
                                       color: Colors.red, fontSize: 15)),
                           trailing: owner
                               ? Switch(
-                                  activeColor:
-                                      const Color(0xFF9C9D98),
-                                  activeTrackColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveThumbColor:
-                                      const Color(0xFFB2B5AE),
-                                  inactiveTrackColor:
-                                      const Color(0xFF9C9D98),
+                                  activeColor: const Color(0xFF9C9D98),
+                                  activeTrackColor: const Color(0xFFB2B5AE),
+                                  inactiveThumbColor: const Color(0xFFB2B5AE),
+                                  inactiveTrackColor: const Color(0xFF9C9D98),
                                   value: estado,
                                   onChanged: (newValue) {
                                     toggleState(deviceName, newValue);
@@ -2792,7 +3161,7 @@ class MyDrawerState extends State<MyDrawer> {
                                       ),
                               ]),
                           subtitle: SizedBox(
-                            height: 80,
+                            height: 100,
                             child: PageView.builder(
                               physics: const PageScrollPhysics(
                                   parent: BouncingScrollPhysics()),
@@ -2815,75 +3184,118 @@ class MyDrawerState extends State<MyDrawer> {
                                           textAlign: TextAlign.start,
                                         ),
                                         const SizedBox(width: 5),
-                                        index == 0
-                                            ? const Icon(
-                                                Icons.arrow_right_alt,
-                                                size: 30,
-                                                color: Color(0xFFB2B5AE),
-                                              )
-                                            : const SizedBox(width: 0),
-                                        index == 1
-                                            ? const Icon(
-                                                Icons.compare_arrows,
-                                                size: 30,
-                                                color: Color(0xFFB2B5AE),
-                                              )
-                                            : const SizedBox(width: 0),
-                                        index == 2
-                                            ? const Icon(
-                                                Icons.compare_arrows,
-                                                size: 30,
-                                                color: Color(0xFFB2B5AE),
-                                              )
-                                            : const SizedBox(width: 0),
-                                        index == 3
-                                            ? const RotatedBox(
-                                                quarterTurns: 2,
-                                                child: Icon(
-                                                  Icons.arrow_right_alt,
-                                                  size: 30,
-                                                  color: Color(0xFFB2B5AE),
-                                                ),
-                                              )
-                                            : const SizedBox(width: 0),
                                       ],
                                     ),
                                   ),
-                                  subtitle: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
+                                  subtitle: Align(
+                                    alignment: AlignmentDirectional.centerStart,
+                                    child: Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
+                                        Align(
+                                            alignment: AlignmentDirectional
+                                                .centerStart,
+                                            child: Icon(
+                                              i == 0
+                                                  ? Icons.arrow_forward
+                                                  : i == 1
+                                                      ? Icons.compare_arrows
+                                                      : i == 2
+                                                          ? Icons.compare_arrows
+                                                          : Icons.arrow_back,
+                                              size: 30,
+                                              color: const Color(0xFFB2B5AE),
+                                            )),
                                         entradaDrawer
                                             ? estadoDrawer[i]
                                                 ? comunDrawer[i] == '1'
-                                                    ? const Text('Cerrado',
-                                                        style: TextStyle(
+                                                    ? const Align(
+                                                        alignment:
+                                                            AlignmentDirectional
+                                                                .centerStart,
+                                                        child: Text(
+                                                          'Cerrado',
+                                                          style: TextStyle(
                                                             color: Colors.green,
-                                                            fontSize: 15))
-                                                    : const Text('Abierto',
-                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : const Align(
+                                                        alignment:
+                                                            AlignmentDirectional
+                                                                .centerStart,
+                                                        child: Text(
+                                                          'Abierto',
+                                                          style: TextStyle(
                                                             color: Colors.red,
-                                                            fontSize: 15))
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      )
                                                 : comunDrawer[i] == '1'
-                                                    ? const Text('Abierto',
-                                                        style: TextStyle(
+                                                    ? const Align(
+                                                        alignment:
+                                                            AlignmentDirectional
+                                                                .centerStart,
+                                                        child: Text(
+                                                          'Abierto',
+                                                          style: TextStyle(
                                                             color: Colors.red,
-                                                            fontSize: 15))
-                                                    : const Text('Cerrado',
-                                                        style: TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      )
+                                                    : const Align(
+                                                        alignment:
+                                                            AlignmentDirectional
+                                                                .centerStart,
+                                                        child: Text(
+                                                          'Cerrado',
+                                                          style: TextStyle(
                                                             color: Colors.green,
-                                                            fontSize: 15))
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      )
                                             : estadoDrawer[i]
-                                                ? const Text('Encendido',
-                                                    style: TextStyle(
+                                                ? const Align(
+                                                    alignment:
+                                                        AlignmentDirectional
+                                                            .centerStart,
+                                                    child: Text(
+                                                      'Encendido',
+                                                      style: TextStyle(
                                                         color: Colors.green,
-                                                        fontSize: 15))
-                                                : const Text('Apagado',
-                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : const Align(
+                                                    alignment:
+                                                        AlignmentDirectional
+                                                            .centerStart,
+                                                    child: Text(
+                                                      'Apagado',
+                                                      style: TextStyle(
                                                         color: Colors.red,
-                                                        fontSize: 15)),
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  )
                                       ],
                                     ),
                                   ),
@@ -2918,7 +3330,7 @@ class MyDrawerState extends State<MyDrawer> {
                                           value: estadoDrawer[i],
                                           onChanged: (value) {
                                             String fun2 =
-                                                '$i:${value ? '1' : '0'}';
+                                                '${tipoDrawer[i] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${comunDrawer[i]}';
                                             deviceSerialNumber =
                                                 extractSerialNumber(deviceName);
                                             String topic =
@@ -2928,6 +3340,7 @@ class MyDrawerState extends State<MyDrawer> {
                                             String message =
                                                 jsonEncode({'io$i': fun2});
                                             sendMessagemqtt(topic, message);
+                                            sendMessagemqtt(topic2, message);
                                             estadoDrawer[i] = value;
                                             for (int j = 0;
                                                 j < estadoDrawer.length;
@@ -2939,9 +3352,6 @@ class MyDrawerState extends State<MyDrawer> {
                                                   'io$j'] = device;
                                             }
                                             saveGlobalData(globalDATA);
-                                            String message2 = jsonEncode(globalDATA[
-                                                '${command(deviceName)}/$deviceSerialNumber']);
-                                            sendMessagemqtt(topic2, message2);
                                           },
                                         ),
                                 );

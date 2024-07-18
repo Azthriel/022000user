@@ -1155,7 +1155,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         foregroundColor: MaterialStatePropertyAll(
                             Color(0xFFFFFFFF))),
                     onPressed: () {
-                      showContactInfo(context);
+                      showSilemaContactInfo(context);
                     },
                     child: const Text('CONTACTANOS'))),
           ],
