@@ -142,17 +142,17 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     const SizedBox(height: 10),
                     ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFFBDBDBD)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: makeCompute,
                         child: const Text('Hacer calculo')),
                     ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFFBDBDBD)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: () {
                           guardarFecha(widget.device).then(
@@ -181,11 +181,11 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             const Color(0xFFFFFFFF),
                         inactiveTrackColor:
                             const Color(0xFFBDBDBD),
-                        trackOutlineColor: const MaterialStatePropertyAll(
+                        trackOutlineColor: const WidgetStatePropertyAll(
                             Color(0xFFBDBDBD)),
-                        thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.selected)) {
+                        thumbIcon: WidgetStateProperty.resolveWith<Icon?>(
+                          (Set<WidgetState> states) {
+                            if (states.contains(WidgetState.selected)) {
                               return const Icon(Icons.nights_stay,
                                   color: Colors.white);
                             } else {
@@ -211,9 +211,9 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                     if (deviceOwner) ...[
                       ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFFBDBDBD)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: () {
                           if (owner != '') {
@@ -240,7 +240,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
-                                              MaterialStatePropertyAll(
+                                              WidgetStatePropertyAll(
                                                   Color(0xFFFFFFFF))),
                                       child: const Text('Cancelar'),
                                       onPressed: () {
@@ -250,7 +250,7 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
-                                              MaterialStatePropertyAll(
+                                              WidgetStatePropertyAll(
                                                   Color(0xFFFFFFFF))),
                                       child: const Text('Aceptar'),
                                       onPressed: () {
@@ -307,10 +307,10 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                       if (currentUserEmail == owner) ...[
                         ElevatedButton(
                           style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                               Color(0xFFBDBDBD),
                             ),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                               Color(0xFFFFFFFF),
                             ),
                           ),
@@ -518,10 +518,10 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                         ),
                         ElevatedButton(
                           style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                               Color(0xFFBDBDBD),
                             ),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                               Color(0xFFFFFFFF),
                             ),
                           ),
@@ -582,9 +582,9 @@ class DeviceDrawerState extends State<DeviceDrawer> {
               padding: const EdgeInsets.all(10.0),
               child: ElevatedButton(
                 style: const ButtonStyle(
-                    backgroundColor: MaterialStatePropertyAll(
+                    backgroundColor: WidgetStatePropertyAll(
                         Color(0xFFBDBDBD)),
-                    foregroundColor: MaterialStatePropertyAll(
+                    foregroundColor: WidgetStatePropertyAll(
                         Color(0xFFFFFFFF))),
                 onPressed: () {
                   showContactInfo(context);
@@ -712,17 +712,17 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                     const SizedBox(height: 10),
                     ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFF484848)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: makeCompute,
                         child: const Text('Hacer calculo')),
                     ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFF484848)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: () {
                           guardarFecha(widget.device).then(
@@ -759,11 +759,11 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                             const Color(0xFFFFFFFF),
                         inactiveTrackColor:
                             const Color(0xFF484848),
-                        trackOutlineColor: const MaterialStatePropertyAll(
+                        trackOutlineColor: const WidgetStatePropertyAll(
                             Color(0xFF484848)),
-                        thumbIcon: MaterialStateProperty.resolveWith<Icon?>(
-                          (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.selected)) {
+                        thumbIcon: WidgetStateProperty.resolveWith<Icon?>(
+                          (Set<WidgetState> states) {
+                            if (states.contains(WidgetState.selected)) {
                               return const Icon(Icons.nights_stay,
                                   color: Colors.white);
                             } else {
@@ -789,9 +789,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                     if (deviceOwner) ...[
                       ElevatedButton(
                         style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                                 Color(0xFF484848)),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                                 Color(0xFFFFFFFF))),
                         onPressed: () {
                           if (owner != '') {
@@ -816,7 +816,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
-                                              MaterialStatePropertyAll(
+                                              WidgetStatePropertyAll(
                                                   Color(0xFF000000))),
                                       child: const Text('Cancelar'),
                                       onPressed: () {
@@ -826,7 +826,7 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                                     TextButton(
                                       style: const ButtonStyle(
                                           foregroundColor:
-                                              MaterialStatePropertyAll(
+                                              WidgetStatePropertyAll(
                                                   Color(0xFF000000))),
                                       child: const Text('Aceptar'),
                                       onPressed: () {
@@ -883,9 +883,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                       if (currentUserEmail == owner) ...[
                         ElevatedButton(
                           style: const ButtonStyle(
-                              backgroundColor: MaterialStatePropertyAll(
+                              backgroundColor: WidgetStatePropertyAll(
                                   Color(0xFF484848)),
-                              foregroundColor: MaterialStatePropertyAll(
+                              foregroundColor: WidgetStatePropertyAll(
                                   Color(0xFFFFFFFF))),
                           onPressed: () async {
                             adminDevices = await getSecondaryAdmins(
@@ -1086,10 +1086,10 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         ),
                         ElevatedButton(
                           style: const ButtonStyle(
-                            backgroundColor: MaterialStatePropertyAll(
+                            backgroundColor: WidgetStatePropertyAll(
                               Color(0xFF484848),
                             ),
-                            foregroundColor: MaterialStatePropertyAll(
+                            foregroundColor: WidgetStatePropertyAll(
                               Color(0xFFFFFFFF),
                             ),
                           ),
@@ -1150,9 +1150,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                 padding: const EdgeInsets.all(10.0),
                 child: ElevatedButton(
                     style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll(
+                        backgroundColor: WidgetStatePropertyAll(
                             Color(0xFF484848)),
-                        foregroundColor: MaterialStatePropertyAll(
+                        foregroundColor: WidgetStatePropertyAll(
                             Color(0xFFFFFFFF))),
                     onPressed: () {
                       showSilemaContactInfo(context);

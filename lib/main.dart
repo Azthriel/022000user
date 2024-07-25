@@ -21,7 +21,7 @@ import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'amplifyconfiguration.dart';
 
 Future<void> main() async {
-  appName = biocalden ? 'Biocalden Smart Life' : 'Silema calefactores';
+  appName = biocalden ? 'Biocalden Smart Life' : 'Silema Calefacción';
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -79,9 +79,8 @@ class MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-
     //! IOS O ANDROID !\\
-    android = Platform.isIOS;
+    android = Platform.isAndroid;
     //! IOS O ANDROID !\\
 
     loadValues();
@@ -113,7 +112,7 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
-      title: biocalden ? 'Biocalden Smart Life' : 'Silema calefactores',
+      title: biocalden ? 'Biocalden Smart Life' : 'Silema Calefacción',
       theme: ThemeData(
         primaryColor: const Color(0xFF1E242B),
         primaryColorLight: const Color(0xFFB2B5AE),

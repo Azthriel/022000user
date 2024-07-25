@@ -168,7 +168,7 @@ Future<void> changeModes(BuildContext context) {
         actions: <Widget>[
           TextButton(
             style: const ButtonStyle(
-              foregroundColor: MaterialStatePropertyAll(
+              foregroundColor: WidgetStatePropertyAll(
                 Color(0xffa79986),
               ),
             ),
@@ -253,10 +253,10 @@ class DrawerIOState extends State<DrawerIO> {
                 }
               },
               style: const ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(
+                backgroundColor: WidgetStatePropertyAll(
                   Color(0xff4b2427),
                 ),
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -267,10 +267,10 @@ class DrawerIOState extends State<DrawerIO> {
           if (deviceOwner) ...[
             ElevatedButton(
               style: const ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(
+                backgroundColor: WidgetStatePropertyAll(
                   Color(0xff4b2427),
                 ),
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -297,7 +297,7 @@ class DrawerIOState extends State<DrawerIO> {
                         actions: <Widget>[
                           TextButton(
                             style: const ButtonStyle(
-                              foregroundColor: MaterialStatePropertyAll(
+                              foregroundColor: WidgetStatePropertyAll(
                                 Color(0xffa79986),
                               ),
                             ),
@@ -308,7 +308,7 @@ class DrawerIOState extends State<DrawerIO> {
                           ),
                           TextButton(
                             style: const ButtonStyle(
-                              foregroundColor: MaterialStatePropertyAll(
+                              foregroundColor: WidgetStatePropertyAll(
                                 Color(0xffa79986),
                               ),
                             ),
@@ -358,10 +358,10 @@ class DrawerIOState extends State<DrawerIO> {
             if (currentUserEmail == owner) ...[
               ElevatedButton(
                 style: const ButtonStyle(
-                  backgroundColor: MaterialStatePropertyAll(
+                  backgroundColor: WidgetStatePropertyAll(
                     Color(0xff4b2427),
                   ),
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                     Color(0xffa79986),
                   ),
                 ),
@@ -549,10 +549,10 @@ class DrawerIOState extends State<DrawerIO> {
             padding: const EdgeInsets.all(10.0),
             child: ElevatedButton(
               style: const ButtonStyle(
-                backgroundColor: MaterialStatePropertyAll(
+                backgroundColor: WidgetStatePropertyAll(
                   Color(0xff4b2427),
                 ),
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),

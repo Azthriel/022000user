@@ -1,81 +1,60 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Project 022000iot User</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>project_022000iot_user</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<key>UIBackgroundModes</key>
-	<array>
-    <string>location</string>
-	</array>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-
-	<!-- Permisos de Bluetooth -->
-    <key>NSBluetoothPeripheralUsageDescription</key>
-    <string>Necesitamos acceso a Bluetooth para conectarnos a los calefactores cercanos.</string>
-    <key>NSBluetoothAlwaysUsageDescription</key>
-    <string>Nuestra app necesita Bluetooth para conectarse constantemente a los calefactores cercanos.</string>
-
-    <!-- Permisos de Localización -->
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Necesitamos tu ubicación para el uso de bluetooth y el control por distancia.</string>
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>Necesitamos acceso a tu ubicación en todo momento para el uso de bluetooth y el control por distancia.</string>
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Necesitamos acceso a tu ubicación en todo momento para el uso de bluetooth y el control por distancia.</string>
-
-	<!-- Permiso de Cámara -->
-    <key>NSCameraUsageDescription</key>
-    <string>Necesitamos acceso a tu cámara para escanear los qr de wifi.</string>
-
-    <!-- Configuración adicional para URL Schemes y otros permisos si son necesarios -->
-    <!-- Por ejemplo, si tu aplicación necesita abrir URLs en un navegador -->
-    <key>LSApplicationQueriesSchemes</key>
-    <array>
-        <string>https</string>
-		<string>whatsapp</string>
-        <!-- Añade otros esquemas aquí si es necesario -->
-    </array>
-
-</dict>
+	<dict>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<key>CFBundleExecutable</key>
+		<string>$(EXECUTABLE_NAME)</string>
+		<key>CFBundleIdentifier</key>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleName</key>
+		<string>$(PRODUCT_NAME)</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleShortVersionString</key>
+		<string>$(MARKETING_VERSION)</string>
+		<key>CFBundleVersion</key>
+		<string>$(CURRENT_PROJECT_VERSION)</string>
+		<key>LSRequiresIPhoneOS</key>
+		<true />
+		<key>UILaunchStoryboardName</key>
+		<string>LaunchScreen</string>
+		<key>UIRequiredDeviceCapabilities</key>
+		<array>
+			<string>armv7</string>
+		</array>
+		<key>UISupportedInterfaceOrientations</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>UISupportedInterfaceOrientations~ipad</key>
+		<array>
+			<string>UIInterfaceOrientationPortrait</string>
+			<string>UIInterfaceOrientationPortraitUpsideDown</string>
+			<string>UIInterfaceOrientationLandscapeLeft</string>
+			<string>UIInterfaceOrientationLandscapeRight</string>
+		</array>
+		<key>NSBluetoothAlwaysUsageDescription</key>
+		<string>$(PRODUCT_NAME) necesita acceso al Bluetooth para conectarse a los equipos.</string>
+		<key>NSBluetoothPeripheralUsageDescription</key>
+		<string>$(PRODUCT_NAME) necesita acceso al Bluetooth para conectarse a los equipos.</string>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>$(PRODUCT_NAME) necesita acceso a tu ubicación mientras usas la app para utilizar el
+			control por distancia.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>$(PRODUCT_NAME) necesita acceso a tu ubicación en todo momento para utilizar el
+			control por distancia.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>$(PRODUCT_NAME) necesita acceso a tu ubicación siempre y cuando uses la app o no
+			para utilizar el control por distancia.</string>
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>https</string>
+			<string>mailto</string>
+			<string>whatsapp</string>
+		</array>
+	</dict>
 </plist>

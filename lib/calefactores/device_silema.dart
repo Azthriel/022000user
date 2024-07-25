@@ -204,7 +204,7 @@ class RadiadorPageState extends State<RadiadorPage> {
             TextButton(
               style: const ButtonStyle(
                   foregroundColor:
-                      MaterialStatePropertyAll(Color(0xFF000000))),
+                      WidgetStatePropertyAll(Color(0xFF000000))),
               child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
@@ -213,7 +213,7 @@ class RadiadorPageState extends State<RadiadorPage> {
             TextButton(
               style: const ButtonStyle(
                   foregroundColor:
-                      MaterialStatePropertyAll(Color(0xFF000000))),
+                      WidgetStatePropertyAll(Color(0xFF000000))),
               child: const Text('Guardar'),
               onPressed: () {
                 setState(() {
@@ -311,7 +311,7 @@ class RadiadorPageState extends State<RadiadorPage> {
               TextButton(
                 style: const ButtonStyle(
                     foregroundColor:
-                        MaterialStatePropertyAll(Color(0xFF000000))),
+                        WidgetStatePropertyAll(Color(0xFF000000))),
                 child: const Text('Habilitar'),
                 onPressed: () async {
                   var permissionStatus4 =
@@ -924,13 +924,13 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 inactiveTrackColor:
                                     const Color(0xFF484848),
                                 trackOutlineColor:
-                                    const MaterialStatePropertyAll(
+                                    const WidgetStatePropertyAll(
                                         Color(0xFF484848)),
                                 thumbIcon:
-                                    MaterialStateProperty.resolveWith<Icon?>(
-                                  (Set<MaterialState> states) {
+                                    WidgetStateProperty.resolveWith<Icon?>(
+                                  (Set<WidgetState> states) {
                                     if (states
-                                        .contains(MaterialState.selected)) {
+                                        .contains(WidgetState.selected)) {
                                       return const Icon(Icons.nights_stay,
                                           color: Colors.white);
                                     } else {
@@ -970,10 +970,10 @@ class RadiadorPageState extends State<RadiadorPage> {
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 style: const ButtonStyle(
-                                  backgroundColor: MaterialStatePropertyAll(
+                                  backgroundColor: WidgetStatePropertyAll(
                                     Color(0xFF484848),
                                   ),
-                                  foregroundColor: MaterialStatePropertyAll(
+                                  foregroundColor: WidgetStatePropertyAll(
                                     Color(0xFFFFFFFF),
                                   ),
                                 ),

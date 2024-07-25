@@ -184,7 +184,7 @@ class IODevicesState extends State<IODevices> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -195,7 +195,7 @@ class IODevicesState extends State<IODevices> {
             ),
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -279,7 +279,7 @@ class IODevicesState extends State<IODevices> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -290,7 +290,7 @@ class IODevicesState extends State<IODevices> {
             ),
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xffa79986),
                 ),
               ),
@@ -642,7 +642,7 @@ class IODevicesState extends State<IODevices> {
                                           scale: 2.5,
                                           child: Switch(
                                             trackOutlineColor:
-                                                const MaterialStatePropertyAll(
+                                                const WidgetStatePropertyAll(
                                                     Color(0xff4b2427)),
                                             activeColor:
                                                 const Color(0xff803e2f),
@@ -684,10 +684,10 @@ class IODevicesState extends State<IODevices> {
                     const SizedBox(height: 10),
                     ElevatedButton(
                       style: const ButtonStyle(
-                        backgroundColor: MaterialStatePropertyAll(
+                        backgroundColor: WidgetStatePropertyAll(
                           Color(0xff4b2427),
                         ),
-                        foregroundColor: MaterialStatePropertyAll(
+                        foregroundColor: WidgetStatePropertyAll(
                           Color(0xffa79986),
                         ),
                       ),

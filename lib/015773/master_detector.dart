@@ -62,36 +62,33 @@ class DrawerDetectorState extends State<DrawerDetector> {
             const SizedBox(
               height: 30,
             ),
-            RotatedBox(
-              quarterTurns: 3,
-              child: SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                    valueIndicatorColor: const Color(0xFFFFFFFF),
-                    activeTrackColor: const Color(0xFF1DA3A9),
-                    inactiveTrackColor: const Color(0xFFFFFFFF),
-                    trackHeight: 48.0,
-                    thumbColor: const Color(0xFF1DA3A9),
-                    thumbShape: IconThumbSlider(
-                        iconData: _sliderValue > 50
-                            ? Icons.light_mode
-                            : Icons.nightlight,
-                        thumbRadius: 25)),
-                child: Slider(
-                  value: _sliderValue,
-                  min: 0.0,
-                  max: 100.0,
-                  onChanged: (double value) {
-                    setState(() {
-                      _sliderValue = value;
-                    });
-                  },
-                  onChangeEnd: (value) {
-                    setState(() {
-                      _sliderValue = value;
-                    });
-                    _sendValueToBle(_sliderValue.toInt());
-                  },
-                ),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                  valueIndicatorColor: const Color(0xFFFFFFFF),
+                  activeTrackColor: const Color(0xFF1DA3A9),
+                  inactiveTrackColor: const Color(0xFFFFFFFF),
+                  trackHeight: 48.0,
+                  thumbColor: const Color(0xFF1DA3A9),
+                  thumbShape: IconThumbSlider(
+                      iconData: _sliderValue > 50
+                          ? Icons.light_mode
+                          : Icons.nightlight,
+                      thumbRadius: 25)),
+              child: Slider(
+                value: _sliderValue,
+                min: 0.0,
+                max: 100.0,
+                onChanged: (double value) {
+                  setState(() {
+                    _sliderValue = value;
+                  });
+                },
+                onChangeEnd: (value) {
+                  setState(() {
+                    _sliderValue = value;
+                  });
+                  _sendValueToBle(_sliderValue.toInt());
+                },
               ),
             ),
             const SizedBox(
@@ -102,7 +99,7 @@ class DrawerDetectorState extends State<DrawerDetector> {
               style: const TextStyle(fontSize: 20.0, color: Colors.white),
             ),
             const SizedBox(
-              height: 30,
+              height: 120,
             ),
             Text(
               'Versión de Hardware: $hardwareVersion',
@@ -118,10 +115,10 @@ class DrawerDetectorState extends State<DrawerDetector> {
             ElevatedButton(
                 style: ButtonStyle(
                   backgroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xFF1DA3A9)),
+                      WidgetStateProperty.all<Color>(const Color(0xFF1DA3A9)),
                   foregroundColor:
-                      MaterialStateProperty.all<Color>(const Color(0xFFFFFFFF)),
-                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      WidgetStateProperty.all<Color>(const Color(0xFFFFFFFF)),
+                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(18.0),
                     ),
@@ -137,4 +134,3 @@ class DrawerDetectorState extends State<DrawerDetector> {
     );
   }
 }
-

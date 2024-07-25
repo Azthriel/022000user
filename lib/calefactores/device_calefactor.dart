@@ -214,7 +214,7 @@ class ControlPageState extends State<ControlPage> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                       Color(0xFFFFFFFF))),
               child: const Text('Cancelar'),
               onPressed: () {
@@ -223,7 +223,7 @@ class ControlPageState extends State<ControlPage> {
             ),
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                       Color(0xFFFFFFFF))),
               child: const Text('Guardar'),
               onPressed: () {
@@ -326,7 +326,7 @@ class ControlPageState extends State<ControlPage> {
               actions: <Widget>[
                 TextButton(
                   style: const ButtonStyle(
-                    foregroundColor: MaterialStatePropertyAll(
+                    foregroundColor: WidgetStatePropertyAll(
                       Color(0xFFFFFFFF),
                     ),
                   ),
@@ -550,7 +550,7 @@ class ControlPageState extends State<ControlPage> {
                                   inactiveTrackColor:
                                       const Color(0xFFBDBDBD),
                                   trackOutlineColor:
-                                      const MaterialStatePropertyAll(
+                                      const WidgetStatePropertyAll(
                                           Color(0xFFBDBDBD)),
                                   value: turnOn,
                                   onChanged: (value) {
@@ -954,13 +954,13 @@ class ControlPageState extends State<ControlPage> {
                                 inactiveTrackColor:
                                     const Color(0xFFBDBDBD),
                                 trackOutlineColor:
-                                    const MaterialStatePropertyAll(
+                                    const WidgetStatePropertyAll(
                                         Color(0xFFBDBDBD)),
                                 thumbIcon:
-                                    MaterialStateProperty.resolveWith<Icon?>(
-                                  (Set<MaterialState> states) {
+                                    WidgetStateProperty.resolveWith<Icon?>(
+                                  (Set<WidgetState> states) {
                                     if (states
-                                        .contains(MaterialState.selected)) {
+                                        .contains(WidgetState.selected)) {
                                       return const Icon(Icons.nights_stay,
                                           color: Colors.white);
                                     } else {
@@ -997,10 +997,10 @@ class ControlPageState extends State<ControlPage> {
                               const SizedBox(height: 10),
                               ElevatedButton(
                                 style: const ButtonStyle(
-                                  backgroundColor: MaterialStatePropertyAll(
+                                  backgroundColor: WidgetStatePropertyAll(
                                     Color(0xFFBDBDBD),
                                   ),
-                                  foregroundColor: MaterialStatePropertyAll(
+                                  foregroundColor: WidgetStatePropertyAll(
                                     Color(0xFFFFFFFF),
                                   ),
                                 ),

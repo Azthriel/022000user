@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'aws/dynamo/dynamo.dart';
@@ -91,7 +92,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24071800';
+String appVersionNumber = '24072400';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -352,7 +353,7 @@ void showBleText() async {
           actions: [
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                  foregroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF))),
               onPressed: () async {
                 if (Platform.isAndroid) {
                   await FlutterBluePlus.turnOn();
@@ -407,7 +408,7 @@ void showUbiText() {
               TextButton(
                   style: const ButtonStyle(
                       foregroundColor:
-                          MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                          WidgetStatePropertyAll(Color(0xFFFFFFFF))),
                   onPressed: () async {
                     checkubiFlag = false;
                     navigatorKey.currentState?.pop();
@@ -447,7 +448,7 @@ void showPrivacyDialogIfNeeded() async {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                  foregroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF))),
               child: const Text('Leer nuestra politica de privacidad'),
               onPressed: () async {
                 Uri uri = Uri.parse(biocalden
@@ -462,7 +463,7 @@ void showPrivacyDialogIfNeeded() async {
             ),
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                  foregroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF))),
               child: const Text('Aceptar'),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -1200,7 +1201,6 @@ void wifiText(BuildContext context) {
 }
 
 void cupertinoWifiText(BuildContext context) {
-  //TODO: Esto tiene que ser cupertino
   showCupertinoDialog(
     barrierDismissible: true,
     context: context,
@@ -1395,8 +1395,7 @@ void showAdminText() {
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                    foregroundColor:
-                        MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                    foregroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF))),
                 onPressed: () async {
                   String cuerpo =
                       '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
@@ -1490,7 +1489,7 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xFFB2B5AE),
                 ),
               ),
@@ -1501,7 +1500,7 @@ void showPaymentTest(bool adm, int vencimiento, BuildContext context) {
             ),
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xFFB2B5AE),
                 ),
               ),
@@ -1555,8 +1554,7 @@ void showATText() {
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                    foregroundColor:
-                        MaterialStatePropertyAll(Color(0xFFFFFFFF))),
+                    foregroundColor: WidgetStatePropertyAll(Color(0xFFFFFFFF))),
                 onPressed: () async {
                   String cuerpo =
                       '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
@@ -1689,7 +1687,7 @@ Future<void> configAT() async {
           actions: [
             TextButton(
                 style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                     Color(0xFFFFFFFF),
                   ),
                 ),
@@ -1747,8 +1745,8 @@ Future<void> initializeService() async {
         ?.createNotificationChannel(channel);
 
     await backService.configure(
-      iosConfiguration:
-          IosConfiguration(onBackground: onStart, autoStart: true),
+      iosConfiguration: IosConfiguration(
+          onBackground: onStart, autoStart: true, onForeground: onStart),
       androidConfiguration: AndroidConfiguration(
         notificationChannelId: 'my_foreground',
         foregroundServiceNotificationId: 888,
@@ -1770,6 +1768,7 @@ Future<void> initializeService() async {
 @pragma('vm:entry-point')
 bool onStart(ServiceInstance service) {
   WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
 
   setupMqtt();
 
@@ -2367,7 +2366,9 @@ class MyDrawerState extends State<MyDrawer> {
                     List<dynamic> admins = deviceDATA['secondary_admin'] ?? [];
 
                     bool owner = deviceDATA['owner'] == currentUserEmail ||
-                        admins.contains(deviceName);
+                        admins.contains(deviceName) ||
+                        deviceDATA['owner'] == '' ||
+                        deviceDATA['owner'] == null;
 
                     if (equipo == '022000_IOT') {
                       bool estado = deviceDATA['w_status'] ?? false;
@@ -3299,61 +3300,66 @@ class MyDrawerState extends State<MyDrawer> {
                                       ],
                                     ),
                                   ),
-                                  trailing: entradaDrawer
-                                      ? estadoDrawer[i]
-                                          ? comunDrawer[i] == '1'
-                                              ? const Icon(
-                                                  Icons.new_releases,
-                                                  color: Color(0xff9b9b9b),
-                                                )
-                                              : const Icon(
-                                                  Icons.new_releases,
-                                                  color: Color(0xffcb3234),
-                                                )
-                                          : comunDrawer[i] == '1'
-                                              ? const Icon(
-                                                  Icons.new_releases,
-                                                  color: Color(0xffcb3234),
-                                                )
-                                              : const Icon(
-                                                  Icons.new_releases,
-                                                  color: Color(0xff9b9b9b),
-                                                )
-                                      : Switch(
-                                          activeColor: const Color(0xFF9C9D98),
-                                          activeTrackColor:
-                                              const Color(0xFFB2B5AE),
-                                          inactiveThumbColor:
-                                              const Color(0xFFB2B5AE),
-                                          inactiveTrackColor:
-                                              const Color(0xFF9C9D98),
-                                          value: estadoDrawer[i],
-                                          onChanged: (value) {
-                                            String fun2 =
-                                                '${tipoDrawer[i] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${comunDrawer[i]}';
-                                            deviceSerialNumber =
-                                                extractSerialNumber(deviceName);
-                                            String topic =
-                                                'devices_rx/${command(deviceName)}/$deviceSerialNumber';
-                                            String topic2 =
-                                                'devices_tx/${command(deviceName)}/$deviceSerialNumber';
-                                            String message =
-                                                jsonEncode({'io$i': fun2});
-                                            sendMessagemqtt(topic, message);
-                                            sendMessagemqtt(topic2, message);
-                                            estadoDrawer[i] = value;
-                                            for (int j = 0;
-                                                j < estadoDrawer.length;
-                                                j++) {
-                                              String device =
-                                                  '${tipoDrawer[j] == 'Salida' ? '0' : '1'}:${estadoDrawer[j] == true ? '1' : '0'}:${comunDrawer[j]}';
-                                              globalDATA[
-                                                      '${command(deviceName)}/$deviceSerialNumber']![
-                                                  'io$j'] = device;
-                                            }
-                                            saveGlobalData(globalDATA);
-                                          },
-                                        ),
+                                  trailing: owner
+                                      ? entradaDrawer
+                                          ? estadoDrawer[i]
+                                              ? comunDrawer[i] == '1'
+                                                  ? const Icon(
+                                                      Icons.new_releases,
+                                                      color: Color(0xff9b9b9b),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.new_releases,
+                                                      color: Color(0xffcb3234),
+                                                    )
+                                              : comunDrawer[i] == '1'
+                                                  ? const Icon(
+                                                      Icons.new_releases,
+                                                      color: Color(0xffcb3234),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.new_releases,
+                                                      color: Color(0xff9b9b9b),
+                                                    )
+                                          : Switch(
+                                              activeColor:
+                                                  const Color(0xFF9C9D98),
+                                              activeTrackColor:
+                                                  const Color(0xFFB2B5AE),
+                                              inactiveThumbColor:
+                                                  const Color(0xFFB2B5AE),
+                                              inactiveTrackColor:
+                                                  const Color(0xFF9C9D98),
+                                              value: estadoDrawer[i],
+                                              onChanged: (value) {
+                                                String fun2 =
+                                                    '${tipoDrawer[i] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${comunDrawer[i]}';
+                                                deviceSerialNumber =
+                                                    extractSerialNumber(
+                                                        deviceName);
+                                                String topic =
+                                                    'devices_rx/${command(deviceName)}/$deviceSerialNumber';
+                                                String topic2 =
+                                                    'devices_tx/${command(deviceName)}/$deviceSerialNumber';
+                                                String message =
+                                                    jsonEncode({'io$i': fun2});
+                                                sendMessagemqtt(topic, message);
+                                                sendMessagemqtt(
+                                                    topic2, message);
+                                                estadoDrawer[i] = value;
+                                                for (int j = 0;
+                                                    j < estadoDrawer.length;
+                                                    j++) {
+                                                  String device =
+                                                      '${tipoDrawer[j] == 'Salida' ? '0' : '1'}:${estadoDrawer[j] == true ? '1' : '0'}:${comunDrawer[j]}';
+                                                  globalDATA[
+                                                          '${command(deviceName)}/$deviceSerialNumber']![
+                                                      'io$j'] = device;
+                                                }
+                                                saveGlobalData(globalDATA);
+                                              },
+                                            )
+                                      : null,
                                 );
                               },
                             ),

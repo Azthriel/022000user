@@ -156,7 +156,7 @@ class DetectorPageState extends State<DetectorPage> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xFF1DA3A9),
                 ),
               ),
@@ -167,7 +167,7 @@ class DetectorPageState extends State<DetectorPage> {
             ),
             TextButton(
               style: const ButtonStyle(
-                foregroundColor: MaterialStatePropertyAll(
+                foregroundColor: WidgetStatePropertyAll(
                   Color(0xFF1DA3A9),
                 ),
               ),
@@ -750,7 +750,7 @@ class IOSDetectorState extends State<IOSDetector>
   late String nickname;
   bool werror = false;
   bool alert = false;
-  String _textToShow = 'AIRE PURO' ;
+  String _textToShow = 'AIRE PURO';
   bool online =
       globalDATA['${command(deviceName)}/${extractSerialNumber(deviceName)}']![
               'cstate'] ??
@@ -869,7 +869,6 @@ class IOSDetectorState extends State<IOSDetector>
   }
 
   Future<void> _showCupertinoEditNicknameDialog(BuildContext context) async {
-    //TODO: Esto tiene que ser cupertino
     TextEditingController nicknameController =
         TextEditingController(text: nickname);
 
@@ -955,6 +954,16 @@ class IOSDetectorState extends State<IOSDetector>
     }
   }
 
+  void _sendValueToBle(int value) async {
+    try {
+      final data = [value];
+      myDevice.lightUuid.write(data, withoutResponse: true);
+    } catch (e, stackTrace) {
+      printLog('Error al mandar el valor del brillo $e $stackTrace');
+      // handleManualError(e, stackTrace);
+    }
+  }
+
   void _updateSliderValue(double localPosition) {
     setState(() {
       _sliderValue = (300 - localPosition) / 3;
@@ -964,6 +973,8 @@ class IOSDetectorState extends State<IOSDetector>
         _sliderValue = 100;
       }
     });
+
+    _sendValueToBle(_sliderValue.toInt());
   }
 
   Widget _buildCustomSlider() {
@@ -1028,7 +1039,38 @@ class IOSDetectorState extends State<IOSDetector>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return CupertinoPageScaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        showCupertinoDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return CupertinoAlertDialog(
+              content: Row(
+                children: [
+                  const CupertinoActivityIndicator(color: Color(0xFF1DA3A9)),
+                  Container(
+                      margin: const EdgeInsets.only(left: 15),
+                      child: const Text(
+                        "Desconectando...",
+                        style: TextStyle(color: Color(0xFF000000)),
+                      )),
+                ],
+              ),
+            );
+          },
+        );
+        Future.delayed(const Duration(seconds: 2), () async {
+          printLog('aca estoy');
+          await myDevice.device.disconnect();
+          navigatorKey.currentState?.pop();
+          navigatorKey.currentState?.pushReplacementNamed('/scan');
+        });
+
+        return; // Retorna según la lógica de tu app
+      },
+      child: CupertinoPageScaffold(
         backgroundColor: const Color(0xFF01121C),
         navigationBar: CupertinoNavigationBar(
           backgroundColor: CupertinoColors.systemGrey.withOpacity(0.0),
@@ -1106,14 +1148,16 @@ class IOSDetectorState extends State<IOSDetector>
                           ),
                         ),
                         child: Center(
-                          child: Text(
-                            _textToShow,
-                            selectionColor: Colors.transparent,
-                            textAlign: TextAlign.center,
+                          child: DefaultTextStyle(
                             style: TextStyle(
                               textBaseline: TextBaseline.alphabetic,
                               color: alert ? Colors.white : Colors.green,
                               fontSize: height * 0.05,
+                            ),
+                            child: Text(
+                              _textToShow,
+                              selectionColor: Colors.transparent,
+                              textAlign: TextAlign.center,
                             ),
                           ),
                         ),
@@ -1151,36 +1195,48 @@ class IOSDetectorState extends State<IOSDetector>
                                     const SizedBox(
                                       height: 20,
                                     ),
-                                    const Text(
-                                      'GAS',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          color: Color(0xFFFFFFFF),
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const Text(
-                                      'Atmósfera\n Explosiva',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    Text(
-                                      '${(ppmCH4 / 500).round()}',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 45,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'LIE',
-                                      textAlign: TextAlign.center,
+                                    const DefaultTextStyle(
                                       style: TextStyle(
                                         color: Color(0xFFFFFFFF),
                                         fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'GAS',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const DefaultTextStyle(
+                                      style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'Atmósfera\n Explosiva',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    DefaultTextStyle(
+                                      style: const TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 45,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        '${(ppmCH4 / 500).round()}',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const DefaultTextStyle(
+                                      style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'LIE',
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ],
@@ -1214,36 +1270,48 @@ class IOSDetectorState extends State<IOSDetector>
                                     const SizedBox(
                                       height: 20,
                                     ),
-                                    const Text(
-                                      'CO',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                          color: Color(0xFFFFFFFF),
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    const Text(
-                                      'Monóxido de\ncarbono',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                      ),
-                                    ),
-                                    Text(
-                                      '$ppmCO',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 45,
-                                      ),
-                                    ),
-                                    const Text(
-                                      'PPM',
-                                      textAlign: TextAlign.center,
+                                    const DefaultTextStyle(
                                       style: TextStyle(
                                         color: Color(0xFFFFFFFF),
                                         fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'CO',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const DefaultTextStyle(
+                                      style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'Monóxido de\ncarbono',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    DefaultTextStyle(
+                                      style: const TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 45,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        '$ppmCO',
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    const DefaultTextStyle(
+                                      style: TextStyle(
+                                        color: Color(0xFFFFFFFF),
+                                        fontSize: 30,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      child: Text(
+                                        'PPM',
+                                        textAlign: TextAlign.center,
                                       ),
                                     ),
                                   ],
@@ -1284,36 +1352,48 @@ class IOSDetectorState extends State<IOSDetector>
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  const Text(
-                                    'Pico máximo',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const Text(
-                                    'PPM CH4',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'Pico máximo',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  Text(
-                                    '$picoMaxppmCH4',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM CH4',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  DefaultTextStyle(
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      '$picoMaxppmCH4',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  const Text(
-                                    'PPM',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ],
@@ -1347,36 +1427,48 @@ class IOSDetectorState extends State<IOSDetector>
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  const Text(
-                                    'Pico máximo',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const Text(
-                                    'PPM CO',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'Pico máximo',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  Text(
-                                    '$picoMaxppmCO',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM CO',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  DefaultTextStyle(
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      '$picoMaxppmCO',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  const Text(
-                                    'PPM',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ],
@@ -1416,36 +1508,48 @@ class IOSDetectorState extends State<IOSDetector>
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  const Text(
-                                    'Promedio',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const Text(
-                                    'PPM CH4',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'Promedio',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  Text(
-                                    '$promedioppmCH4',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM CH4',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  DefaultTextStyle(
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      '$promedioppmCH4',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  const Text(
-                                    'PPM',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ],
@@ -1479,36 +1583,48 @@ class IOSDetectorState extends State<IOSDetector>
                                   const SizedBox(
                                     height: 20,
                                   ),
-                                  const Text(
-                                    'Promedio',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  const Text(
-                                    'PPM CO',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'Promedio',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  Text(
-                                    '$promedioppmCO',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
+                                    style: TextStyle(
+                                      color: Color(0xFFFFFFFF),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM CO',
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  DefaultTextStyle(
                                     style: const TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      '$promedioppmCO',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  const Text(
-                                    'PPM',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      'PPM',
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ],
@@ -1540,30 +1656,43 @@ class IOSDetectorState extends State<IOSDetector>
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Text(
-                                    'Estado: ',
-                                    textAlign: TextAlign.center,
+                                  const DefaultTextStyle(
                                     style: TextStyle(
                                       color: Color(0xFFFFFFFF),
                                       fontSize: 25,
                                     ),
+                                    child: Text(
+                                      'Estado: ',
+                                      textAlign: TextAlign.center,
+                                    ),
                                   ),
-                                  Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                                  DefaultTextStyle(
+                                    style: const TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    child: Text(
+                                      online ? 'EN LINEA' : 'DESCONECTADO',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                          color: online
-                                              ? CupertinoColors.activeGreen
-                                              : Colors.red,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.bold))
+                                        color: online
+                                            ? CupertinoColors.activeGreen
+                                            : Colors.red,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            Text(
-                              'El certificado del sensor\n caduca en: $daysToExpire dias',
+                            DefaultTextStyle(
                               style: const TextStyle(
-                                  fontSize: 15.0, color: Colors.white),
-                            ),
+                                fontSize: 15.0,
+                                color: Colors.white,
+                              ),
+                              child: Text(
+                                'El certificado del sensor\n caduca en: $daysToExpire días',
+                              ),
+                            )
                           ],
                         ),
                       ),
@@ -1574,7 +1703,8 @@ class IOSDetectorState extends State<IOSDetector>
               SlideTransition(
                 position: _drawerAnimation,
                 child: Container(
-                  width: _drawerWidth,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.height,
                   color: const Color(0xFF01121C),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.vertical,
@@ -1600,34 +1730,40 @@ class IOSDetectorState extends State<IOSDetector>
                         const SizedBox(
                           height: 30,
                         ),
-                        Text(
-                          'Nivel del brillo: ${_sliderValue.toStringAsFixed(0)}',
-                          textAlign: TextAlign.center,
+                        DefaultTextStyle(
                           style: const TextStyle(
                             fontSize: 20.0,
                             color: CupertinoColors.white,
                             backgroundColor: Colors.transparent,
                           ),
+                          child: Text(
+                            'Nivel del brillo: ${_sliderValue.toStringAsFixed(0)}',
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                         const SizedBox(
                           height: 30,
                         ),
-                        Text(
-                          'Versión de Hardware: $hardwareVersion',
-                          textAlign: TextAlign.center,
+                        DefaultTextStyle(
                           style: const TextStyle(
                             fontSize: 15.0,
                             color: CupertinoColors.white,
                             backgroundColor: Colors.transparent,
                           ),
+                          child: Text(
+                            'Versión de Hardware: $hardwareVersion',
+                            textAlign: TextAlign.center,
+                          ),
                         ),
-                        Text(
-                          'Versión de SoftWare: $softwareVersion',
-                          textAlign: TextAlign.center,
+                        DefaultTextStyle(
                           style: const TextStyle(
                             fontSize: 15.0,
                             color: CupertinoColors.white,
                             backgroundColor: Colors.transparent,
+                          ),
+                          child: Text(
+                            'Versión de SoftWare: $softwareVersion',
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         const SizedBox(
@@ -1651,6 +1787,8 @@ class IOSDetectorState extends State<IOSDetector>
               ),
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

@@ -140,7 +140,7 @@ class LoginPageState extends State<LoginPage> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                       Color(0xFFB2B5AE))),
               child: const Text('Verificar código'),
               onPressed: () async {
@@ -243,7 +243,7 @@ class LoginPageState extends State<LoginPage> {
           actions: <Widget>[
             TextButton(
               style: const ButtonStyle(
-                  foregroundColor: MaterialStatePropertyAll(
+                  foregroundColor: WidgetStatePropertyAll(
                       Color(0xFFB2B5AE))),
               child: const Text('Cambiar contraseña'),
               onPressed: () async {

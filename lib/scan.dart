@@ -255,7 +255,7 @@ class ScanPageState extends State<ScanPage> {
                     actions: <Widget>[
                       TextButton(
                         style: const ButtonStyle(
-                          foregroundColor: MaterialStatePropertyAll(
+                          foregroundColor: WidgetStatePropertyAll(
                             Color(0xFFB2B5AE),
                           ),
                         ),

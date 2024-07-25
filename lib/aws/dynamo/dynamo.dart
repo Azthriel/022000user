@@ -140,13 +140,13 @@ Future<List<String>> getTokens(DynamoDB service, String pc, String sn) async {
       var item = response.item!;
       List<String> tokens = item['tokens']?.ss ?? [];
 
-      for (var token in tokens) {
-        printLog(token);
-      }
-
       printLog('Se encontro el siguiente item: $tokens');
 
-      return tokens;
+      if (tokens.contains('') && tokens.length == 1) {
+        return [];
+      } else {
+        return tokens;
+      }
     } else {
       printLog('Item no encontrado.');
       return [];
@@ -197,7 +197,11 @@ Future<List<String>> getIOTokens(
 
       printLog('Se encontro el siguiente item: $tokens');
 
-      return tokens;
+      if (tokens.contains('') && tokens.length == 1) {
+        return [];
+      } else {
+        return tokens;
+      }
     } else {
       printLog('Item no encontrado.');
       return [];
