@@ -742,11 +742,6 @@ class IOSDetector extends StatefulWidget {
 
 class IOSDetectorState extends State<IOSDetector>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<Offset> _drawerAnimation;
-  final double _drawerWidth = 250.0;
-  bool _isDragging = false;
-  double _sliderValue = 50.0;
   late String nickname;
   bool werror = false;
   bool alert = false;
@@ -763,17 +758,6 @@ class IOSDetectorState extends State<IOSDetector>
     _subscribeToWorkCharacteristic();
     subscribeToWifiStatus();
     updateWifiValues(toolsValues);
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 250),
-      vsync: this,
-    );
-    _drawerAnimation = Tween<Offset>(
-      begin: const Offset(-1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOut,
-    ));
   }
 
   void updateWifiValues(List<int> data) {
@@ -869,6 +853,7 @@ class IOSDetectorState extends State<IOSDetector>
   }
 
   Future<void> _showCupertinoEditNicknameDialog(BuildContext context) async {
+    //TODO: Esto tiene que ser cupertino
     TextEditingController nicknameController =
         TextEditingController(text: nickname);
 
@@ -926,115 +911,6 @@ class IOSDetectorState extends State<IOSDetector>
     );
   }
 
-  void _toggleDrawer() {
-    if (_controller.isDismissed) {
-      _controller.forward();
-    } else if (_controller.isCompleted) {
-      _controller.reverse();
-    }
-  }
-
-  void _onHorizontalDragStart(DragStartDetails details) {
-    _isDragging = true;
-  }
-
-  void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    if (_isDragging) {
-      final double delta = details.primaryDelta! / _drawerWidth;
-      _controller.value += delta;
-    }
-  }
-
-  void _onHorizontalDragEnd(DragEndDetails details) {
-    _isDragging = false;
-    if (_controller.value > 0.5) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-  }
-
-  void _sendValueToBle(int value) async {
-    try {
-      final data = [value];
-      myDevice.lightUuid.write(data, withoutResponse: true);
-    } catch (e, stackTrace) {
-      printLog('Error al mandar el valor del brillo $e $stackTrace');
-      // handleManualError(e, stackTrace);
-    }
-  }
-
-  void _updateSliderValue(double localPosition) {
-    setState(() {
-      _sliderValue = (300 - localPosition) / 3;
-      if (_sliderValue < 0) {
-        _sliderValue = 0;
-      } else if (_sliderValue > 100) {
-        _sliderValue = 100;
-      }
-    });
-
-    _sendValueToBle(_sliderValue.toInt());
-  }
-
-  Widget _buildCustomSlider() {
-    return Container(
-      width: 60,
-      height: 300,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: CupertinoColors.systemFill,
-      ),
-      child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onVerticalDragUpdate: (DragUpdateDetails details) {
-          _updateSliderValue(details.localPosition.dy);
-        },
-        onTapDown: (TapDownDetails details) {
-          _updateSliderValue(details.localPosition.dy);
-        },
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            Column(
-              children: [
-                Expanded(
-                  flex: 100 - _sliderValue.toInt(),
-                  child: Container(),
-                ),
-                Expanded(
-                  flex: _sliderValue.toInt(),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1DA3A9),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10.0),
-              child: Icon(
-                _sliderValue > 50
-                    ? CupertinoIcons.sun_max_fill
-                    : CupertinoIcons.moon_fill,
-                color: CupertinoColors.white,
-                size: 40,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -1070,722 +946,505 @@ class IOSDetectorState extends State<IOSDetector>
 
         return; // Retorna según la lógica de tu app
       },
-      child: CupertinoPageScaffold(
+      child: Scaffold(
         backgroundColor: const Color(0xFF01121C),
-        navigationBar: CupertinoNavigationBar(
-          backgroundColor: CupertinoColors.systemGrey.withOpacity(0.0),
-          middle: GestureDetector(
-            onTap: () async {
-              await _showCupertinoEditNicknameDialog(context);
-              setupToken(command(deviceName), extractSerialNumber(deviceName),
-                  deviceName);
-            },
-            child: Row(
+        appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            foregroundColor: const Color(0xFF1DA3A9),
+            title: GestureDetector(
+              onTap: () async {
+                await _showCupertinoEditNicknameDialog(context);
+                setupToken(command(deviceName), extractSerialNumber(deviceName),
+                    deviceName);
+              },
+              child: Row(
+                children: [
+                  Text(nickname),
+                  const SizedBox(
+                    width: 3,
+                  ),
+                  const Icon(
+                    CupertinoIcons.pencil,
+                    size: 20,
+                  )
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: Icon(
+                  wifiIcon,
+                  size: 24.0,
+                  semanticLabel: 'Icono de wifi',
+                ),
+                onPressed: () {
+                  cupertinoWifiText(context);
+                },
+              ),
+            ]),
+        drawer: const IOSDrawerDetector(),
+        body: Center(
+          child: SingleChildScrollView(
+            child: Column(
               children: [
-                Text(
-                  nickname,
-                  style:
-                      const TextStyle(fontSize: 20, color: Color(0xFF1DA3A9)),
+                Container(
+                    height: 100,
+                    width: width - 50,
+                    decoration: BoxDecoration(
+                      color: alert ? Colors.red : const Color(0xFF004B51),
+                      borderRadius: BorderRadius.circular(20),
+                      border: const Border(
+                        bottom: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        _textToShow,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            color: alert ? Colors.white : Colors.green,
+                            fontSize: height * 0.05),
+                      ),
+                    )),
+                const SizedBox(
+                  height: 20,
                 ),
-                const SizedBox(width: 3),
-                const Icon(
-                  CupertinoIcons.pencil,
-                  size: 20,
-                  color: CupertinoColors.white,
-                ),
-              ],
-            ),
-          ),
-          trailing: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              cupertinoWifiText(context);
-            },
-            child: const Icon(
-              CupertinoIcons.wifi,
-              size: 24.0,
-              color: CupertinoColors.white,
-              semanticLabel: 'Icono de wifi',
-            ),
-          ),
-          leading: CupertinoButton(
-            padding: EdgeInsets.zero,
-            onPressed: () {
-              _toggleDrawer();
-            },
-            child: const Icon(
-              CupertinoIcons.bars,
-              size: 24.0,
-              color: CupertinoColors.white,
-              semanticLabel: 'Icono de barras',
-            ),
-          ),
-        ),
-        child: GestureDetector(
-          onHorizontalDragStart: _onHorizontalDragStart,
-          onHorizontalDragUpdate: _onHorizontalDragUpdate,
-          onHorizontalDragEnd: _onHorizontalDragEnd,
-          child: Stack(
-            children: <Widget>[
-              Center(
-                child: SingleChildScrollView(
-                  child: Column(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(
-                        height: 100,
-                      ),
                       Container(
-                        height: 100,
-                        width: width - 50,
-                        decoration: BoxDecoration(
-                          color: alert
-                              ? CupertinoColors.systemRed
-                              : const Color(0xFF004B51),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF18B2C7),
-                            width: 5,
-                          ),
-                        ),
-                        child: Center(
-                          child: DefaultTextStyle(
-                            style: TextStyle(
-                              textBaseline: TextBaseline.alphabetic,
-                              color: alert ? Colors.white : Colors.green,
-                              fontSize: height * 0.05,
-                            ),
-                            child: Text(
-                              _textToShow,
-                              selectionColor: Colors.transparent,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              height: 220,
-                              width: (width / 2) - 15,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF004B51),
-                                borderRadius: BorderRadius.circular(20),
-                                border: const Border(
-                                  bottom: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  right: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  left: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  top: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'GAS',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'Atmósfera\n Explosiva',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    DefaultTextStyle(
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 45,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        '${(ppmCH4 / 500).round()}',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'LIE',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 5,
-                            ),
-                            Container(
-                              height: 220,
-                              width: (width / 2) - 15,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF004B51),
-                                borderRadius: BorderRadius.circular(20),
-                                border: const Border(
-                                  bottom: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  right: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  left: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                  top: BorderSide(
-                                      color: Color(0xFF18B2C7), width: 5),
-                                ),
-                              ),
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const SizedBox(
-                                      height: 20,
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'CO',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'Monóxido de\ncarbono',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    DefaultTextStyle(
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 45,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        '$ppmCO',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                    const DefaultTextStyle(
-                                      style: TextStyle(
-                                        color: Color(0xFFFFFFFF),
-                                        fontSize: 30,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      child: Text(
-                                        'PPM',
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 150,
-                            width: 150,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF004B51),
-                              borderRadius: BorderRadius.circular(50),
-                              border: const Border(
-                                bottom: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                right: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                left: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                top: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                              ),
-                            ),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'Pico máximo',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM CH4',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      '$picoMaxppmCH4',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          Container(
-                            height: 150,
-                            width: 150,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF004B51),
-                              borderRadius: BorderRadius.circular(50),
-                              border: const Border(
-                                bottom: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                right: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                left: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                top: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                              ),
-                            ),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'Pico máximo',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM CO',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      '$picoMaxppmCO',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            height: 150,
-                            width: 150,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF004B51),
-                              borderRadius: BorderRadius.circular(50),
-                              border: const Border(
-                                bottom: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                right: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                left: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                top: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                              ),
-                            ),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'Promedio',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM CH4',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      '$promedioppmCH4',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            width: 5,
-                          ),
-                          Container(
-                            height: 150,
-                            width: 150,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF004B51),
-                              borderRadius: BorderRadius.circular(50),
-                              border: const Border(
-                                bottom: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                right: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                left: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                                top: BorderSide(
-                                    color: Color(0xFF18B2C7), width: 5),
-                              ),
-                            ),
-                            child: SingleChildScrollView(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    height: 20,
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'Promedio',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM CO',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 30,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      '$promedioppmCO',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      'PPM',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Container(
-                        height: 150,
-                        width: width - 50,
+                        height: 220,
+                        width: (width / 2) - 15,
                         decoration: BoxDecoration(
                           color: const Color(0xFF004B51),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: const Color(0xFF18B2C7),
-                            width: 5,
+                          border: const Border(
+                            bottom:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            right:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            left:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            top: BorderSide(color: Color(0xFF18B2C7), width: 5),
                           ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const DefaultTextStyle(
-                                    style: TextStyle(
-                                      color: Color(0xFFFFFFFF),
-                                      fontSize: 25,
-                                    ),
-                                    child: Text(
-                                      'Estado: ',
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                  DefaultTextStyle(
-                                    style: const TextStyle(
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    child: Text(
-                                      online ? 'EN LINEA' : 'DESCONECTADO',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        color: online
-                                            ? CupertinoColors.activeGreen
-                                            : Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 0,
                               ),
-                            ),
-                            DefaultTextStyle(
-                              style: const TextStyle(
-                                fontSize: 15.0,
-                                color: Colors.white,
+                              const Text(
+                                'GAS',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Color(0xFFFFFFFF),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
                               ),
-                              child: Text(
-                                'El certificado del sensor\n caduca en: $daysToExpire días',
+                              const Text(
+                                'Atmósfera\n Explosiva',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                ),
                               ),
-                            )
-                          ],
+                              Text(
+                                '${(ppmCH4 / 500).round()}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 45,
+                                ),
+                              ),
+                              const Text(
+                                'LIE',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 5,
+                      ),
+                      Container(
+                        height: 220,
+                        width: (width / 2) - 15,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF004B51),
+                          borderRadius: BorderRadius.circular(20),
+                          border: const Border(
+                            bottom:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            right:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            left:
+                                BorderSide(color: Color(0xFF18B2C7), width: 5),
+                            top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                height: 0,
+                              ),
+                              const Text(
+                                'CO',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: Color(0xFFFFFFFF),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              const Text(
+                                'Monóxido de\ncarbono',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                ),
+                              ),
+                              Text(
+                                '$ppmCO',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 45,
+                                ),
+                              ),
+                              const Text(
+                                'PPM',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 30,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-              SlideTransition(
-                position: _drawerAnimation,
-                child: Container(
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.height,
-                  color: const Color(0xFF01121C),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004B51),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom:
+                              BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Pico máximo',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CH4',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '$picoMaxppmCH4',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 30,
+                              ),
+                            ),
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004B51),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom:
+                              BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Pico máximo',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CO',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '$picoMaxppmCO',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 30,
+                              ),
+                            ),
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004B51),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom:
+                              BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Promedio',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CH4',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '$promedioppmCH4',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 30,
+                              ),
+                            ),
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 5,
+                    ),
+                    Container(
+                      height: 150,
+                      width: 150,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF004B51),
+                        borderRadius: BorderRadius.circular(50),
+                        border: const Border(
+                          bottom:
+                              BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                          top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        ),
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            const Text(
+                              'Promedio',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            const Text(
+                              'PPM CO',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              '$promedioppmCO',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 30,
+                              ),
+                            ),
+                            const Text(
+                              'PPM',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFFFFFFF),
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Container(
+                    height: 150,
+                    width: width - 50,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF004B51),
+                      borderRadius: BorderRadius.circular(20),
+                      border: const Border(
+                        bottom: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        right: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        left: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                        top: BorderSide(color: Color(0xFF18B2C7), width: 5),
+                      ),
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(height: 100),
-                        SizedBox(
-                          height: 50,
-                          child: Image.asset(
-                              'assets/IntelligentGas/IntelligentGasFlyerCL.png'),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                'Estado: ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Color(0xFFFFFFFF),
+                                  fontSize: 25,
+                                ),
+                              ),
+                              Text(online ? 'EN LINEA' : 'DESCONECTADO',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: online ? Colors.green : Colors.red,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold))
+                            ],
+                          ),
                         ),
-                        Icon(
-                          CupertinoIcons.lightbulb_fill,
-                          size: 150,
-                          color: CupertinoColors.systemYellow
-                              .withOpacity(_sliderValue / 100),
-                        ),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        _buildCustomSlider(),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        DefaultTextStyle(
+                        Text(
+                          'El certificado del sensor\n caduca en: $daysToExpire dias',
                           style: const TextStyle(
-                            fontSize: 20.0,
-                            color: CupertinoColors.white,
-                            backgroundColor: Colors.transparent,
-                          ),
-                          child: Text(
-                            'Nivel del brillo: ${_sliderValue.toStringAsFixed(0)}',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 30,
-                        ),
-                        DefaultTextStyle(
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                            color: CupertinoColors.white,
-                            backgroundColor: Colors.transparent,
-                          ),
-                          child: Text(
-                            'Versión de Hardware: $hardwareVersion',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        DefaultTextStyle(
-                          style: const TextStyle(
-                            fontSize: 15.0,
-                            color: CupertinoColors.white,
-                            backgroundColor: Colors.transparent,
-                          ),
-                          child: Text(
-                            'Versión de SoftWare: $softwareVersion',
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        CupertinoButton(
-                          color: const Color(0xFF1DA3A9),
-                          borderRadius: BorderRadius.circular(18.0),
-                          onPressed: () {
-                            showCupertinoContactInfo(context);
-                          },
-                          child: const Text('CONTACTANOS',
-                              style: TextStyle(
-                                  fontSize: 15.0,
-                                  color: CupertinoColors.white)),
+                              fontSize: 15.0, color: Colors.white),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+                    )),
+              ],
+            ),
           ),
         ),
       ),

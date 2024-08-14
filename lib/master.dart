@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:flutter/services.dart';
 import 'aws/dynamo/dynamo.dart';
 import 'aws/dynamo/dynamo_certificates.dart';
 import 'aws/mqtt/mqtt.dart';
@@ -92,7 +93,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24072400';
+String appVersionNumber = '24072500';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -380,44 +381,7 @@ void startLocationMonitoring() {
 }
 
 void locationStatus() async {
-  bool status = await Geolocator.isLocationServiceEnabled();
-  // print(status);
-  if (!status) {
-    showUbiText();
-  }
-}
-
-void showUbiText() {
-  if (!checkubiFlag) {
-    checkubiFlag = true;
-    showDialog(
-        context: navigatorKey.currentContext!,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFF252223),
-            title: const Text(
-              'Ubicación apagada',
-              style: TextStyle(color: Color(0xFFFFFFFF)),
-            ),
-            content: const Text(
-              'No se puede continuar sin la ubicación',
-              style: TextStyle(color: Color(0xFFFFFFFF)),
-            ),
-            actions: [
-              TextButton(
-                  style: const ButtonStyle(
-                      foregroundColor:
-                          WidgetStatePropertyAll(Color(0xFFFFFFFF))),
-                  onPressed: () async {
-                    checkubiFlag = false;
-                    navigatorKey.currentState?.pop();
-                  },
-                  child: const Text('Aceptar'))
-            ],
-          );
-        });
-  }
+  await NativeService.isLocationServiceEnabled();
 }
 
 void showPrivacyDialogIfNeeded() async {
@@ -656,131 +620,6 @@ void showContactInfo(BuildContext context) {
                         'Tengo una consulta referida a mi equipo $deviceName: \n'),
                     icon: const Icon(
                       Icons.mail,
-                      size: 20,
-                    ),
-                  ),
-                  const Text(
-                    'service@calefactorescalden.com.ar',
-                    style: TextStyle(color: Color(0xFF000000), fontSize: 20),
-                    overflow: TextOverflow.ellipsis,
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-void showCupertinoContactInfo(BuildContext context) {
-  //TODO: Todo cupertino
-  showDialog(
-    barrierDismissible: true,
-    context: context,
-    builder: (BuildContext context) {
-      return CupertinoAlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Contacto comercial:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoButton(
-                      onPressed: () => _sendWhatsAppMessage('5491162234181',
-                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
-                      child: const Icon(
-                        CupertinoIcons.phone,
-                        size: 20,
-                      )),
-                  const Text('+54 9 11 6223-4181',
-                      style: TextStyle(fontSize: 20))
-                ],
-              ),
-            ),
-            SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => _launchEmail(
-                          'ceat@ibsanitarios.com.ar',
-                          'Consulta comercial acerca de la linea $appName',
-                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
-                      child: const Icon(
-                        CupertinoIcons.mail,
-                        size: 20,
-                      ),
-                    ),
-                    const Text('ceat@ibsanitarios.com.ar',
-                        style: TextStyle(fontSize: 20))
-                  ],
-                )),
-            const SizedBox(height: 20),
-            const Text('Consulta técnica:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => _launchEmail(
-                        'pablo@intelligentgas.com.ar',
-                        'Consulta ref. $deviceName',
-                        '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
-                    child: const Icon(
-                      CupertinoIcons.mail,
-                      size: 20,
-                    ),
-                  ),
-                  const Text(
-                    'pablo@intelligentgas.com.ar',
-                    style: TextStyle(fontSize: 20),
-                    overflow: TextOverflow.ellipsis,
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text('Customer service:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoButton(
-                      onPressed: () => _sendWhatsAppMessage('5491162232619',
-                          '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
-                      child: const Icon(
-                        CupertinoIcons.phone,
-                        size: 20,
-                      )),
-                  const Text('+54 9 11 6223-2619',
-                      style: TextStyle(fontSize: 20))
-                ],
-              ),
-            ),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CupertinoButton(
-                    onPressed: () => _launchEmail(
-                        'service@calefactorescalden.com.ar',
-                        'Consulta ${command(deviceName)}',
-                        'Tengo una consulta referida a mi equipo $deviceName: \n'),
-                    child: const Icon(
-                      CupertinoIcons.mail,
                       size: 20,
                     ),
                   ),
@@ -1200,183 +1039,6 @@ void wifiText(BuildContext context) {
   );
 }
 
-void cupertinoWifiText(BuildContext context) {
-  showCupertinoDialog(
-    barrierDismissible: true,
-    context: context,
-    builder: (BuildContext context) {
-      return CupertinoAlertDialog(
-        title: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              const Text.rich(
-                TextSpan(
-                  text: 'Estado de conexión: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: CupertinoColors.label,
-                  ),
-                ),
-              ),
-              Text.rich(
-                TextSpan(
-                  text: textState,
-                  style: TextStyle(
-                      color: statusColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-              )
-            ],
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (werror) ...[
-                Text.rich(
-                  TextSpan(
-                    text: 'Error: $errorMessage',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text.rich(
-                  TextSpan(
-                    text: 'Sintax: $errorSintax',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  const Text.rich(
-                    TextSpan(
-                      text: 'Red actual: ',
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: CupertinoColors.label,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Text(
-                    nameOfWifi,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 10),
-              const Text.rich(
-                TextSpan(
-                  text: 'Ingrese los datos de WiFi:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: CupertinoColors.label,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.qr_code,
-                  color: CupertinoColors.label,
-                ),
-                iconSize: 50,
-                onPressed: () async {
-                  PermissionStatus permissionStatusC =
-                      await Permission.camera.request();
-                  if (!permissionStatusC.isGranted) {
-                    await Permission.camera.request();
-                  }
-                  permissionStatusC = await Permission.camera.status;
-                  if (permissionStatusC.isGranted) {
-                    openQRScanner(navigatorKey.currentContext!);
-                  }
-                },
-              ),
-              CupertinoTextField(
-                placeholder: 'Nombre de Red',
-                placeholderStyle: const TextStyle(color: CupertinoColors.label),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(color: CupertinoColors.placeholderText),
-                  ),
-                ),
-                style: const TextStyle(
-                  color: CupertinoColors.label,
-                ),
-                onChanged: (value) {
-                  wifiName = value;
-                },
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              CupertinoTextField(
-                placeholder: 'Contraseña',
-                placeholderStyle: const TextStyle(color: CupertinoColors.label),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(color: CupertinoColors.placeholderText),
-                  ),
-                ),
-                style: const TextStyle(
-                  color: CupertinoColors.label,
-                ),
-                obscureText: true,
-                onChanged: (value) {
-                  wifiPassword = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigatorKey.currentState?.pop();
-            },
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                color: CupertinoColors.label,
-              ),
-            ),
-          ),
-          TextButton(
-            style: const ButtonStyle(),
-            child: const Text(
-              'Aceptar',
-              style: TextStyle(
-                color: CupertinoColors.label,
-              ),
-            ),
-            onPressed: () {
-              sendWifitoBle();
-              navigatorKey.currentState?.pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
 void showAdminText() {
   showDialog(
       context: navigatorKey.currentContext!,
@@ -1711,6 +1373,676 @@ Future<void> configAT() async {
           ],
         );
       });
+}
+
+void showCupertinoBleText() async {
+  if (!checkbleFlag) {
+    checkbleFlag = true;
+    showCupertinoDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Bluetooth apagado',
+            style: TextStyle(color: CupertinoColors.label),
+          ),
+          content: const Text(
+            'No se puede continuar sin Bluetooth',
+            style: TextStyle(color: CupertinoColors.label),
+          ),
+          actions: [
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor:
+                      WidgetStatePropertyAll(CupertinoColors.label)),
+              onPressed: () async {
+                if (Platform.isAndroid) {
+                  await FlutterBluePlus.turnOn();
+                  checkbleFlag = false;
+                  bluetoothOn = true;
+                  navigatorKey.currentState?.pop();
+                } else {
+                  checkbleFlag = false;
+                  navigatorKey.currentState?.pop();
+                }
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+void showCupertinoUbiText() {
+  if (!checkubiFlag) {
+    checkubiFlag = true;
+    showCupertinoDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text(
+              'Ubicación apagada',
+              style: TextStyle(color: CupertinoColors.label),
+            ),
+            content: const Text(
+              'No se puede continuar sin la ubicación',
+              style: TextStyle(color: CupertinoColors.label),
+            ),
+            actions: [
+              TextButton(
+                  style: const ButtonStyle(
+                      foregroundColor:
+                          WidgetStatePropertyAll(Color(0xFFFFFFFF))),
+                  onPressed: () async {
+                    checkubiFlag = false;
+                    navigatorKey.currentState?.pop();
+                  },
+                  child: const Text('Aceptar'))
+            ],
+          );
+        });
+  }
+}
+
+void showCupertinoPrivacyDialogIfNeeded() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool hasShownDialog = prefs.getBool('hasShownDialog') ?? false;
+
+  if (!hasShownDialog) {
+    await showCupertinoDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text(
+            'Política de Privacidad',
+            style: TextStyle(color: CupertinoColors.label),
+          ),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                  'En $appName,  valoramos tu privacidad y seguridad. Queremos asegurarte que nuestra aplicación está diseñada con el respeto a tu privacidad personal. Aquí hay algunos puntos clave que debes conocer:\nNo Recopilamos Información Personal: Nuestra aplicación no recopila ni almacena ningún tipo de información personal de nuestros usuarios. Puedes usar nuestra aplicación con la tranquilidad de que tu privacidad está protegida.\nUso de Permisos: Aunque nuestra aplicación solicita ciertos permisos, como el acceso a la cámara, estos se utilizan exclusivamente para el funcionamiento de la aplicación y no para recopilar datos personales.\nPolítica de Privacidad Detallada: Si deseas obtener más información sobre nuestra política de privacidad, te invitamos a visitar nuestra página web. Allí encontrarás una explicación detallada de nuestras prácticas de privacidad.\nPara continuar y disfrutar de todas las funcionalidades de $appName, por favor, acepta nuestra política de privacidad.',
+                  style: const TextStyle(color: CupertinoColors.label),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor:
+                      WidgetStatePropertyAll(CupertinoColors.label)),
+              child: const Text('Leer nuestra politica de privacidad'),
+              onPressed: () async {
+                Uri uri = Uri.parse(biocalden
+                    ? 'https://biocalden.com.ar/privacidad/'
+                    : 'https://silema.com.ar/privacidad/');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  showToast('No se pudo abrir el sitio web');
+                }
+              },
+            ),
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor:
+                      WidgetStatePropertyAll(CupertinoColors.label)),
+              child: const Text('Aceptar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    await prefs.setBool('hasShownDialog', true);
+  }
+}
+
+void showCupertinoContactInfo(BuildContext context) {
+  showCupertinoDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Contacto comercial:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                      onPressed: () => _sendWhatsAppMessage('5491162234181',
+                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                      child: const Icon(
+                        CupertinoIcons.phone,
+                        size: 20,
+                      )),
+                  const Text('+54 9 11 6223-4181',
+                      style: TextStyle(fontSize: 20))
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CupertinoButton(
+                      onPressed: () => _launchEmail(
+                          'ceat@ibsanitarios.com.ar',
+                          'Consulta comercial acerca de la linea $appName',
+                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                      child: const Icon(
+                        CupertinoIcons.mail,
+                        size: 20,
+                      ),
+                    ),
+                    const Text('ceat@ibsanitarios.com.ar',
+                        style: TextStyle(fontSize: 20))
+                  ],
+                )),
+            const SizedBox(height: 20),
+            const Text('Consulta técnica:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _launchEmail(
+                        'pablo@intelligentgas.com.ar',
+                        'Consulta ref. $deviceName',
+                        '¡Hola! Tengo una consulta referida al área de ingenieria sobre mi equipo.\n Información del mismo:\nModelo: ${command(deviceName)}\nVersión de software: $softwareVersion \nVersión de hardware: $hardwareVersion \nMi duda es la siguiente:\n'),
+                    child: const Icon(
+                      CupertinoIcons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'pablo@intelligentgas.com.ar',
+                    style: TextStyle(fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Customer service:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                      onPressed: () => _sendWhatsAppMessage('5491162232619',
+                          '¡Hola! Te hablo por una duda sobre mi equipo $deviceName: \n'),
+                      child: const Icon(
+                        CupertinoIcons.phone,
+                        size: 20,
+                      )),
+                  const Text('+54 9 11 6223-2619',
+                      style: TextStyle(fontSize: 20))
+                ],
+              ),
+            ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CupertinoButton(
+                    onPressed: () => _launchEmail(
+                        'service@calefactorescalden.com.ar',
+                        'Consulta ${command(deviceName)}',
+                        'Tengo una consulta referida a mi equipo $deviceName: \n'),
+                    child: const Icon(
+                      CupertinoIcons.mail,
+                      size: 20,
+                    ),
+                  ),
+                  const Text(
+                    'service@calefactorescalden.com.ar',
+                    style: TextStyle(color: Color(0xFF000000), fontSize: 20),
+                    overflow: TextOverflow.ellipsis,
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void cupertinoWifiText(BuildContext context) {
+  //TODO: Esto tiene que ser cupertino
+  showCupertinoDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Estado de conexión: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.label,
+                  ),
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  text: textState,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (werror) ...[
+                Text.rich(
+                  TextSpan(
+                    text: 'Error: $errorMessage',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'Sintax: $errorSintax',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  const Text.rich(
+                    TextSpan(
+                      text: 'Red actual: ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: CupertinoColors.label,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    nameOfWifi,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              const Text.rich(
+                TextSpan(
+                  text: 'Ingrese los datos de WiFi:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: CupertinoColors.label,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  CupertinoIcons.qrcode,
+                  color: CupertinoColors.label,
+                ),
+                iconSize: 50,
+                onPressed: () async {
+                  PermissionStatus permissionStatusC =
+                      await Permission.camera.request();
+                  if (!permissionStatusC.isGranted) {
+                    await Permission.camera.request();
+                  }
+                  permissionStatusC = await Permission.camera.status;
+                  if (permissionStatusC.isGranted) {
+                    openQRScanner(navigatorKey.currentContext!);
+                  }
+                },
+              ),
+              CupertinoTextField(
+                placeholder: 'Nombre de Red',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                onChanged: (value) {
+                  wifiName = value;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              CupertinoTextField(
+                placeholder: 'Contraseña',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                obscureText: true,
+                onChanged: (value) {
+                  wifiPassword = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              navigatorKey.currentState?.pop();
+            },
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              ),
+            ),
+          ),
+          TextButton(
+            style: const ButtonStyle(),
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              ),
+            ),
+            onPressed: () {
+              sendWifitoBle();
+              navigatorKey.currentState?.pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void showCupertinoAdminText() {
+  showCupertinoDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text(
+            'Haz alcanzado el límite máximo de administradores secundarios',
+            style: TextStyle(color: CupertinoColors.white),
+          ),
+          content: const Text(
+            'En caso de requerir más puedes solicitarlos vía mail',
+            style: TextStyle(color: Color(0xFFFFFFFF)),
+          ),
+          actions: [
+            CupertinoButton(
+                color: const Color(0xFFFFFFFF),
+                onPressed: () async {
+                  String cuerpo =
+                      '¡Hola! Me comunico porque busco extender el plazo de administradores secundarios en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: 'cobranzas@ibsanitarios.com.ar',
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Extensión de administradores secundarios',
+                      'body': cuerpo,
+                      'CC': 'pablo@intelligentgas.com.ar'
+                    }),
+                  );
+                  if (await canLaunchUrl(emailLaunchUri)) {
+                    await launchUrl(emailLaunchUri);
+                  } else {
+                    showToast('No se pudo enviar el correo electrónico');
+                  }
+                  navigatorKey.currentState?.pop();
+                },
+                child: const Text('Solicitar'))
+          ],
+        );
+      });
+}
+
+void showCupertinoATText() {
+  showCupertinoDialog(
+      context: navigatorKey.currentContext!,
+      barrierDismissible: true,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text(
+            'Actualmente no tienes habilitado este beneficio',
+            style: TextStyle(color: CupertinoColors.label),
+          ),
+          content: const Text(
+            'En caso de requerirlo puedes solicitarlo vía mail',
+            style: TextStyle(color: CupertinoColors.label),
+          ),
+          actions: [
+            TextButton(
+                style: const ButtonStyle(
+                    foregroundColor:
+                        WidgetStatePropertyAll(CupertinoColors.label)),
+                onPressed: () async {
+                  String cuerpo =
+                      '¡Hola! Me comunico porque busco habilitar la opción de "Alquiler temporario" en mi equipo $deviceName\nCódigo de Producto: ${command(deviceName)}\nNúmero de Serie: ${extractSerialNumber(deviceName)}\nDueño actual del equipo: $owner';
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: 'cobranzas@ibsanitarios.com.ar',
+                    query: encodeQueryParameters(<String, String>{
+                      'subject': 'Habilitación alquiler temporario',
+                      'body': cuerpo,
+                      'CC': 'pablo@intelligentgas.com.ar'
+                    }),
+                  );
+                  if (await canLaunchUrl(emailLaunchUri)) {
+                    await launchUrl(emailLaunchUri);
+                  } else {
+                    showToast('No se pudo enviar el correo electrónico');
+                  }
+                  navigatorKey.currentState?.pop();
+                },
+                child: const Text('Solicitar'))
+          ],
+        );
+      });
+}
+
+Future<void> configCupertinoAT() async {
+  showCupertinoDialog(
+    context: navigatorKey.currentContext!,
+    barrierDismissible: true,
+    builder: (context) {
+      final TextEditingController tenantController = TextEditingController();
+      final TextEditingController tenantDistanceOn = TextEditingController();
+      final TextEditingController tenantDistanceOff = TextEditingController();
+      bool dOnOk = false;
+      bool dOffOk = false;
+      final FocusNode dOnNode = FocusNode();
+      final FocusNode dOffNode = FocusNode();
+      return CupertinoAlertDialog(
+        title: const Text(
+          'Configura los parametros del alquiler',
+          style: TextStyle(color: CupertinoColors.label),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CupertinoTextField(
+                  controller: tenantController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Color(0xFFBDBDBD),
+                      ),
+                    ),
+                  ),
+                  placeholder: 'Email del inquilino',
+                  placeholderStyle: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  prefix: const Icon(
+                    CupertinoIcons.mail,
+                    color: CupertinoColors.label,
+                  ),
+                  onEditingComplete: () {
+                    if (tenantController.text != '') {
+                      dOffNode.requestFocus();
+                    } else {
+                      showToast('Debes ingresar un mail');
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                CupertinoTextField(
+                  controller: tenantDistanceOff,
+                  keyboardType: TextInputType.number,
+                  focusNode: dOffNode,
+                  style: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Color(0xFFBDBDBD),
+                      ),
+                    ),
+                  ),
+                  placeholder: 'Distancia de apagado',
+                  placeholderStyle: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  prefix: const Icon(
+                    CupertinoIcons.map,
+                    color: CupertinoColors.label,
+                  ),
+                  onEditingComplete: () {
+                    int? fun = int.tryParse(tenantDistanceOff.text);
+                    if (fun == null || fun < 100 || fun > 300) {
+                      showToast('Distancia de apagado no permitida');
+                    } else {
+                      dOffOk = true;
+                      dOnNode.requestFocus();
+                    }
+                  },
+                ),
+                const SizedBox(height: 10),
+                CupertinoTextField(
+                  controller: tenantDistanceOn,
+                  keyboardType: TextInputType.number,
+                  focusNode: dOnNode,
+                  style: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Color(0xFFBDBDBD),
+                      ),
+                    ),
+                  ),
+                  placeholder: 'Distancia de encendido',
+                  placeholderStyle: const TextStyle(
+                    color: CupertinoColors.label,
+                  ),
+                  prefix: const Icon(
+                    CupertinoIcons.map,
+                    color: CupertinoColors.label,
+                  ),
+                  onEditingComplete: () {
+                    int? fun = int.tryParse(tenantDistanceOn.text);
+                    if (fun == null || fun < 3000 || fun > 5000) {
+                      showToast('Distancia de encendido no permitida');
+                    } else {
+                      dOnOk = true;
+                    }
+                  },
+                ),
+              ]),
+        ),
+        actions: [
+          TextButton(
+              style: const ButtonStyle(
+                foregroundColor: WidgetStatePropertyAll(
+                  CupertinoColors.label,
+                ),
+              ),
+              onPressed: () {
+                if (dOnOk && dOffOk && tenantController.text != '') {
+                  saveATData(
+                    service,
+                    command(deviceName),
+                    extractSerialNumber(deviceName),
+                    true,
+                    tenantController.text.trim(),
+                    tenantDistanceOn.text.trim(),
+                    tenantDistanceOff.text.trim(),
+                  );
+                  navigatorKey.currentState?.pop();
+                } else {
+                  showToast('Parametros no permitidos');
+                }
+              },
+              child: const Text('Activar')),
+        ],
+      );
+    },
+  );
 }
 
 // BACKGROUND //
@@ -3452,5 +3784,31 @@ class IconThumbSlider extends SliderComponentShape {
       center.dy - (tp.height / 2),
     );
     tp.paint(canvas, iconOffset);
+  }
+}
+
+//*-Nativo-*//Servicio
+
+class NativeService {
+  static const platform =
+      MethodChannel('com.biocalden.smartlife.sime/location');
+
+  static Future<bool> isLocationServiceEnabled() async {
+    try {
+      final bool isEnabled =
+          await platform.invokeMethod("isLocationServiceEnabled");
+      return isEnabled;
+    } on PlatformException catch (e) {
+      printLog('Error verificando ubi $e');
+      return false;
+    }
+  }
+
+  static Future<void> openLocationOptions() async {
+    try {
+      platform.invokeListMethod("openLocationSettings");
+    } on PlatformException catch (e) {
+      printLog('Error abriendo la ubicación $e');
+    }
   }
 }

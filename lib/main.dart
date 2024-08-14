@@ -80,7 +80,7 @@ class MyAppState extends State<MyApp> {
     super.initState();
 
     //! IOS O ANDROID !\\
-    android = Platform.isAndroid;
+    android = Platform.isIOS;
     //! IOS O ANDROID !\\
 
     loadValues();
@@ -130,12 +130,15 @@ class MyAppState extends State<MyApp> {
       routes: {
         '/perm': (context) => const PermissionHandler(),
         '/login': (context) => const LoginPage(),
-        '/scan': (context) => const ScanPage(),
-        '/loading': (context) => const LoadingPage(),
-        '/calefactor': (context) => const ControlPage(),
-        '/detector': (context) => android ? const DetectorPage() : const IOSDetector(),
-        '/radiador': (context) => const RadiadorPage(),
-        '/io': (context) => const IODevices(),
+        '/scan': (context) => android ? const ScanPage() : const IOSScanPage(),
+        '/loading': (context) =>
+            android ? const LoadingPage() : const IOSLoadingPage(),
+        '/calefactor': (context) => android ? const ControlPage() : const IOSControlPage(),
+        '/detector': (context) =>
+            android ? const DetectorPage() : const IOSDetector(),
+        '/radiador': (context) =>
+            android ? const RadiadorPage() : const IOSRadiadorPage(),
+        '/io': (context) => android ? const IODevices() : const IOSIODevices(),
       },
     );
   }

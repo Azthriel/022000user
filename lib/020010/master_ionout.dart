@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+
 import '../aws/dynamo/dynamo.dart';
 import '../aws/dynamo/dynamo_certificates.dart';
 import '/master.dart';
@@ -19,7 +21,8 @@ void controlOut(bool value, int index) {
   String fun = '$index#${value ? '1' : '0'}';
   myDevice.ioUuid.write(fun.codeUnits);
 
-  String fun2 = '${tipo[index] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${common[index]}';
+  String fun2 =
+      '${tipo[index] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${common[index]}';
   deviceSerialNumber = extractSerialNumber(deviceName);
   String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
   String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
@@ -183,6 +186,152 @@ Future<void> changeModes(BuildContext context) {
   );
 }
 
+Future<void> iosChangeModes(BuildContext context) {
+  var parts = utf8.decode(ioValues).split('/');
+  return showCupertinoDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return CupertinoAlertDialog(
+        title: const Text(
+          'Cambiar modo:',
+          style: TextStyle(
+              color: CupertinoColors.label, fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Divider(
+                color: CupertinoColors.label,
+              ),
+              for (var i = 0; i < parts.length; i++) ...[
+                // const Divider(
+                //   color: CupertinoColors.label,
+                // ),
+                Card(
+                  color: CupertinoColors.systemGrey2,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          subNicknamesMap['$deviceName/-/${parts[i]}'] ??
+                              '${tipo[i]} ${i + 1}',
+                          style: const TextStyle(
+                              color: CupertinoColors.label,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(
+                          height: 5,
+                        ),
+                        tipo[i] == 'Entrada'
+                            ? const Text(
+                                ' ¿Cambiar de entrada a salida? ',
+                                style: TextStyle(
+                                  color: CupertinoColors.label,
+                                ),
+                              )
+                            : const Text(
+                                ' ¿Cambiar de salida a entrada? ',
+                                style: TextStyle(
+                                  color: CupertinoColors.label,
+                                ),
+                              ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            String fun =
+                                '${command(deviceName)}[13]($i#${tipo[i] == 'Entrada' ? '0' : '1'})';
+                            printLog(fun);
+                            myDevice.toolsUuid.write(fun.codeUnits);
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: const Text(
+                            'CAMBIAR',
+                            style: TextStyle(
+                              color: CupertinoColors.label,
+                            ),
+                          ),
+                        ),
+                        tipo[i] == 'Entrada'
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    width: 30,
+                                  ),
+                                  const Text(
+                                    'Estado común: ',
+                                    style: TextStyle(
+                                      color: CupertinoColors.label,
+                                    ),
+                                  ),
+                                  Text(
+                                    common[i],
+                                    style: const TextStyle(
+                                        color: CupertinoColors.label,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    onPressed: () {
+                                      String data =
+                                          '${command(deviceName)}[14]($i#${common[i] == '1' ? '0' : '1'})';
+                                      printLog(data);
+                                      myDevice.toolsUuid.write(data.codeUnits);
+                                      Navigator.of(dialogContext).pop();
+                                    },
+                                    icon: const Icon(
+                                      CupertinoIcons.refresh,
+                                      color: CupertinoColors.label,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                ],
+                              )
+                            : const SizedBox(
+                                height: 0,
+                              ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+              ],
+              // const Divider(
+              //   color: CupertinoColors.label,
+              // ),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            style: const ButtonStyle(
+              foregroundColor: WidgetStatePropertyAll(
+                CupertinoColors.label,
+              ),
+            ),
+            child: const Text('Cerrar'),
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 // CLASES //
 
 class DrawerIO extends StatefulWidget {
@@ -200,7 +349,6 @@ class DrawerIOState extends State<DrawerIO> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 100),
           SizedBox(
             height: 50,
             // width: double.infinity,
@@ -566,6 +714,441 @@ class DrawerIOState extends State<DrawerIO> {
             height: 20,
           ),
         ],
+      ),
+    );
+  }
+}
+
+//!-------------------------------------IOS Widget-------------------------------------!\\
+
+class IOSDrawerIO extends StatefulWidget {
+  const IOSDrawerIO({super.key});
+  @override
+  IOSDrawerIOState createState() => IOSDrawerIOState();
+}
+
+class IOSDrawerIOState extends State<IOSDrawerIO> {
+  TextEditingController passController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: Container(
+        color: const Color(0xff1f1d20), // Color de fondo del drawer
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    height: 50,
+                    // width: double.infinity,
+                    child: Image.asset('assets/Biocalden/BiocaldenBanner.png'),
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Text(
+                    'Ingresar la contraseña del módulo ubicada en el manual',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Color(0xffa79986), fontSize: 20),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SizedBox(
+                    width: 200,
+                    child: CupertinoTextField(
+                      style: const TextStyle(
+                        color: Color(0xffa79986),
+                      ),
+                      cursorColor: const Color(0xffa79986),
+                      controller: passController,
+                      placeholder: "********",
+                      placeholderStyle: const TextStyle(
+                        color: Color(0xffa79986),
+                      ),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xffa79986),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  CupertinoButton(
+                      padding: const EdgeInsets.symmetric(
+                          vertical:
+                              16.0), // Ajusta el padding según sea necesario
+                      onPressed: () {
+                        if (passController.text.trim() == '53494d45') {
+                          iosChangeModes(context);
+                        } else {
+                          showToast('Clave incorrecta');
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20.0, vertical: 10.0),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff4b2427),
+                          borderRadius: BorderRadius.circular(
+                              12.0), // Ajusta el radio del borde según sea necesario
+                        ),
+                        child: const Text(
+                          'Cambiar modo de pines',
+                          style: TextStyle(
+                            color: Color(0xffa79986),
+                          ),
+                        ),
+                      )),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  if (deviceOwner) ...[
+                    CupertinoButton(
+                        onPressed: () {
+                          if (owner != '') {
+                            showCupertinoDialog<void>(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext dialogContext) {
+                                return CupertinoAlertDialog(
+                                  title: const Text(
+                                    '¿Dejar de ser administrador del calefactor?',
+                                    style: TextStyle(
+                                      color: CupertinoColors.label,
+                                    ),
+                                  ),
+                                  content: const Text(
+                                    'Esto hará que otras personas puedan conectarse al dispositivo y modificar sus parámetros',
+                                    style: TextStyle(
+                                      color: CupertinoColors.label,
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      style: const ButtonStyle(
+                                        foregroundColor: WidgetStatePropertyAll(
+                                          CupertinoColors.label,
+                                        ),
+                                      ),
+                                      child: const Text('Cancelar'),
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop();
+                                      },
+                                    ),
+                                    TextButton(
+                                      style: const ButtonStyle(
+                                        foregroundColor: WidgetStatePropertyAll(
+                                          CupertinoColors.label,
+                                        ),
+                                      ),
+                                      child: const Text('Aceptar'),
+                                      onPressed: () {
+                                        try {
+                                          putOwner(
+                                              service,
+                                              command(deviceName),
+                                              extractSerialNumber(deviceName),
+                                              '');
+                                          myDevice.device.disconnect();
+                                          Navigator.of(dialogContext).pop();
+                                        } catch (e, s) {
+                                          printLog(
+                                              'Error al borrar owner $e Trace: $s');
+                                          showToast(
+                                              'Error al borrar el administrador.');
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          } else {
+                            try {
+                              putOwner(
+                                  service,
+                                  command(deviceName),
+                                  extractSerialNumber(deviceName),
+                                  currentUserEmail);
+                              setState(() {
+                                owner = currentUserEmail;
+                              });
+                            } catch (e, s) {
+                              printLog('Error al agregar owner $e Trace: $s');
+                              showToast('Error al agregar el administrador.');
+                            }
+                          }
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xff4b2427),
+                            borderRadius: BorderRadius.circular(
+                                12.0), // Ajusta el radio del borde según sea necesario
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 35.0, vertical: 10.0),
+                          child: owner != ''
+                              ? const Text('Dejar de ser dueño\n del equipo',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Color(0xffa79986),
+                                  ))
+                              : const Text('Reclamar propiedad\n del equipo',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Color(0xffa79986),
+                                  )),
+                        )),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    if (currentUserEmail == owner) ...[
+                      CupertinoButton(
+                        onPressed: () async {
+                          adminDevices = await getSecondaryAdmins(
+                              service,
+                              command(deviceName),
+                              extractSerialNumber(deviceName));
+                          showCupertinoDialog<void>(
+                            context: navigatorKey.currentContext!,
+                            barrierDismissible: true,
+                            builder: (BuildContext dialogContext) {
+                              TextEditingController admins =
+                                  TextEditingController();
+                              return CupertinoAlertDialog(
+                                title: const Text(
+                                  'Administradores secundarios:',
+                                  style: TextStyle(
+                                      color: CupertinoColors.label,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      CupertinoTextField(
+                                        controller: admins,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
+                                        style: const TextStyle(
+                                          color: CupertinoColors.label,
+                                        ),
+                                        onSubmitted: (value) {
+                                          if (adminDevices.length < 3) {
+                                            adminDevices
+                                                .add(admins.text.trim());
+                                            putSecondaryAdmins(
+                                              service,
+                                              command(deviceName),
+                                              extractSerialNumber(deviceName),
+                                              adminDevices,
+                                            );
+                                            Navigator.of(dialogContext).pop();
+                                          } else {
+                                            printLog('Pago: $payAdmSec');
+                                            if (payAdmSec) {
+                                              if (adminDevices.length < 6) {
+                                                adminDevices
+                                                    .add(admins.text.trim());
+                                                putSecondaryAdmins(
+                                                  service,
+                                                  command(deviceName),
+                                                  extractSerialNumber(
+                                                      deviceName),
+                                                  adminDevices,
+                                                );
+                                                Navigator.of(dialogContext)
+                                                    .pop();
+                                              } else {
+                                                showToast(
+                                                    'Alcanzaste el límite máximo');
+                                              }
+                                            } else {
+                                              Navigator.of(dialogContext).pop();
+                                              showCupertinoAdminText();
+                                            }
+                                          }
+                                        },
+                                        placeholder:
+                                            'Agrega el correo electrónico',
+                                        placeholderStyle: const TextStyle(
+                                          color: CupertinoColors.label,
+                                        ),
+                                        decoration: const BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: CupertinoColors.label,
+                                            ),
+                                          ),
+                                        ),
+                                        suffix: CupertinoButton(
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            if (adminDevices.length < 3) {
+                                              adminDevices
+                                                  .add(admins.text.trim());
+                                              putSecondaryAdmins(
+                                                service,
+                                                command(deviceName),
+                                                extractSerialNumber(deviceName),
+                                                adminDevices,
+                                              );
+                                              Navigator.of(dialogContext).pop();
+                                            } else {
+                                              printLog('Pago: $payAdmSec');
+                                              if (payAdmSec) {
+                                                if (adminDevices.length < 6) {
+                                                  adminDevices
+                                                      .add(admins.text.trim());
+                                                  putSecondaryAdmins(
+                                                    service,
+                                                    command(deviceName),
+                                                    extractSerialNumber(
+                                                        deviceName),
+                                                    adminDevices,
+                                                  );
+                                                  Navigator.of(dialogContext)
+                                                      .pop();
+                                                } else {
+                                                  showToast(
+                                                      'Alcanzaste el límite máximo');
+                                                }
+                                              } else {
+                                                Navigator.of(dialogContext)
+                                                    .pop();
+                                                showCupertinoAdminText();
+                                              }
+                                            }
+                                          },
+                                          child: const Icon(
+                                            CupertinoIcons.add,
+                                            color: CupertinoColors.label,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+                                      if (adminDevices.isNotEmpty) ...[
+                                        for (int i = 0;
+                                            i < adminDevices.length;
+                                            i++) ...[
+                                          CupertinoListTile(
+                                            title: SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Text(
+                                                adminDevices[i],
+                                                style: const TextStyle(
+                                                  color: CupertinoColors.label,
+                                                ),
+                                              ),
+                                            ),
+                                            trailing: IconButton(
+                                              onPressed: () {
+                                                adminDevices
+                                                    .remove(adminDevices[i]);
+                                                putSecondaryAdmins(
+                                                    service,
+                                                    command(deviceName),
+                                                    extractSerialNumber(
+                                                        deviceName),
+                                                    adminDevices);
+                                                Navigator.of(dialogContext)
+                                                    .pop();
+                                              },
+                                              icon: const Icon(
+                                                CupertinoIcons.delete,
+                                                color: CupertinoColors.label,
+                                              ),
+                                            ),
+                                          )
+                                        ]
+                                      ] else ...[
+                                        const Text(
+                                          'Actualmente no hay ninguna cuenta agregada...',
+                                          style: TextStyle(
+                                              color: Color(0xffa79986),
+                                              fontWeight: FontWeight.normal),
+                                        )
+                                      ]
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xff4b2427),
+                            borderRadius: BorderRadius.circular(
+                                12.0), // Ajusta el radio del borde según sea necesario
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20.0, vertical: 10.0),
+                          child: const Text(
+                            'Añadir administradores\n secundarios',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Color(0xffa79986),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                    ]
+                  ],
+                  const SizedBox(
+                    height: 50,
+                  ),
+                  Text(
+                    'Versión de Hardware: $hardwareVersion',
+                    style: const TextStyle(
+                        fontSize: 10.0, color: Color(0xffa79986)),
+                  ),
+                  Text(
+                    'Versión de SoftWare: $softwareVersion',
+                    style: const TextStyle(
+                        fontSize: 10.0, color: Color(0xffa79986)),
+                  ),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: CupertinoButton(
+                      padding: const EdgeInsets.all(16.0),
+                      color: const Color(0xff4b2427),
+                      child: const Text(
+                        'CONTACTANOS',
+                        style: TextStyle(
+                          color: Color(0xffa79986),
+                        ),
+                      ),
+                      onPressed: () {
+                        showCupertinoContactInfo(context);
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
