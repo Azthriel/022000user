@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.2
   permission_handler: ^11.1.0
-  qr_code_scanner: ^1.0.1
   fluttertoast: ^8.2.4
   path_provider: ^2.1.1
   flutter_blue_plus: ^1.32.11
@@ -32,6 +31,8 @@ dependencies:
   dio: ^5.4.3+1
   flutter_background_service: ^5.0.5
   flutter_local_notifications: ^17.1.1
+  mobile_scanner: ^5.2.1
+
 
 
 dev_dependencies:

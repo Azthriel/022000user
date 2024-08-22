@@ -5,7 +5,10 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+// import 'package:wifi_scan/wifi_scan.dart';
 import 'aws/dynamo/dynamo.dart';
 import 'aws/dynamo/dynamo_certificates.dart';
 import 'aws/mqtt/mqtt.dart';
@@ -19,10 +22,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 
 //!-----DATA MASTER-----!\\
@@ -540,8 +541,8 @@ void showContactInfo(BuildContext context) {
                 IconButton(
                     onPressed: () => _sendWhatsAppMessage('5491162234181',
                         '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
-                    icon: const Icon(
-                      Icons.phone,
+                    icon: Icon(
+                      android ? Icons.phone : CupertinoIcons.phone,
                       size: 20,
                     )),
                 const Text('+54 9 11 6223-4181', style: TextStyle(fontSize: 20))
@@ -825,7 +826,6 @@ void setupIOToken(
     String? newtokenToSend = '$newToken/-/$nick';
     await saveTokenasEndpoint(newToken);
     List<String> tokens = await getTokens(service, pc, sn);
-
     if (tokensOfDevices['$device$index'] != null) {
       tokens.remove(tokensOfDevices['$device$index']);
     }
@@ -865,178 +865,6 @@ Future<void> saveTokenasEndpoint(String token) async {
     printLog('Error guardando el token como endpoint : $e');
     printLog(s);
   }
-}
-
-void wifiText(BuildContext context) {
-  showDialog(
-    barrierDismissible: true,
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        backgroundColor: const Color(0xff1f1d20),
-        title: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              const Text.rich(
-                TextSpan(
-                  text: 'Estado de conexión: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFFFFFFFF),
-                  ),
-                ),
-              ),
-              Text.rich(
-                TextSpan(
-                  text: textState,
-                  style: TextStyle(
-                      color: statusColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-              )
-            ],
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (werror) ...[
-                Text.rich(
-                  TextSpan(
-                    text: 'Error: $errorMessage',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text.rich(
-                  TextSpan(
-                    text: 'Sintax: $errorSintax',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  const Text.rich(
-                    TextSpan(
-                      text: 'Red actual: ',
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: Color(0xFFFFFFFF),
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Text(
-                    nameOfWifi,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: Color(0xFFFFFFFF),
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 10),
-              const Text.rich(
-                TextSpan(
-                  text: 'Ingrese los datos de WiFi',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Color(0xFFFFFFFF),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.qr_code,
-                  color: Color(0xFFFFFFFF),
-                ),
-                iconSize: 50,
-                onPressed: () async {
-                  PermissionStatus permissionStatusC =
-                      await Permission.camera.request();
-                  if (!permissionStatusC.isGranted) {
-                    await Permission.camera.request();
-                  }
-                  permissionStatusC = await Permission.camera.status;
-                  if (permissionStatusC.isGranted) {
-                    openQRScanner(navigatorKey.currentContext!);
-                  }
-                },
-              ),
-              TextField(
-                style: const TextStyle(
-                  color: Color(0xFFFFFFFF),
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Nombre de la red',
-                  hintStyle: TextStyle(
-                    color: Color(0xFFFFFFFF),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(),
-                  ),
-                ),
-                onChanged: (value) {
-                  wifiName = value;
-                },
-              ),
-              TextField(
-                style: const TextStyle(
-                  color: Color(0xFFFFFFFF),
-                ),
-                decoration: const InputDecoration(
-                  hintText: 'Contraseña',
-                  hintStyle: TextStyle(
-                    color: Color(0xFFFFFFFF),
-                  ),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(),
-                  ),
-                ),
-                obscureText: true,
-                onChanged: (value) {
-                  wifiPassword = value;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            style: const ButtonStyle(),
-            child: const Text(
-              'Aceptar',
-              style: TextStyle(
-                color: Color(0xFFFFFFFF),
-              ),
-            ),
-            onPressed: () {
-              sendWifitoBle();
-              navigatorKey.currentState?.pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
 }
 
 void showAdminText() {
@@ -1630,179 +1458,81 @@ void showCupertinoContactInfo(BuildContext context) {
   );
 }
 
-void cupertinoWifiText(BuildContext context) {
-  //TODO: Esto tiene que ser cupertino
+void showCupertinoSilemaContactInfo(BuildContext context) {
   showCupertinoDialog(
     barrierDismissible: true,
     context: context,
     builder: (BuildContext context) {
       return CupertinoAlertDialog(
-        title: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              const Text.rich(
-                TextSpan(
-                  text: 'Estado de conexión: ',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: CupertinoColors.label,
-                  ),
-                ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Servicio técnico:',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                      onPressed: () => _sendWhatsAppMessage('5491122845561',
+                          '¡Hola! Tengo una duda comercial sobre los productos $appName: \n'),
+                      icon: const Icon(
+                        CupertinoIcons.phone,
+                        size: 20,
+                      )),
+                  const Text('+54 9 11 2284-5561',
+                      style: TextStyle(fontSize: 20))
+                ],
               ),
-              Text.rich(
-                TextSpan(
-                  text: textState,
-                  style: TextStyle(
-                      color: statusColor,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-              )
-            ],
-          ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (werror) ...[
-                Text.rich(
-                  TextSpan(
-                    text: 'Error: $errorMessage',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text.rich(
-                  TextSpan(
-                    text: 'Sintax: $errorSintax',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 10),
-              SingleChildScrollView(
+            ),
+            SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: Row(children: [
-                  const Text.rich(
-                    TextSpan(
-                      text: 'Red actual: ',
-                      style: TextStyle(
-                          fontSize: 20,
-                          color: CupertinoColors.label,
-                          fontWeight: FontWeight.bold),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed: () => _launchEmail(
+                          'silemacalefaccion@gmail.com',
+                          'Consulta comercial acerca de la linea IOT',
+                          '¡Hola! mi equipo es el $deviceName y tengo la siguiente duda:\n'),
+                      icon: const Icon(
+                        CupertinoIcons.mail,
+                        size: 20,
+                      ),
                     ),
-                  ),
-                  Text(
-                    nameOfWifi,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      color: CupertinoColors.label,
-                    ),
-                  ),
-                ]),
-              ),
-              const SizedBox(height: 10),
-              const Text.rich(
-                TextSpan(
-                  text: 'Ingrese los datos de WiFi:',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: CupertinoColors.label,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  CupertinoIcons.qrcode,
-                  color: CupertinoColors.label,
-                ),
-                iconSize: 50,
-                onPressed: () async {
-                  PermissionStatus permissionStatusC =
-                      await Permission.camera.request();
-                  if (!permissionStatusC.isGranted) {
-                    await Permission.camera.request();
-                  }
-                  permissionStatusC = await Permission.camera.status;
-                  if (permissionStatusC.isGranted) {
-                    openQRScanner(navigatorKey.currentContext!);
-                  }
-                },
-              ),
-              CupertinoTextField(
-                placeholder: 'Nombre de Red',
-                placeholderStyle: const TextStyle(color: CupertinoColors.label),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                    const Text('silemacalefaccion@gmail.com',
+                        style: TextStyle(fontSize: 20))
+                  ],
+                )),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                IconButton(
+                  onPressed: () async {
+                    String url = 'http://www.silema.com.ar/';
+                    var uri = Uri.parse(url);
+                    try {
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      } else {
+                        printLog('No se pudo abrir la URL: $url');
+                      }
+                    } catch (e, s) {
+                      printLog('Error url $e Stacktrace: $s');
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.language,
+                    size: 20,
                   ),
                 ),
-                style: const TextStyle(
-                  color: CupertinoColors.label,
-                ),
-                onChanged: (value) {
-                  wifiName = value;
-                },
-              ),
-              const SizedBox(
-                height: 10,
-              ),
-              CupertinoTextField(
-                placeholder: 'Contraseña',
-                placeholderStyle: const TextStyle(color: CupertinoColors.label),
-                decoration: const BoxDecoration(
-                  color: Colors.transparent,
-                  border: Border(
-                    bottom: BorderSide(color: CupertinoColors.placeholderText),
-                  ),
-                ),
-                style: const TextStyle(
-                  color: CupertinoColors.label,
-                ),
-                obscureText: true,
-                onChanged: (value) {
-                  wifiPassword = value;
-                },
-              ),
-            ],
-          ),
+                const Text('silema.com.ar', style: TextStyle(fontSize: 20))
+              ],
+            )
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              navigatorKey.currentState?.pop();
-            },
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(
-                color: CupertinoColors.label,
-              ),
-            ),
-          ),
-          TextButton(
-            style: const ButtonStyle(),
-            child: const Text(
-              'Aceptar',
-              style: TextStyle(
-                color: CupertinoColors.label,
-              ),
-            ),
-            onPressed: () {
-              sendWifitoBle();
-              navigatorKey.currentState?.pop();
-            },
-          ),
-        ],
       );
     },
   );
@@ -2039,6 +1769,404 @@ Future<void> configCupertinoAT() async {
                 }
               },
               child: const Text('Activar')),
+        ],
+      );
+    },
+  );
+}
+
+// WIFI TEXT //
+
+// List<WiFiAccessPoint> _wifiNetworks = [];
+
+// void _scanForWiFiNetworks() async {
+//   final can = await WiFiScan.instance.canStartScan(askPermissions: true);
+
+//   if (can == CanStartScan.yes) {
+//     await WiFiScan.instance.startScan();
+//     var results = await WiFiScan.instance.getScannedResults();
+
+//     // Ordenar por intensidad de señal (de mayor a menor)
+//     results.sort((a, b) => b.level.compareTo(a.level));
+
+//     // Eliminar duplicados basados en SSID
+//     final uniqueResults = <String, WiFiAccessPoint>{};
+//     for (var result in results) {
+//       if (!uniqueResults.containsKey(result.ssid)) {
+//         uniqueResults[result.ssid] = result;
+//       }
+//     }
+
+//     _wifiNetworks = uniqueResults.values.toList();
+//   } else {
+//     printLog('No se puede iniciar el escaneo de WiFi');
+//   }
+// }
+
+void wifiText(BuildContext context) {
+  // _scanForWiFiNetworks();
+  showDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xff1f1d20),
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Estado de conexión: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFFFFFFF),
+                  ),
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  text: textState,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (werror) ...[
+                Text.rich(
+                  TextSpan(
+                    text: 'Error: $errorMessage',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'Sintax: $errorSintax',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  const Text.rich(
+                    TextSpan(
+                      text: 'Red actual: ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: Color(0xFFFFFFFF),
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    nameOfWifi,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: Color(0xFFFFFFFF),
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              // _wifiNetworks.isEmpty
+              //     ? const Center(child: CircularProgressIndicator())
+              //     : SizedBox(
+              //         width: double.maxFinite,
+              //         child: ListView.builder(
+              //           shrinkWrap: true,
+              //           itemCount: _wifiNetworks.length,
+              //           itemBuilder: (context, index) {
+              //             final network = _wifiNetworks[index];
+              //             return ListTile(
+              //               leading: const Icon(Icons.wifi),
+              //               title: Text(network.ssid),
+              //               subtitle: Text('Intensidad: ${network.level} dBm'),
+              //               onTap: () {
+              //                 printLog(network.ssid);
+              //               },
+              //             );
+              //           },
+              //         ),
+              //       ),
+              const Text.rich(
+                TextSpan(
+                  text: 'Ingrese los datos de WiFi',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: Color(0xFFFFFFFF),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  Icons.qr_code,
+                  color: Color(0xFFFFFFFF),
+                ),
+                iconSize: 50,
+                onPressed: () async {
+                  PermissionStatus permissionStatusC =
+                      await Permission.camera.request();
+                  if (!permissionStatusC.isGranted) {
+                    await Permission.camera.request();
+                  }
+                  permissionStatusC = await Permission.camera.status;
+                  if (permissionStatusC.isGranted) {
+                    openQRScanner(navigatorKey.currentContext!);
+                  }
+                },
+              ),
+              TextField(
+                style: const TextStyle(
+                  color: Color(0xFFFFFFFF),
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Nombre de la red',
+                  hintStyle: TextStyle(
+                    color: Color(0xFFFFFFFF),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                ),
+                onChanged: (value) {
+                  wifiName = value;
+                },
+              ),
+              TextField(
+                style: const TextStyle(
+                  color: Color(0xFFFFFFFF),
+                ),
+                decoration: const InputDecoration(
+                  hintText: 'Contraseña',
+                  hintStyle: TextStyle(
+                    color: Color(0xFFFFFFFF),
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(),
+                  ),
+                ),
+                obscureText: true,
+                onChanged: (value) {
+                  wifiPassword = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            style: const ButtonStyle(),
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(
+                color: Color(0xFFFFFFFF),
+              ),
+            ),
+            onPressed: () {
+              sendWifitoBle();
+              navigatorKey.currentState?.pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void cupertinoWifiText(BuildContext context) {
+  showCupertinoDialog(
+    barrierDismissible: true,
+    context: context,
+    builder: (BuildContext context) {
+      return CupertinoAlertDialog(
+        title: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              const Text.rich(
+                TextSpan(
+                  text: 'Estado de conexión: ',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: CupertinoColors.label,
+                  ),
+                ),
+              ),
+              Text.rich(
+                TextSpan(
+                  text: textState,
+                  style: TextStyle(
+                      color: statusColor,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold),
+                ),
+              )
+            ],
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (werror) ...[
+                Text.rich(
+                  TextSpan(
+                    text: 'Error: $errorMessage',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text.rich(
+                  TextSpan(
+                    text: 'Sintax: $errorSintax',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 10),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(children: [
+                  const Text.rich(
+                    TextSpan(
+                      text: 'Red actual: ',
+                      style: TextStyle(
+                          fontSize: 20,
+                          color: CupertinoColors.label,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  Text(
+                    nameOfWifi,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      color: CupertinoColors.label,
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              const Text.rich(
+                TextSpan(
+                  text: 'Ingrese los datos de WiFi:',
+                  style: TextStyle(
+                    fontSize: 20,
+                    color: CupertinoColors.label,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(
+                  CupertinoIcons.qrcode,
+                  color: CupertinoColors.label,
+                ),
+                iconSize: 50,
+                onPressed: () async {
+                  PermissionStatus permissionStatusC =
+                      await Permission.camera.request();
+                  if (!permissionStatusC.isGranted) {
+                    await Permission.camera.request();
+                  }
+                  permissionStatusC = await Permission.camera.status;
+                  if (permissionStatusC.isGranted) {
+                    openQRScanner(navigatorKey.currentContext!);
+                  }
+                },
+              ),
+              CupertinoTextField(
+                placeholder: 'Nombre de Red',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                onChanged: (value) {
+                  wifiName = value;
+                },
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              CupertinoTextField(
+                placeholder: 'Contraseña',
+                placeholderStyle: const TextStyle(color: CupertinoColors.label),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(color: CupertinoColors.placeholderText),
+                  ),
+                ),
+                style: const TextStyle(
+                  color: CupertinoColors.label,
+                ),
+                obscureText: true,
+                onChanged: (value) {
+                  wifiPassword = value;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              navigatorKey.currentState?.pop();
+            },
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              ),
+            ),
+          ),
+          TextButton(
+            style: const ButtonStyle(),
+            child: const Text(
+              'Aceptar',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              ),
+            ),
+            onPressed: () {
+              sendWifitoBle();
+              navigatorKey.currentState?.pop();
+            },
+          ),
         ],
       );
     },
@@ -2389,16 +2517,17 @@ class MyDevice {
 //*-QRPAGE-*//solo scanQR
 
 class QRScanPage extends StatefulWidget {
-  const QRScanPage({super.key});
+  const QRScanPage({Key? key}) : super(key: key);
+
   @override
   QRScanPageState createState() => QRScanPageState();
 }
 
 class QRScanPageState extends State<QRScanPage>
     with SingleTickerProviderStateMixin {
-  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
-  QRViewController? controller;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  MobileScannerController controller = MobileScannerController();
   AnimationController? animationController;
   bool flashOn = false;
   late Animation<double> animation;
@@ -2421,157 +2550,140 @@ class QRScanPageState extends State<QRScanPage>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          QRView(
-            key: qrKey,
-            onQRViewCreated: _onQRViewCreated,
-          ),
-          // Arriba
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 250,
-            child: Container(
-                color: Colors.black54,
-                child: const Center(
-                  child: Text('Escanea el QR',
-                      style: TextStyle(color: Color(0xFFB2B5AE))),
-                )),
-          ),
-          // Abajo
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: 250,
-            child: Container(
-              color: Colors.black54,
-            ),
-          ),
-          // Izquierda
-          Positioned(
-            top: 250,
-            bottom: 250,
-            left: 0,
-            width: 50,
-            child: Container(
-              color: Colors.black54,
-            ),
-          ),
-          // Derecha
-          Positioned(
-            top: 250,
-            bottom: 250,
-            right: 0,
-            width: 50,
-            child: Container(
-              color: Colors.black54,
-            ),
-          ),
-          // Área transparente con bordes redondeados
-          Positioned(
-            top: 250,
-            left: 50,
-            right: 50,
-            bottom: 250,
-            child: Stack(
-              children: [
-                Positioned(
-                  top: animation.value,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 4,
-                    color: const Color(0xFF1E242B),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 3,
-                    color: const Color(0xFFB2B5AE),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 3,
-                    color: const Color(0xFFB2B5AE),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  left: 0,
-                  child: Container(
-                    width: 3,
-                    color: const Color(0xFFB2B5AE),
-                  ),
-                ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 3,
-                    color: const Color(0xFFB2B5AE),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Botón de Flash
-          Positioned(
-            bottom: 20,
-            right: 20,
-            child: IconButton(
-              icon: Icon(
-                flashOn ? Icons.flash_on : Icons.flash_off,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                controller?.toggleFlash();
-                setState(() {
-                  flashOn = !flashOn;
-                });
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
-    controller.scannedDataStream.listen((scanData) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        try {
-          if (navigatorKey.currentState != null &&
-              navigatorKey.currentState!.canPop()) {
-            navigatorKey.currentState!.pop(scanData.code);
-          }
-        } catch (e, stackTrace) {
-          printLog("Error: $e $stackTrace");
-          showToast('Error al leer QR');
-        }
-      });
-    });
+  void dispose() {
+    controller.dispose();
+    animationController?.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    controller?.dispose();
-    animationController?.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(children: [
+        MobileScanner(
+          controller: controller,
+          onDetect: (
+            barcode,
+          ) {
+            setState(() {
+              result = barcode.barcodes.first;
+            });
+            if (result != null) {
+              Navigator.pop(context, result!.rawValue);
+            }
+          },
+        ),
+        // Arriba
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 250,
+          child: Container(
+              color: Colors.black54,
+              child: const Center(
+                child: Text('Escanea el QR',
+                    style: TextStyle(color: Color(0xFFB2B5AE))),
+              )),
+        ),
+        // Abajo
+        Positioned(
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: 250,
+          child: Container(
+            color: Colors.black54,
+          ),
+        ),
+        // Izquierda
+        Positioned(
+          top: 250,
+          bottom: 250,
+          left: 0,
+          width: 50,
+          child: Container(
+            color: Colors.black54,
+          ),
+        ),
+        // Derecha
+        Positioned(
+          top: 250,
+          bottom: 250,
+          right: 0,
+          width: 50,
+          child: Container(
+            color: Colors.black54,
+          ),
+        ),
+        // Área transparente con bordes redondeados
+        Positioned(
+          top: 250,
+          left: 50,
+          right: 50,
+          bottom: 250,
+          child: Stack(
+            children: [
+              Positioned(
+                top: animation.value,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 4,
+                  color: const Color(0xFF1E242B),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 3,
+                  color: const Color(0xFFB2B5AE),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  height: 3,
+                  color: const Color(0xFFB2B5AE),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                bottom: 0,
+                left: 0,
+                child: Container(
+                  width: 3,
+                  color: const Color(0xFFB2B5AE),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 3,
+                  color: const Color(0xFFB2B5AE),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Botón de Flash
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: IconButton(
+            icon: Icon(
+                controller.torchEnabled ? Icons.flash_on : Icons.flash_off),
+            onPressed: () => controller.toggleTorch(),
+          ),
+        ),
+      ]),
+    );
   }
 }
 
@@ -2796,34 +2908,48 @@ class MyDrawerState extends State<MyDrawer> {
                                   ),
                                 ),
                                 online
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● CONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       )
-                                    : const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● DESCONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      )
                               ]),
                           subtitle: estado
                               ? Row(
@@ -2961,34 +3087,48 @@ class MyDrawerState extends State<MyDrawer> {
                                   ),
                                 ),
                                 online
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● CONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       )
-                                    : const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● DESCONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      )
                               ]),
                           subtitle: estado
                               ? Row(
@@ -3126,34 +3266,48 @@ class MyDrawerState extends State<MyDrawer> {
                                   ),
                                 ),
                                 online
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● CONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       )
-                                    : const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● DESCONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      )
                               ]),
                           subtitle: estado
                               ? Row(
@@ -3291,34 +3445,48 @@ class MyDrawerState extends State<MyDrawer> {
                                   ),
                                 ),
                                 online
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● CONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       )
-                                    : const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● DESCONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      )
                               ]),
                           subtitle: Text.rich(
                             TextSpan(children: [
@@ -3464,34 +3632,48 @@ class MyDrawerState extends State<MyDrawer> {
                                   ),
                                 ),
                                 online
-                                    ? const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● CONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.green,
-                                              fontSize: 12,
-                                            ),
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       )
-                                    : const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '● DESCONECTADO',
-                                            textAlign: TextAlign.start,
-                                            style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                            ),
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      )
                               ]),
                           subtitle: SizedBox(
                             height: 100,

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
+//
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
 /// Example:
@@ -57,6 +58,8 @@ class DefaultFirebaseOptions {
     storageBucket: 'biocaldensmartlife.appspot.com',
   );
 
+//
+
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDhUx1_dFp1wO_mutFBKhcOXAw8935yNd8',
     appId: '1:264309112998:ios:3fdd202adb11081e16b467',
@@ -66,4 +69,6 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.biocalden.smartlife.sime',
   );
 
+//
+//
 }

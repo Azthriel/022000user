@@ -1,11 +1,12 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import '020010/device_inout.dart';
-import 'firebase_options.dart';
 import 'aws/mqtt/mqtt.dart';
 import 'stored_data.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '015773/device_detector.dart';
@@ -15,23 +16,24 @@ import 'master.dart';
 import 'scan.dart';
 import 'calefactores/device_silema.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'amplifyconfiguration.dart';
+import 'firebase_options.dart';
 
-Future<void> main() async {
-  appName = biocalden ? 'Biocalden Smart Life' : 'Silema Calefacción';
-  WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+Future<void> _configureAmplify() async {
+  try {
+    await Amplify.addPlugin(
+      AmplifyAuthCognito(),
+    );
+    await Amplify.configure(amplifyconfig);
+    printLog('Successfully configured');
+  } on Exception catch (e) {
+    printLog('Error configuring Amplify: $e');
+  }
+}
 
-  FlutterError.onError = (FlutterErrorDetails details) async {
-    String errorReport = generateErrorReport(details);
-    sendReportError(errorReport);
-  };
-
+void listenToPushNotification() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     showDialog(
       context: navigatorKey.currentContext!,
@@ -41,7 +43,6 @@ Future<void> main() async {
             'Un equipo mando una alerta';
         String displayTitle =
             message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
-
         return AlertDialog(
             backgroundColor: const Color(0xFF1E242B),
             title: Text(
@@ -59,6 +60,21 @@ Future<void> main() async {
     );
     printLog('Llegó esta notif: $message');
   });
+  printLog("-ayuwoki");
+}
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  appName = biocalden ? 'Biocalden Smart Life' : 'Silema Calefacción';
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await _configureAmplify();
+
+  FlutterError.onError = (FlutterErrorDetails details) async {
+    String errorReport = generateErrorReport(details);
+    sendReportError(errorReport);
+  };
 
   runApp(
     ChangeNotifierProvider(
@@ -80,11 +96,12 @@ class MyAppState extends State<MyApp> {
     super.initState();
 
     //! IOS O ANDROID !\\
-    android = Platform.isIOS;
+    android = Platform.isAndroid;
     //! IOS O ANDROID !\\
 
     loadValues();
-    _configureAmplify();
+    listenToPushNotification();
+
     setupMqtt().then((value) {
       if (value) {
         for (var topic in topicsToSub) {
@@ -95,16 +112,6 @@ class MyAppState extends State<MyApp> {
     });
     listenToTopics();
     printLog('Empezamos');
-  }
-
-  void _configureAmplify() async {
-    try {
-      await Amplify.addPlugin(AmplifyAuthCognito());
-      await Amplify.configure(amplifyconfig);
-      printLog('Successfully configured');
-    } on Exception catch (e) {
-      printLog('Error configuring Amplify: $e');
-    }
   }
 
   @override
@@ -130,15 +137,12 @@ class MyAppState extends State<MyApp> {
       routes: {
         '/perm': (context) => const PermissionHandler(),
         '/login': (context) => const LoginPage(),
-        '/scan': (context) => android ? const ScanPage() : const IOSScanPage(),
-        '/loading': (context) =>
-            android ? const LoadingPage() : const IOSLoadingPage(),
-        '/calefactor': (context) => android ? const ControlPage() : const IOSControlPage(),
-        '/detector': (context) =>
-            android ? const DetectorPage() : const IOSDetector(),
-        '/radiador': (context) =>
-            android ? const RadiadorPage() : const IOSRadiadorPage(),
-        '/io': (context) => android ? const IODevices() : const IOSIODevices(),
+        '/scan': (context) => const ScanPage(),
+        '/loading': (context) => const LoadingPage(),
+        '/calefactor': (context) => const ControlPage(),
+        '/detector': (context) => const DetectorPage(),
+        '/radiador': (context) => const RadiadorPage(),
+        '/io': (context) => const IODevices(),
       },
     );
   }
@@ -178,9 +182,15 @@ class PermissionHandlerState extends State<PermissionHandler> {
 
     requestPermissionFCM();
 
+    printLog('Ble: ${permissionStatus1.isGranted} /// $permissionStatus1');
+    printLog('Ble Scan: ${permissionStatus2.isGranted} /// $permissionStatus2');
+    printLog('Locate: ${permissionStatus3.isGranted} /// $permissionStatus3');
+
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&
         permissionStatus3.isGranted) {
+      return const AskLoginPage();
+    } else if (permissionStatus3.isGranted && !android) {
       return const AskLoginPage();
     } else {
       return AlertDialog(

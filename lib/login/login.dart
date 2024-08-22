@@ -68,7 +68,7 @@ class LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    showPrivacyDialogIfNeeded();
+    android ? showPrivacyDialogIfNeeded() : showCupertinoPrivacyDialogIfNeeded();
   }
 
   Future<void> signUpUser(String email, String password) async {

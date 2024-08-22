@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '/master.dart';
 import '/calefactores/master_calefactor.dart';
 import 'package:flutter/cupertino.dart';
+
 //CONTROL TAB // On Off y set temperatura
 
 class RadiadorPage extends StatefulWidget {
@@ -230,6 +231,71 @@ class RadiadorPageState extends State<RadiadorPage> {
     );
   }
 
+  Future<void> _showCupertinoEditNicknameDialog(BuildContext context) async {
+    TextEditingController nicknameController =
+        TextEditingController(text: nickname);
+
+    return showCupertinoDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return CupertinoAlertDialog(
+          title: const Text('Editar identificación del dispositivo',
+              style: TextStyle(
+                color: CupertinoColors.label,
+              )),
+          content: CupertinoTextField(
+            style: const TextStyle(
+              color: CupertinoColors.label,
+            ),
+            cursorColor: CupertinoColors.label,
+            controller: nicknameController,
+            placeholder: "Introduce tu nueva identificación del dispositivo",
+            placeholderStyle: const TextStyle(
+              color: CupertinoColors.label,
+            ),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: CupertinoColors.label,
+                ),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: WidgetStatePropertyAll(
+                CupertinoColors.label,
+              )),
+              child: const Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
+              },
+            ),
+            TextButton(
+              style: const ButtonStyle(
+                  foregroundColor: WidgetStatePropertyAll(
+                CupertinoColors.label,
+              )),
+              child: const Text('Guardar'),
+              onPressed: () {
+                setState(() {
+                  String newNickname = nicknameController.text;
+                  nickname = newNickname;
+                  nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
+                  saveNicknamesMap(nicknamesMap);
+                  printLog('$nicknamesMap');
+                });
+                Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void controlTask(bool value, String device) async {
     setState(() {
       isTaskScheduled.addAll({device: value});
@@ -342,7 +408,7 @@ class RadiadorPageState extends State<RadiadorPage> {
     double width = MediaQuery.of(context).size.width;
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, A) {
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -379,7 +445,7 @@ class RadiadorPageState extends State<RadiadorPage> {
             foregroundColor: const Color(0xFF000000),
             title: GestureDetector(
               onTap: () async {
-                await _showEditNicknameDialog(context);
+                android ? await _showEditNicknameDialog(context) : _showCupertinoEditNicknameDialog(context);
               },
               child: Row(
                 children: [
@@ -404,7 +470,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                         semanticLabel: 'Icono de wifi',
                       ),
                       onPressed: () {
-                        wifiText(context);
+                        android ? wifiText(context) : cupertinoWifiText(context);
                       },
                     ),
                   ]),
@@ -960,927 +1026,3 @@ class RadiadorPageState extends State<RadiadorPage> {
     );
   }
 }
-
-//!-------------------------------------IOS Widget-------------------------------------!\\
-class IOSRadiadorPage extends StatefulWidget {
-  const IOSRadiadorPage({super.key});
-  @override
-  IOSRadiadorPageState createState() => IOSRadiadorPageState();
-}
-
-class IOSRadiadorPageState extends State<IOSRadiadorPage> {
-  var parts2 = utf8.decode(varsValues).split(':');
-  late double tempValue;
-  late String nickname;
-  bool werror = false;
-
-  @override
-  void initState() {
-    super.initState();
-    printLog(parts2);
-    analizePayment(command(deviceName), extractSerialNumber(deviceName));
-    nickname = nicknamesMap[deviceName] ?? deviceName;
-    tempValue = double.parse(parts2[1]);
-
-    printLog('Valor temp: $tempValue');
-    printLog('¿Encendido? $turnOn');
-    updateWifiValues(toolsValues);
-    subscribeToWifiStatus();
-    subscribeTrueStatus();
-  }
-
-  void updateWifiValues(List<int> data) {
-    var fun = utf8.decode(data); //Wifi status | wifi ssid | ble status(users)
-    fun = fun.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-    printLog(fun);
-    var parts = fun.split(':');
-    if (parts[0] == 'WCS_CONNECTED') {
-      nameOfWifi = parts[1];
-      isWifiConnected = true;
-      printLog('sis $isWifiConnected');
-      setState(() {
-        textState = 'CONECTADO';
-        statusColor = Colors.green;
-        wifiIcon = Icons.wifi;
-        errorMessage = '';
-        errorSintax = '';
-        werror = false;
-      });
-    } else if (parts[0] == 'WCS_DISCONNECTED') {
-      isWifiConnected = false;
-      printLog('non $isWifiConnected');
-
-      setState(() {
-        textState = 'DESCONECTADO';
-        statusColor = Colors.red;
-        wifiIcon = Icons.wifi_off;
-      });
-
-      if (parts[0] == 'WCS_DISCONNECTED' && atemp == true) {
-        //If comes from subscription, parts[1] = reason of error.
-        setState(() {
-          wifiIcon = Icons.warning_amber_rounded;
-        });
-
-        werror = true;
-
-        if (parts[1] == '202' || parts[1] == '15') {
-          errorMessage = 'Contraseña incorrecta';
-        } else if (parts[1] == '201') {
-          errorMessage = 'La red especificada no existe';
-        } else if (parts[1] == '1') {
-          errorMessage = 'Error desconocido';
-        } else {
-          errorMessage = parts[1];
-        }
-
-        errorSintax = getWifiErrorSintax(int.parse(parts[1]));
-      }
-    }
-
-    final regex = RegExp(r'\((\d+)\)');
-    final match = regex.firstMatch(parts[2]);
-    int users = int.parse(match!.group(1).toString());
-    printLog('Hay $users conectados');
-    userConnected = users > 1 && lastUser != 1;
-    lastUser = users;
-
-    setState(() {});
-  }
-
-  void subscribeToWifiStatus() async {
-    printLog('Se subscribio a wifi');
-    await myDevice.toolsUuid.setNotifyValue(true);
-
-    final wifiSub =
-        myDevice.toolsUuid.onValueReceived.listen((List<int> status) {
-      printLog('Llegaron cositas wifi');
-      updateWifiValues(status);
-    });
-
-    myDevice.device.cancelWhenDisconnected(wifiSub);
-  }
-
-  void subscribeTrueStatus() async {
-    printLog('Me subscribo a vars');
-    await myDevice.varsUuid.setNotifyValue(true);
-
-    final trueStatusSub =
-        myDevice.varsUuid.onValueReceived.listen((List<int> status) {
-      var parts = utf8.decode(status).split(':');
-      setState(() {
-        if (parts[0] == '1') {
-          trueStatus = true;
-        } else {
-          trueStatus = false;
-        }
-      });
-    });
-
-    myDevice.device.cancelWhenDisconnected(trueStatusSub);
-  }
-
-  void sendTemperature(int temp) {
-    String data = '${command(deviceName)}[7]($temp)';
-    myDevice.toolsUuid.write(data.codeUnits);
-  }
-
-  void turnDeviceOn(bool on) async {
-    int fun = on ? 1 : 0;
-    String data = '${command(deviceName)}[11]($fun)';
-    myDevice.toolsUuid.write(data.codeUnits);
-    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['w_status'] = on;
-    saveGlobalData(globalDATA);
-    try {
-      String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
-      String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
-      String message = jsonEncode({'w_status': on});
-      sendMessagemqtt(topic, message);
-      sendMessagemqtt(topic2, message);
-    } catch (e, s) {
-      printLog('Error al enviar valor a firebase $e $s');
-    }
-  }
-
-  Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      showToast('La ubicación esta desactivada\nPor favor enciendala');
-      return Future.error('Los servicios de ubicación están deshabilitados.');
-    }
-    // Cuando los permisos están OK, obtenemos la ubicación actual
-    return await Geolocator.getCurrentPosition();
-  }
-
-  Future<void> _showCupertinoEditNicknameDialog(BuildContext context) async {
-    TextEditingController nicknameController =
-        TextEditingController(text: nickname);
-
-    return showCupertinoDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return CupertinoAlertDialog(
-          title: const Text(
-            'Editar identificación del dispositivo',
-            style: TextStyle(color: Color(0xFF000000)),
-          ),
-          content: CupertinoTextField(
-            style: const TextStyle(color: Color(0xFF000000)),
-            cursorColor: const Color(0xFFBDBDBD),
-            controller: nicknameController,
-            placeholder: "Introduce tu nueva identificación del dispositivo",
-            placeholderStyle: const TextStyle(color: Color(0xFF000000)),
-            decoration: const BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: Color(0xFFBDBDBD),
-                ),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              style: const ButtonStyle(
-                  foregroundColor: WidgetStatePropertyAll(Color(0xFF000000))),
-              child: const Text('Cancelar'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
-              },
-            ),
-            TextButton(
-              style: const ButtonStyle(
-                  foregroundColor: WidgetStatePropertyAll(Color(0xFF000000))),
-              child: const Text('Guardar'),
-              onPressed: () {
-                setState(() {
-                  String newNickname = nicknameController.text;
-                  nickname = newNickname;
-                  nicknamesMap[deviceName] = newNickname; // Actualizar el mapa
-                  saveNicknamesMap(nicknamesMap);
-                  printLog('$nicknamesMap');
-                });
-                Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void controlTask(bool value, String device) async {
-    setState(() {
-      isTaskScheduled.addAll({device: value});
-    });
-    if (isTaskScheduled[device]!) {
-      // Programar la tarea.
-      try {
-        showToast('Recuerda tener la ubicación encendida.');
-        String data = '${command(deviceName)}[5](1)';
-        myDevice.toolsUuid.write(data.codeUnits);
-        List<String> deviceControl = await loadDevicesForDistanceControl();
-        deviceControl.add(deviceName);
-        saveDevicesForDistanceControl(deviceControl);
-        printLog(
-            'Hay ${deviceControl.length} equipos con el control x distancia');
-        Position position = await _determinePosition();
-        Map<String, double> maplatitude = await loadLatitude();
-        maplatitude.addAll({deviceName: position.latitude});
-        savePositionLatitude(maplatitude);
-        Map<String, double> maplongitude = await loadLongitud();
-        maplongitude.addAll({deviceName: position.longitude});
-        savePositionLongitud(maplongitude);
-
-        if (deviceControl.length == 1) {
-          final backService = FlutterBackgroundService();
-          await backService.startService();
-          backService.invoke('distanceControl');
-          printLog('Servicio iniciado a las ${DateTime.now()}');
-        }
-      } catch (e) {
-        showToast('Error al iniciar control por distancia.');
-        printLog('Error al setear la ubicación $e');
-      }
-    } else {
-      // Cancelar la tarea.
-      showToast('Se cancelo el control por distancia');
-      String data = '${command(deviceName)}[5](0)';
-      myDevice.toolsUuid.write(data.codeUnits);
-      List<String> deviceControl = await loadDevicesForDistanceControl();
-      deviceControl.remove(deviceName);
-      saveDevicesForDistanceControl(deviceControl);
-      printLog(
-          'Quedan ${deviceControl.length} equipos con el control x distancia');
-      Map<String, double> maplatitude = await loadLatitude();
-      maplatitude.remove(deviceName);
-      savePositionLatitude(maplatitude);
-      Map<String, double> maplongitude = await loadLongitud();
-      maplongitude.remove(deviceName);
-      savePositionLongitud(maplongitude);
-
-      if (deviceControl.isEmpty) {
-        final backService = FlutterBackgroundService();
-        backService.invoke("stopService");
-        backTimer?.cancel();
-        printLog('Servicio apagado');
-      }
-    }
-  }
-
-  Future<bool> verifyPermission() async {
-    var permissionStatus4 = await Permission.locationAlways.status;
-    if (!permissionStatus4.isGranted) {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            backgroundColor: const Color(0xFFFFFFFF),
-            title: const Text(
-              'Habilita la ubicación todo el tiempo',
-              style: TextStyle(color: Color(0xFF000000)),
-            ),
-            content: Text(
-                '$appName utiliza tu ubicación, incluso cuando la app esta cerrada o en desuso, para poder encender o apagar el calefactor en base a tu distancia con el mismo.',
-                style: const TextStyle(color: Color(0xFF000000))),
-            actions: <Widget>[
-              TextButton(
-                style: const ButtonStyle(
-                    foregroundColor:
-                        WidgetStatePropertyAll(Color(0xFF000000))),
-                child: const Text('Habilitar'),
-                onPressed: () async {
-                  var permissionStatus4 =
-                      await Permission.locationAlways.request();
-
-                  if (!permissionStatus4.isGranted) {
-                    await Permission.locationAlways.request();
-                  }
-                  permissionStatus4 = await Permission.locationAlways.status;
-
-                  Navigator.of(dialogContext).pop(); // Cierra el AlertDialog
-                },
-              ),
-            ],
-          );
-        },
-      );
-    }
-
-    permissionStatus4 = await Permission.locationAlways.status;
-
-    if (permissionStatus4.isGranted) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        showCupertinoDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return CupertinoAlertDialog(
-              content: Row(
-                children: [
-                  const CupertinoActivityIndicator(color: Color(0xFF000000)),
-                  Container(
-                      margin: const EdgeInsets.only(left: 15),
-                      child: const Text(
-                        "Desconectando...",
-                        style: TextStyle(color: Color(0xFF000000)),
-                      )),
-                ],
-              ),
-            );
-          },
-        );
-        Future.delayed(const Duration(seconds: 2), () async {
-          printLog('aca estoy');
-          await myDevice.device.disconnect();
-          navigatorKey.currentState?.pop();
-          navigatorKey.currentState?.pushReplacementNamed('/scan');
-        });
-
-        return; // Retorna según la lógica de tu app
-      },
-      child: Scaffold(
-        backgroundColor: const Color(0xFFFFFFFF),
-        appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            foregroundColor: const Color(0xFF000000),
-            title: GestureDetector(
-              onTap: () async {
-                await _showCupertinoEditNicknameDialog(context);
-              },
-              child: Row(
-                children: [
-                  Text(nickname),
-                  const SizedBox(
-                    width: 3,
-                  ),
-                  const Icon(
-                    CupertinoIcons.pencil,
-                    size: 20,
-                    color: CupertinoColors.label,
-                  )
-                ],
-              ),
-            ),
-            actions: userConnected
-                ? null
-                : <Widget>[
-                    CupertinoButton(
-                      child: Icon(
-                        wifiIcon,
-                        size: 24.0,
-                        semanticLabel: 'Icono de wifi',
-                        color: CupertinoColors.label,
-                      ),
-                      onPressed: () {
-                        cupertinoWifiText(context);
-                      },
-                    ),
-                  ]),
-       drawer: userConnected
-            ? null
-            : deviceOwner
-                ? IOSSilemaDrawer(device: deviceName)
-                : null,
-        body: SingleChildScrollView(
-          child: Center(
-            child: userConnected
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 50,
-                        ),
-                        Text('Actualmente hay un usuario usando el radiador',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 28, color: Color(0xFF000000))),
-                        Text('Espere a que se desconecte para poder usarla',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 28, color: Color(0xFF000000))),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        CupertinoActivityIndicator(
-                          color: Color(0xFF000000),
-                        ),
-                      ],
-                    ),
-                  )
-                : activatedAT && !deviceOwner
-                    ? !tenant
-                        ? const Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(
-                                height: 200,
-                              ),
-                              Text(
-                                'No eres el inquilino\n asignado a este equipo',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 25, color: Color(0xFF000000)),
-                              ),
-                              SizedBox(
-                                height: 10,
-                              ),
-                              CircularProgressIndicator(
-                                  color: Color(0xFF000000)),
-                              SizedBox(
-                                height: 200,
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(height: 30),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text.rich(
-                                      TextSpan(
-                                        text: turnOn
-                                            ? trueStatus
-                                                ? 'Calentando'
-                                                : 'Encendido'
-                                            : 'Apagado',
-                                        style: TextStyle(
-                                            color: turnOn
-                                                ? trueStatus
-                                                    ? Colors.amber[600]
-                                                    : Colors.green
-                                                : Colors.red,
-                                            fontSize: 30),
-                                      ),
-                                    ),
-                                    if (trueStatus) ...[
-                                      deviceType == '022000'
-                                          ? Icon(Icons.flash_on_rounded,
-                                              size: 30,
-                                              color: Colors.amber[600])
-                                          : Icon(Icons.local_fire_department,
-                                              size: 30,
-                                              color: Colors.amber[600]),
-                                    ]
-                                  ]),
-                              const SizedBox(height: 30),
-                              Transform.scale(
-                                scale: 3.0,
-                                child: CupertinoSwitch(
-                                  activeColor: const Color(0xFFBDBDBD),
-                                
-                                  value: turnOn,
-                                  onChanged: (value) {
-                                    turnDeviceOn(value);
-                                    setState(() {
-                                      turnOn = value;
-                                    });
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 50),
-                              const Text('Temperatura de corte:',
-                                  style: TextStyle(
-                                      fontSize: 25, color: Color(0xFF000000))),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text.rich(
-                                    TextSpan(
-                                      text: tempValue.round().toString(),
-                                      style: const TextStyle(
-                                        fontSize: 30,
-                                        color: Color(0xFF000000),
-                                      ),
-                                    ),
-                                  ),
-                                  const Text.rich(
-                                    TextSpan(
-                                      text: '°C',
-                                      style: TextStyle(
-                                        fontSize: 30,
-                                        color: Color(0xFF000000),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                width: width - 50,
-                                child: SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 50.0,
-                                    trackShape:
-                                        const RoundedRectSliderTrackShape(),
-                                    overlayShape: const RoundSliderOverlayShape(
-                                        overlayRadius: 0.0),
-                                    thumbShape: const RoundSliderThumbShape(
-                                        enabledThumbRadius: 26.0,
-                                        disabledThumbRadius: 26.0,
-                                        elevation: 0.0,
-                                        pressedElevation: 0.0),
-                                  ),
-                                  child: Slider(
-                                    activeColor: const Color(0xFF484848),
-                                    inactiveColor: const Color(0xFFBDBDBD),
-                                    thumbColor: const Color(0xFF484848),
-                                    value: tempValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        tempValue = value;
-                                      });
-                                    },
-                                    onChangeEnd: (value) {
-                                      printLog('$value');
-                                      sendTemperature(value.round());
-                                    },
-                                    min: 10,
-                                    max: 40,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                        'Activar control\n por distancia:',
-                                        style: TextStyle(
-                                            fontSize: 25,
-                                            color: Color(0xFF000000))),
-                                    const SizedBox(width: 30),
-                                    Transform.scale(
-                                      scale: 1.5,
-                                      child: CupertinoSwitch(
-                                        activeColor: const Color(0xFFBDBDBD),
-                                        value: isTaskScheduled[deviceName] ??
-                                            false,
-                                        onChanged: (value) {
-                                          verifyPermission().then((result) {
-                                            if (result == true) {
-                                              isTaskScheduled
-                                                  .addAll({deviceName: value});
-                                              saveControlValue(isTaskScheduled);
-                                              controlTask(value, deviceName);
-                                            } else {
-                                              showToast(
-                                                  'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
-                                              openAppSettings();
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ]),
-                            ],
-                          )
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const SizedBox(height: 30),
-                          deviceOwner
-                              ? const SizedBox(height: 0)
-                              : const Text('Estado:',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Color(0xFF000000))),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text.rich(TextSpan(
-                                    text: turnOn
-                                        ? trueStatus
-                                            ? 'Calentando'
-                                            : 'Encendido'
-                                        : 'Apagado',
-                                    style: TextStyle(
-                                        color: turnOn
-                                            ? trueStatus
-                                                ? Colors.amber[600]
-                                                : Colors.green
-                                            : Colors.red,
-                                        fontSize: 30))),
-                                if (trueStatus) ...[
-                                  Icon(Icons.flash_on_rounded,
-                                      size: 30, color: Colors.amber[600]),
-                                ]
-                              ]),
-                          if (deviceOwner || secondaryAdmin) ...[
-                            const SizedBox(height: 30),
-                            Transform.scale(
-                              scale: 3.0,
-                              child: CupertinoSwitch(
-                                activeColor: const Color(0xFFBDBDBD),
-                            
-                                value: turnOn,
-                                onChanged: (value) {
-                                  turnDeviceOn(value);
-                                  setState(() {
-                                    turnOn = value;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 50),
-                          const Text('Temperatura de corte:',
-                              style: TextStyle(
-                                  fontSize: 25, color: Color(0xFF000000))),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text.rich(TextSpan(
-                                  text: tempValue.round().toString(),
-                                  style: const TextStyle(
-                                      fontSize: 30, color: Color(0xFF000000)))),
-                              const Text.rich(TextSpan(
-                                  text: '°C',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Color(0xFF000000)))),
-                            ],
-                          ),
-                          if (deviceOwner) ...[
-                            SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                trackHeight: 50.0,
-                                thumbColor: const Color(0xFF484848),
-                                thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 26.0,
-                                    disabledThumbRadius: 26.0,
-                                    elevation: 0.0,
-                                    pressedElevation: 0.0),
-                              ),
-                              child: Slider(
-                                activeColor: const Color(0xFF484848),
-                                inactiveColor: const Color(0xFFBDBDBD),
-                                value: tempValue,
-                                onChanged: (value) {
-                                  setState(() {
-                                    tempValue = value;
-                                  });
-                                },
-                                onChangeEnd: (value) {
-                                  printLog('$value');
-                                  sendTemperature(value.round());
-                                },
-                                min: 10,
-                                max: 40,
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            if (canControlDistance) ...[
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Text(
-                                        'Activar control\n por distancia:',
-                                        style: TextStyle(
-                                            fontSize: 25,
-                                            color: Color(0xFF000000))),
-                                    const SizedBox(width: 30),
-                                    Transform.scale(
-                                      scale: 1.5,
-                                      child: CupertinoSwitch(
-                                        activeColor: const Color(0xFFBDBDBD),
-                                       
-                                        value: isTaskScheduled[deviceName] ??
-                                            false,
-                                        onChanged: (value) {
-                                          verifyPermission().then((result) {
-                                            if (result == true) {
-                                              isTaskScheduled
-                                                  .addAll({deviceName: value});
-                                              saveControlValue(isTaskScheduled);
-                                              controlTask(value, deviceName);
-                                            } else {
-                                              showToast(
-                                                  'Permitir ubicación todo el tiempo\nPara poder usar el control por distancia');
-                                              openAppSettings();
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ]),
-                              const SizedBox(height: 25),
-                              if (isTaskScheduled[deviceName] ?? false) ...[
-                                const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Distancia de apagado',
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              color: Color(0xFF000000)))
-                                    ]),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text.rich(TextSpan(
-                                        text: distOffValue.round().toString(),
-                                        style: const TextStyle(
-                                            fontSize: 30,
-                                            color: Color(0xFF000000)))),
-                                    const Text.rich(TextSpan(
-                                        text: 'Metros',
-                                        style: TextStyle(
-                                            fontSize: 30,
-                                            color: Color(0xFF000000)))),
-                                  ],
-                                ),
-                                SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 30.0,
-                                      thumbColor: const Color(0xFF484848),
-                                      thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 16.0,
-                                          disabledThumbRadius: 16.0,
-                                          elevation: 0.0,
-                                          pressedElevation: 0.0)),
-                                  child: Slider(
-                                    activeColor: const Color(0xFF484848),
-                                    inactiveColor: const Color(0xFFBDBDBD),
-                                    value: distOffValue,
-                                    divisions: 20,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        distOffValue = value;
-                                      });
-                                    },
-                                    onChangeEnd: (value) async {
-                                      printLog(
-                                          'Valor enviado: ${value.round()}');
-                                      putDistanceOff(
-                                          service,
-                                          command(deviceName),
-                                          extractSerialNumber(deviceName),
-                                          value.toString());
-                                    },
-                                    min: 100,
-                                    max: 300,
-                                  ),
-                                ),
-                                const SizedBox(height: 0),
-                                const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text('Distancia de encendido',
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              color: Color(0xFF000000)))
-                                    ]),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text.rich(TextSpan(
-                                        text: distOnValue.round().toString(),
-                                        style: const TextStyle(
-                                            fontSize: 30,
-                                            color: Color(0xFF000000)))),
-                                    const Text.rich(TextSpan(
-                                        text: 'Metros',
-                                        style: TextStyle(
-                                            fontSize: 30,
-                                            color: Color(0xFF000000)))),
-                                  ],
-                                ),
-                                SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 30.0,
-                                      thumbColor: const Color(0xFF484848),
-                                      thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 16.0,
-                                          disabledThumbRadius: 16.0,
-                                          elevation: 0.0,
-                                          pressedElevation: 0.0)),
-                                  child: Slider(
-                                    activeColor: const Color(0xFF484848),
-                                    inactiveColor: const Color(0xFFBDBDBD),
-                                    value: distOnValue,
-                                    divisions: 20,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        distOnValue = value;
-                                      });
-                                    },
-                                    onChangeEnd: (value) async {
-                                      printLog(
-                                          'Valor enviado: ${value.round()}');
-                                      putDistanceOn(
-                                          service,
-                                          command(deviceName),
-                                          extractSerialNumber(deviceName),
-                                          value.toString());
-                                    },
-                                    min: 3000,
-                                    max: 5000,
-                                  ),
-                                ),
-                              ]
-                            ]
-                          ] else ...[
-                            const SizedBox(height: 30),
-                            const Text(
-                              'Modo actual: ',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Color(0xFF000000),
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Transform.scale(
-                              scale: 1.5,
-                              child: Switch(
-                                activeColor: const Color(0xFF484848),
-                                activeTrackColor: const Color(0xFFFFFFFF),
-                                inactiveThumbColor: const Color(0xFFFFFFFF),
-                                inactiveTrackColor: const Color(0xFF484848),
-                                trackOutlineColor:
-                                    const WidgetStatePropertyAll(
-                                        Color(0xFF484848)),
-                                thumbIcon:
-                                    WidgetStateProperty.resolveWith<Icon?>(
-                                  (Set<WidgetState> states) {
-                                    if (states
-                                        .contains(WidgetState.selected)) {
-                                      return const Icon(CupertinoIcons.moon_fill,
-                                          color: Colors.white);
-                                    } else {
-                                      return const Icon(CupertinoIcons.sun_max_fill,
-                                          color: Color(0xFF484848));
-                                    }
-                                  },
-                                ),
-                                value: nightMode,
-                                onChanged: (value) {
-                                  setState(() {
-                                    nightMode = !nightMode;
-                                    printLog('Estado: $nightMode');
-                                    int fun = nightMode ? 1 : 0;
-                                    String data =
-                                        '${command(deviceName)}[9]($fun)';
-                                    printLog(data);
-                                    myDevice.toolsUuid.write(data.codeUnits);
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            if (!secondaryAdmin) ...[
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              const Text(
-                                'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 25,
-                                  color: Color(0xFF000000),
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              CupertinoButton(
-                                color: const Color(0xFFFFFFFF),
-                                onPressed: () async {
-                                  var phoneNumber = '5491162232619';
-                                  var message =
-                                      'Hola, te hablo en relación a mi equipo $deviceName.\nEste mismo me dice que no soy administrador.\n*Datos del equipo:*\nCódigo de producto: ${command(deviceName)}\nNúmero de serie: ${extractSerialNumber(deviceName)}\nAdministrador actúal: ${utf8.decode(infoValues).split(':')[4]}';
-                                  var whatsappUrl =
-                                      "whatsapp://send?phone=$phoneNumber&text=${Uri.encodeFull(message)}";
-                                  Uri uri = Uri.parse(whatsappUrl);
-                                  if (await canLaunchUrl(uri)) {
-                                    await launchUrl(uri);
-                                  } else {
-                                    showToast('No se pudo abrir WhatsApp');
-                                  }
-                                },
-                                child: const Text('Servicio técnico'),
-                              ),
-                            ]
-                          ],
-                        ],
-                      ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
