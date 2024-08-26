@@ -44,12 +44,12 @@ class IODevicesState extends State<IODevices> {
   }
 
   void updateWifiValues(List<int> data) {
-    var fun =
-        utf8.decode(data); //Wifi status | wifi ssid | ble status | nickname
+    var fun = utf8.decode(data); //Wifi status | wifi ssid | ble status(users)
     fun = fun.replaceAll(RegExp(r'[^\x20-\x7E]'), '');
     printLog(fun);
     var parts = fun.split(':');
     if (parts[0] == 'WCS_CONNECTED') {
+      atemp = false;
       nameOfWifi = parts[1];
       isWifiConnected = true;
       printLog('sis $isWifiConnected');
@@ -57,10 +57,15 @@ class IODevicesState extends State<IODevices> {
         textState = 'CONECTADO';
         statusColor = Colors.green;
         wifiIcon = Icons.wifi;
+        errorMessage = '';
+        errorSintax = '';
+        werror = false;
       });
     } else if (parts[0] == 'WCS_DISCONNECTED') {
       isWifiConnected = false;
       printLog('non $isWifiConnected');
+
+      nameOfWifi = '';
 
       setState(() {
         textState = 'DESCONECTADO';
@@ -68,11 +73,12 @@ class IODevicesState extends State<IODevices> {
         wifiIcon = Icons.wifi_off;
       });
 
-      if (parts[0] == 'WCS_DISCONNECTED' && atemp == true) {
-        //If comes from subscription, parts[1] = reason of error.
+      if (atemp) {
         setState(() {
           wifiIcon = Icons.warning_amber_rounded;
         });
+
+        werror = true;
 
         if (parts[1] == '202' || parts[1] == '15') {
           errorMessage = 'Contraseña incorrecta';
@@ -549,7 +555,7 @@ class IODevicesState extends State<IODevices> {
                   semanticLabel: 'Icono de wifi',
                 ),
                 onPressed: () {
-                  android ? wifiText(context) : cupertinoWifiText(context);
+                  wifiText(context);
                 },
               ),
             ]),
@@ -591,8 +597,11 @@ class IODevicesState extends State<IODevices> {
                                 ),
                                 GestureDetector(
                                     onTap: () async {
-                                      android ? await _showEditSubNicknameDialog(
-                                          context, index) : await _showCupertinoEditSubNicknameDialog(context, index);
+                                      android
+                                          ? await _showEditSubNicknameDialog(
+                                              context, index)
+                                          : await _showCupertinoEditSubNicknameDialog(
+                                              context, index);
                                     },
                                     child: Row(
                                       children: [

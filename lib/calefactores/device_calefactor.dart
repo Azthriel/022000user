@@ -61,6 +61,7 @@ class ControlPageState extends State<ControlPage> {
     printLog(fun);
     var parts = fun.split(':');
     if (parts[0] == 'WCS_CONNECTED') {
+      atemp = false;
       nameOfWifi = parts[1];
       isWifiConnected = true;
       printLog('sis $isWifiConnected');
@@ -76,14 +77,15 @@ class ControlPageState extends State<ControlPage> {
       isWifiConnected = false;
       printLog('non $isWifiConnected');
 
+      nameOfWifi = '';
+
       setState(() {
         textState = 'DESCONECTADO';
         statusColor = Colors.red;
         wifiIcon = Icons.wifi_off;
       });
 
-      if (parts[0] == 'WCS_DISCONNECTED' && atemp == true) {
-        //If comes from subscription, parts[1] = reason of error.
+      if (atemp) {
         setState(() {
           wifiIcon = Icons.warning_amber_rounded;
         });
@@ -103,13 +105,6 @@ class ControlPageState extends State<ControlPage> {
         errorSintax = getWifiErrorSintax(int.parse(parts[1]));
       }
     }
-
-    final regex = RegExp(r'\((\d+)\)');
-    final match = regex.firstMatch(parts[2]);
-    int users = int.parse(match!.group(1).toString());
-    printLog('Hay $users conectados');
-    userConnected = users > 1 && lastUser != 1;
-    lastUser = users;
 
     setState(() {});
   }
@@ -496,7 +491,7 @@ class ControlPageState extends State<ControlPage> {
                         semanticLabel: 'Icono de wifi',
                       ),
                       onPressed: () {
-                        android ? wifiText(context) : cupertinoWifiText(context);
+                        wifiText(context);
                       },
                     ),
                   ]),

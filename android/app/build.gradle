@@ -31,7 +31,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.biocalden.smartlife.sime"
-    compileSdkVersion flutter.compileSdkVersion
+    compileSdkVersion 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {

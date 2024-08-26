@@ -38,6 +38,7 @@ class DetectorPageState extends State<DetectorPage> {
     printLog(fun);
     var parts = fun.split(':');
     if (parts[0] == 'WCS_CONNECTED') {
+      atemp = false;
       nameOfWifi = parts[1];
       isWifiConnected = true;
       printLog('sis $isWifiConnected');
@@ -53,14 +54,15 @@ class DetectorPageState extends State<DetectorPage> {
       isWifiConnected = false;
       printLog('non $isWifiConnected');
 
+      nameOfWifi = '';
+
       setState(() {
         textState = 'DESCONECTADO';
         statusColor = Colors.red;
         wifiIcon = Icons.wifi_off;
       });
 
-      if (parts[0] == 'WCS_DISCONNECTED' && atemp == true) {
-        //If comes from subscription, parts[1] = reason of error.
+      if (atemp) {
         setState(() {
           wifiIcon = Icons.warning_amber_rounded;
         });
@@ -324,7 +326,7 @@ class DetectorPageState extends State<DetectorPage> {
                   semanticLabel: 'Icono de wifi',
                 ),
                 onPressed: () {
-                  android ? wifiText(context) : cupertinoWifiText(context);
+                  wifiText(context);
                 },
               ),
             ]),
