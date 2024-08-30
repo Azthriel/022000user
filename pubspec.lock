@@ -333,18 +333,18 @@ packages:
     dependency: transitive
     description:
       name: firebase_core_platform_interface
-      sha256: "3c3a1e92d6f4916c32deea79c4a7587aa0e9dbbe5889c7a16afcf005a485ee02"
+      sha256: f7d7180c7f99babd4b4c517754d41a09a4943a0f7a69b65c894ca5c68ba66315
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.0"
+    version: "5.2.1"
   firebase_core_web:
     dependency: transitive
     description:
       name: firebase_core_web
-      sha256: e8d1e22de72cb21cdcfc5eed7acddab3e99cd83f3b317f54f7a96c32f25fd11e
+      sha256: "362e52457ed2b7b180964769c1e04d1e0ea0259fdf7025fdfedd019d4ae2bd88"
       url: "https://pub.dev"
     source: hosted
-    version: "2.17.4"
+    version: "2.17.5"
   firebase_messaging:
     dependency: "direct main"
     description:
@@ -386,18 +386,18 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_background_service
-      sha256: "0686a4dbd4709d99109df21449ae1a9e873014e00d2c01de8402067f7640087d"
+      sha256: d32f078ec57647c9cfd6e1a8da9297f7d8f021d4dcc204a35aaad2cdbfe255f0
       url: "https://pub.dev"
     source: hosted
-    version: "5.0.9"
+    version: "5.0.10"
   flutter_background_service_android:
     dependency: transitive
     description:
       name: flutter_background_service_android
-      sha256: a6fa4e1f8a364c816562b8eee9a7160c21181461753901618caf7af6de3a2322
+      sha256: "39da42dddf877beeef82bc2583130d8bedb4d0765e99ca9e7b4a32e8c6abd239"
       url: "https://pub.dev"
     source: hosted
-    version: "6.2.6"
+    version: "6.2.7"
   flutter_background_service_ios:
     dependency: transitive
     description:
@@ -1201,10 +1201,10 @@ packages:
     dependency: "direct main"
     description:
       name: wifi_scan
-      sha256: cd0b98a611a3206c1bd9e600b9dff3aca27dcc924aa025548b00713e93a27299
+      sha256: "9a9df688d3e71c39edcd861e6d50beb63815d5505d3884867d75f93e49d66363"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.1"
+    version: "0.4.1+1"
   win32:
     dependency: transitive
     description:

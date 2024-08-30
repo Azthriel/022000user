@@ -464,9 +464,43 @@ class ControlPageState extends State<ControlPage> {
         appBar: AppBar(
             backgroundColor: Colors.transparent,
             foregroundColor: const Color(0xFFFFFFFF),
+            leading: !android
+                ? IconButton(
+                    onPressed: () {
+                      showCupertinoDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) {
+                          return CupertinoAlertDialog(
+                            content: Row(
+                              children: [
+                                const CupertinoActivityIndicator(
+                                    color: CupertinoColors.label),
+                                Container(
+                                    margin: const EdgeInsets.only(left: 15),
+                                    child: const Text("Desconectando...",
+                                        style: TextStyle(
+                                            color: CupertinoColors.label))),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                      Future.delayed(const Duration(seconds: 2), () async {
+                        printLog('aca estoy');
+                        await myDevice.device.disconnect();
+                        navigatorKey.currentState?.pop();
+                        navigatorKey.currentState
+                            ?.pushReplacementNamed('/scan');
+                      });
+                    },
+                    icon: const Icon(Icons.arrow_back_ios))
+                : null,
             title: GestureDetector(
               onTap: () async {
-                android ? await _showEditNicknameDialog(context) : await _showCupertinoEditNicknameDialog(context);
+                android
+                    ? await _showEditNicknameDialog(context)
+                    : await _showCupertinoEditNicknameDialog(context);
               },
               child: Row(
                 children: [

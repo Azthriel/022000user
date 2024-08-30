@@ -34,32 +34,37 @@ Future<void> _configureAmplify() async {
 }
 
 void listenToPushNotification() {
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    showDialog(
-      context: navigatorKey.currentContext!,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        String displayMessage = message.notification?.body.toString() ??
-            'Un equipo mando una alerta';
-        String displayTitle =
-            message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
-        return AlertDialog(
-            backgroundColor: const Color(0xFF1E242B),
-            title: Text(
-              displayTitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                  color: Color(0xFFFF0000), fontWeight: FontWeight.bold),
-            ),
-            content: Text(
-              displayMessage,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFFB2B5AE)),
-            ));
-      },
-    );
-    printLog('Llegó esta notif: $message');
-  });
+  try {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      printLog('Llegó esta notif: $message');
+      showDialog(
+        context: navigatorKey.currentContext!,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          String displayMessage = message.notification?.body.toString() ??
+              'Un equipo mando una alerta';
+          String displayTitle =
+              message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
+          return AlertDialog(
+              backgroundColor: const Color(0xFF1E242B),
+              title: Text(
+                displayTitle,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    color: Color(0xFFFF0000), fontWeight: FontWeight.bold),
+              ),
+              content: Text(
+                displayMessage,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFFB2B5AE)),
+              ));
+        },
+      );
+    });
+  } catch (e, s) {
+    printLog("Error: $e");
+    printLog("Trace: $s");
+  }
   printLog("-ayuwoki");
 }
 

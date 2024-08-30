@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '/master.dart';
-import 'package:flutter/cupertino.dart';
 // VARIABLES //
 
 List<int> workValues = [];
@@ -98,55 +97,6 @@ class DrawerDetectorState extends State<DrawerDetector> {
               'Valor del brillo: ${_sliderValue.toStringAsFixed(0)}',
               style: const TextStyle(fontSize: 20.0, color: Colors.white),
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            !android
-                ? ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all<Color>(
-                          const Color(0xFF1DA3A9)),
-                      foregroundColor: WidgetStateProperty.all<Color>(
-                          const Color(0xFFFFFFFF)),
-                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18.0),
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      showCupertinoDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return CupertinoAlertDialog(
-                            content: Row(
-                              children: [
-                                const CupertinoActivityIndicator(
-                                    color: CupertinoColors.label),
-                                Container(
-                                    margin: const EdgeInsets.only(left: 15),
-                                    child: const Text("Desconectando...",
-                                        style: TextStyle(
-                                            color: CupertinoColors.label))),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                      Future.delayed(const Duration(seconds: 2), () async {
-                        printLog('aca estoy');
-                        await myDevice.device.disconnect();
-                        navigatorKey.currentState?.pop();
-                        navigatorKey.currentState
-                            ?.pushReplacementNamed('/scan');
-                      });
-                    },
-                    child: const Text("Deconectarse"))
-                : const SizedBox(
-                    height: 0,
-                    width: 0,
-                  ),
             const SizedBox(
               height: 80,
             ),

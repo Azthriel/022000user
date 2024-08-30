@@ -916,48 +916,6 @@ class DrawerIOState extends State<DrawerIO> {
               ),
             ]
           ],
-          !android
-              ? ElevatedButton(
-                  style: const ButtonStyle(
-                    backgroundColor: WidgetStatePropertyAll(
-                      Color(0xff4b2427),
-                    ),
-                    foregroundColor: WidgetStatePropertyAll(
-                      Color(0xffa79986),
-                    ),
-                  ),
-                  onPressed: () {
-                    showCupertinoDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        return CupertinoAlertDialog(
-                          content: Row(
-                            children: [
-                              const CupertinoActivityIndicator(
-                                  color: CupertinoColors.label),
-                              Container(
-                                  margin: const EdgeInsets.only(left: 15),
-                                  child: const Text("Desconectando...",
-                                      style: TextStyle(
-                                          color: CupertinoColors.label))),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                    Future.delayed(const Duration(seconds: 2), () async {
-                      printLog('aca estoy');
-                      await myDevice.device.disconnect();
-                      navigatorKey.currentState?.pop();
-                      navigatorKey.currentState?.pushReplacementNamed('/scan');
-                    });
-                  },
-                  child: const Text("Deconectarse"))
-              : const SizedBox(
-                  height: 0,
-                  width: 0,
-                ),
           const Spacer(),
           Text(
             'Versión de Hardware: $hardwareVersion',

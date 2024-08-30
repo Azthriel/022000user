@@ -171,50 +171,6 @@ class DeviceDrawerState extends State<DeviceDrawer> {
                             style: const TextStyle(
                                 fontSize: 10, color: Colors.white))
                         : const Text(''),
-                    !android
-                        ? ElevatedButton(
-                            style: const ButtonStyle(
-                                backgroundColor:
-                                    WidgetStatePropertyAll(Color(0xFFBDBDBD)),
-                                foregroundColor:
-                                    WidgetStatePropertyAll(Color(0xFFFFFFFF))),
-                            onPressed: () {
-                              showCupertinoDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) {
-                                  return CupertinoAlertDialog(
-                                    content: Row(
-                                      children: [
-                                        const CupertinoActivityIndicator(
-                                            color: CupertinoColors.label),
-                                        Container(
-                                            margin:
-                                                const EdgeInsets.only(left: 15),
-                                            child: const Text(
-                                                "Desconectando...",
-                                                style: TextStyle(
-                                                    color: CupertinoColors
-                                                        .label))),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                              Future.delayed(const Duration(seconds: 2),
-                                  () async {
-                                printLog('aca estoy');
-                                await myDevice.device.disconnect();
-                                navigatorKey.currentState?.pop();
-                                navigatorKey.currentState
-                                    ?.pushReplacementNamed('/scan');
-                              });
-                            },
-                            child: const Text("Deconectarse"))
-                        : const SizedBox(
-                            height: 0,
-                            width: 0,
-                          ),
                     const SizedBox(height: 20),
                     const Text('Modo actual: ',
                         style: TextStyle(fontSize: 20, color: Colors.white)),
@@ -1066,50 +1022,6 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                             ),
                           )
                         : const Text(''),
-                    !android
-                        ? ElevatedButton(
-                            style: const ButtonStyle(
-                                backgroundColor:
-                                    WidgetStatePropertyAll(Color(0xFF484848)),
-                                foregroundColor:
-                                    WidgetStatePropertyAll(Color(0xFFFFFFFF))),
-                            onPressed: () {
-                              showCupertinoDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (context) {
-                                  return CupertinoAlertDialog(
-                                    content: Row(
-                                      children: [
-                                        const CupertinoActivityIndicator(
-                                            color: CupertinoColors.label),
-                                        Container(
-                                            margin:
-                                                const EdgeInsets.only(left: 15),
-                                            child: const Text(
-                                                "Desconectando...",
-                                                style: TextStyle(
-                                                    color: CupertinoColors
-                                                        .label))),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              );
-                              Future.delayed(const Duration(seconds: 2),
-                                  () async {
-                                printLog('aca estoy');
-                                await myDevice.device.disconnect();
-                                navigatorKey.currentState?.pop();
-                                navigatorKey.currentState
-                                    ?.pushReplacementNamed('/scan');
-                              });
-                            },
-                            child: const Text("Deconectarse"))
-                        : const SizedBox(
-                            height: 0,
-                            width: 0,
-                          ),
                     const SizedBox(height: 20),
                     const Text(
                       'Modo actual: ',
@@ -1583,7 +1495,9 @@ class SilemaDrawerState extends State<SilemaDrawer> {
                         foregroundColor:
                             WidgetStatePropertyAll(Color(0xFFFFFFFF))),
                     onPressed: () {
-                      android ? showSilemaContactInfo(context) : showCupertinoSilemaContactInfo(context);
+                      android
+                          ? showSilemaContactInfo(context)
+                          : showCupertinoSilemaContactInfo(context);
                     },
                     child: const Text('CONTACTANOS'))),
           ],

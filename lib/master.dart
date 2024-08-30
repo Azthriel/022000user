@@ -92,7 +92,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24082600';
+String appVersionNumber = '24083000';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -744,37 +744,52 @@ String encodeQueryParameters(Map<String, String> params) {
 }
 
 void setupToken(String pc, String sn, String device) async {
-  String? token = await FirebaseMessaging.instance.getToken();
-  String? tokenToSend = '$token/-/${nicknamesMap[device] ?? device}';
-  List<String> tokens = await getTokens(service, pc, sn);
-  printLog('Tokens: $tokens');
-  if (token != null) {
-    await saveTokenasEndpoint(token);
-    if (tokens.contains(tokensOfDevices[device])) {
-      tokens.remove(tokensOfDevices[device]);
-    }
-    tokens.add(tokenToSend);
-    await putTokens(service, pc, sn, tokens);
-    tokensOfDevices.addAll({device: tokenToSend});
-    saveToken(tokensOfDevices);
-
-    printLog('Token agregado exitosamente');
-  }
-
-  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    String? newtokenToSend =
-        '$newToken/-/${nicknamesMap[deviceName] ?? deviceName}';
+  if (android) {
+    String? token = await FirebaseMessaging.instance.getToken();
+    String? tokenToSend = '$token/-/${nicknamesMap[device] ?? device}';
     List<String> tokens = await getTokens(service, pc, sn);
-    await saveTokenasEndpoint(newToken);
-    if (tokensOfDevices[device] != null) {
-      tokens.remove(tokensOfDevices[device]);
+    printLog('Tokens: $tokens');
+    if (token != null) {
+      if (tokens.contains(tokensOfDevices[device])) {
+        tokens.remove(tokensOfDevices[device]);
+      }
+      tokens.add(tokenToSend);
+      await putTokens(service, pc, sn, tokens);
+      tokensOfDevices.addAll({device: tokenToSend});
+      saveToken(tokensOfDevices);
+      printLog('Token agregado exitosamente');
     }
-    tokens.add(newtokenToSend);
-    await putTokens(service, pc, sn, tokens);
-    tokensOfDevices.addAll({device: newtokenToSend});
-    saveToken(tokensOfDevices);
-    printLog('Token actualizado exitosamente');
-  });
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      String? newTokenToSend = '$newToken/-/${nicknamesMap[device] ?? device}';
+      List<String> tokens = await getTokens(service, pc, sn);
+      if (tokensOfDevices[device] != null) {
+        tokens.remove(tokensOfDevices[device]);
+      }
+      tokens.add(newTokenToSend);
+      await putTokens(service, pc, sn, tokens);
+      tokensOfDevices.addAll({device: newTokenToSend});
+      saveToken(tokensOfDevices);
+      printLog('Token actualizado exitosamente');
+    });
+  } else {
+    printLog('Soy iOS');
+    String? token = await NativeService.getApnsToken();
+    String? tokenToSend = '$token/-/${nicknamesMap[device] ?? device}';
+    List<String> tokens = await getTokens(service, pc, sn);
+    printLog('Tokens: $tokens');
+    if (token != null) {
+      // await saveTokenasEndpoint(token);
+      if (tokens.contains(tokensOfDevices[device])) {
+        tokens.remove(tokensOfDevices[device]);
+      }
+      tokens.add(tokenToSend);
+      await putTokens(service, pc, sn, tokens);
+      tokensOfDevices.addAll({device: tokenToSend});
+      saveToken(tokensOfDevices);
+      printLog('Token agregado exitosamente');
+    }
+  }
 }
 
 void requestPermissionFCM() async {
@@ -782,9 +797,12 @@ void requestPermissionFCM() async {
 
   NotificationSettings settings = await messaging.requestPermission(
     alert: true,
+    announcement: false,
     badge: true,
-    sound: true,
+    carPlay: false,
+    criticalAlert: false,
     provisional: false,
+    sound: true,
   );
 
   if (settings.authorizationStatus == AuthorizationStatus.authorized) {
@@ -798,66 +816,52 @@ void requestPermissionFCM() async {
 
 void setupIOToken(
     String nick, int index, String pc, String sn, String device) async {
-  String? token = await FirebaseMessaging.instance.getToken();
-  printLog('Nick: $nick');
-  String? tokenToSend = '$token/-/$nick';
+  if (android) {
+    String? token = await FirebaseMessaging.instance.getToken();
+    printLog('Nick: $nick');
+    String? tokenToSend = '$token/-/$nick';
 
-  List<String> tokens = await getIOTokens(service, pc, sn, index);
-  if (token != null) {
-    await saveTokenasEndpoint(token);
-    if (tokensOfDevices['$device$index'] != null) {
-      printLog('Eliminando: ${tokensOfDevices['$device$index']}');
-      tokens.remove(tokensOfDevices['$device$index']);
+    List<String> tokens = await getIOTokens(service, pc, sn, index);
+    if (token != null) {
+      if (tokensOfDevices['$device$index'] != null) {
+        printLog('Eliminando: ${tokensOfDevices['$device$index']}');
+        tokens.remove(tokensOfDevices['$device$index']);
+      }
+      tokens.add(tokenToSend);
+      await putIOTokens(service, pc, sn, tokens, index);
+      tokensOfDevices.addAll({'$device$index': tokenToSend});
+      saveToken(tokensOfDevices);
+      printLog('Token agregado exitosamente');
     }
-    tokens.add(tokenToSend);
-    await putIOTokens(service, pc, sn, tokens, index);
-    tokensOfDevices.addAll({'$device$index': tokenToSend});
-    saveToken(tokensOfDevices);
-    printLog('Token agregado exitosamente');
-  }
 
-  FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-    String? newtokenToSend = '$newToken/-/$nick';
-    await saveTokenasEndpoint(newToken);
-    List<String> tokens = await getTokens(service, pc, sn);
-    if (tokensOfDevices['$device$index'] != null) {
-      tokens.remove(tokensOfDevices['$device$index']);
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      String? newtokenToSend = '$newToken/-/$nick';
+      List<String> tokens = await getIOTokens(service, pc, sn, index);
+      if (tokensOfDevices['$device$index'] != null) {
+        tokens.remove(tokensOfDevices['$device$index']);
+      }
+      tokens.add(newtokenToSend);
+      tokensOfDevices.addAll({'$device$index': newtokenToSend});
+      await putIOTokens(service, pc, sn, tokens, index);
+      saveToken(tokensOfDevices);
+    });
+  } else {
+    printLog('Soy iOS');
+    String? token = await NativeService.getApnsToken();
+    printLog('Nick: $nick');
+    String? tokenToSend = '$token/-/$nick';
+    List<String> tokens = await getIOTokens(service, pc, sn, index);
+    printLog('Tokens: $tokens');
+    if (token != null) {
+      if (tokens.contains(tokensOfDevices[device])) {
+        tokens.remove(tokensOfDevices[device]);
+      }
+      tokens.add(tokenToSend);
+      tokensOfDevices.addAll({'$device$index': tokenToSend});
+      await putIOTokens(service, pc, sn, tokens, index);
+      saveToken(tokensOfDevices);
+      printLog('Token agregado exitosamente');
     }
-    tokens.add(newtokenToSend);
-    tokensOfDevices.addAll({'$device$index': newtokenToSend});
-    await putIOTokens(service, pc, sn, tokens, index);
-    saveToken(tokensOfDevices);
-  });
-}
-
-Future<void> saveTokenasEndpoint(String token) async {
-  // https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/snsendpoint
-  try {
-    const url =
-        'https://ymuvhra8ve.execute-api.sa-east-1.amazonaws.com/final/snsendpoint';
-    final response = await dio.post(
-      url,
-      data: json.encode(
-        {
-          'token': token,
-        },
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      // Handle success
-      printLog('Token added successfully');
-      var data = response.data;
-      printLog(data);
-    } else {
-      // Handle failure
-      printLog('Failed to add token');
-      printLog(response);
-      printLog(response.data.toString());
-    }
-  } catch (e, s) {
-    printLog('Error guardando el token como endpoint : $e');
-    printLog(s);
   }
 }
 
@@ -1797,6 +1801,7 @@ Future<void> _scanForWiFiNetworks() async {
     printLog('No se puede iniciar el escaneo de WiFi');
   }
 }
+
 //
 void wifiText(BuildContext context) async {
   await _scanForWiFiNetworks();
@@ -2036,7 +2041,7 @@ void wifiText(BuildContext context) async {
   );
 }
 
-// BACKGROUND //
+//*-BACKGROUND-*//
 
 Timer? backTimer;
 
@@ -2380,8 +2385,7 @@ class MyDevice {
 //*-QRPAGE-*//solo scanQR
 
 class QRScanPage extends StatefulWidget {
-  const QRScanPage({Key? key}) : super(key: key);
-
+  const QRScanPage({super.key});
   @override
   QRScanPageState createState() => QRScanPageState();
 }
@@ -3835,8 +3839,7 @@ class IconThumbSlider extends SliderComponentShape {
 //*-Nativo-*//Servicio
 
 class NativeService {
-  static const platform =
-      MethodChannel('com.biocalden.smartlife.sime/location');
+  static const platform = MethodChannel('com.biocalden.smartlife.sime/native');
 
   static Future<bool> isLocationServiceEnabled() async {
     try {
@@ -3844,16 +3847,27 @@ class NativeService {
           await platform.invokeMethod("isLocationServiceEnabled");
       return isEnabled;
     } on PlatformException catch (e) {
-      printLog('Error verificando ubi $e');
+      printLog('Error verificando ubicación: $e');
       return false;
     }
   }
 
   static Future<void> openLocationOptions() async {
     try {
-      platform.invokeListMethod("openLocationSettings");
+      await platform.invokeMethod("openLocationSettings");
     } on PlatformException catch (e) {
-      printLog('Error abriendo la ubicación $e');
+      printLog('Error abriendo la configuración de ubicación: $e');
+    }
+  }
+
+  static Future<String?> getApnsToken() async {
+    try {
+      final String? token = await platform.invokeMethod('onTokenReceived');
+      printLog('APNs Token: $token');
+      return token;
+    } on PlatformException catch (e) {
+      printLog('Error al obtener el token APNs: ${e.message}');
+      return null;
     }
   }
 }
