@@ -14,7 +14,6 @@ class DetectorPage extends StatefulWidget {
 
 class DetectorPageState extends State<DetectorPage> {
   late String nickname;
-  bool werror = false;
   bool alert = false;
   String _textToShow = 'AIRE PURO';
   bool online =
@@ -65,21 +64,19 @@ class DetectorPageState extends State<DetectorPage> {
       if (atemp) {
         setState(() {
           wifiIcon = Icons.warning_amber_rounded;
+          werror = true;
+          if (parts[1] == '202' || parts[1] == '15') {
+            errorMessage = 'Contraseña incorrecta';
+          } else if (parts[1] == '201') {
+            errorMessage = 'La red especificada no existe';
+          } else if (parts[1] == '1') {
+            errorMessage = 'Error desconocido';
+          } else {
+            errorMessage = parts[1];
+          }
+
+          errorSintax = getWifiErrorSintax(int.parse(parts[1]));
         });
-
-        werror = true;
-
-        if (parts[1] == '202' || parts[1] == '15') {
-          errorMessage = 'Contraseña incorrecta';
-        } else if (parts[1] == '201') {
-          errorMessage = 'La red especificada no existe';
-        } else if (parts[1] == '1') {
-          errorMessage = 'Error desconocido';
-        } else {
-          errorMessage = parts[1];
-        }
-
-        errorSintax = getWifiErrorSintax(int.parse(parts[1]));
       }
     }
 

@@ -28,7 +28,6 @@ class RadiadorPageState extends State<RadiadorPage> {
   var parts2 = utf8.decode(varsValues).split(':');
   late double tempValue;
   late String nickname;
-  bool werror = false;
 
   @override
   void initState() {

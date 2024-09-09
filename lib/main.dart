@@ -37,29 +37,11 @@ void listenToPushNotification() {
   try {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       printLog('Llegó esta notif: $message');
-      showDialog(
-        context: navigatorKey.currentContext!,
-        barrierDismissible: true,
-        builder: (BuildContext context) {
-          String displayMessage = message.notification?.body.toString() ??
-              'Un equipo mando una alerta';
-          String displayTitle =
-              message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
-          return AlertDialog(
-              backgroundColor: const Color(0xFF1E242B),
-              title: Text(
-                displayTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    color: Color(0xFFFF0000), fontWeight: FontWeight.bold),
-              ),
-              content: Text(
-                displayMessage,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Color(0xFFB2B5AE)),
-              ));
-        },
-      );
+      String displayMessage =
+          message.notification?.body.toString() ?? 'Un equipo mando una alerta';
+      String displayTitle =
+          message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
+      showNotification(displayTitle, displayMessage, 'alarm_sound');
     });
   } catch (e, s) {
     printLog("Error: $e");
@@ -67,6 +49,20 @@ void listenToPushNotification() {
   }
   printLog("-ayuwoki");
 }
+
+// Future<void> _backNotif(RemoteMessage message) async {
+//   try {
+//     printLog('Llegó esta notif: $message');
+//     String displayMessage =
+//         message.notification?.body.toString() ?? 'Un equipo mando una alerta';
+//     String displayTitle =
+//         message.notification?.title.toString() ?? '¡ALERTA EN EQUIPO!';
+//     showNotification(displayTitle, displayMessage, 'alarm_sound');
+//   } catch (e, s) {
+//     printLog("Error: $e");
+//     printLog("Trace: $s");
+//   }
+// }
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,10 +72,14 @@ Future<void> main() async {
   );
   await _configureAmplify();
 
+  // FirebaseMessaging.onBackgroundMessage(_backNotif);
+
   FlutterError.onError = (FlutterErrorDetails details) async {
     String errorReport = generateErrorReport(details);
     sendReportError(errorReport);
   };
+
+  createNotificationChannel();
 
   runApp(
     ChangeNotifierProvider(
@@ -185,11 +185,19 @@ class PermissionHandlerState extends State<PermissionHandler> {
     }
     permissionStatus3 = await Permission.location.status;
 
-    requestPermissionFCM();
+    var permissionStatus4 = await Permission.notification.request();
+
+    if (!permissionStatus4.isGranted) {
+      await Permission.notification.request();
+    }
+    permissionStatus4 = await Permission.notification.status;
+
+    // requestPermissionFCM();
 
     printLog('Ble: ${permissionStatus1.isGranted} /// $permissionStatus1');
     printLog('Ble Scan: ${permissionStatus2.isGranted} /// $permissionStatus2');
     printLog('Locate: ${permissionStatus3.isGranted} /// $permissionStatus3');
+    printLog('Notif: ${permissionStatus4.isGranted} /// $permissionStatus4');
 
     if (permissionStatus1.isGranted &&
         permissionStatus2.isGranted &&

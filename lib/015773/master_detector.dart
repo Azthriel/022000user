@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '/master.dart';
+
 // VARIABLES //
 
 List<int> workValues = [];
