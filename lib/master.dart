@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:amplify_flutter/amplify_flutter.dart';
+import 'package:biocalden_smart_life/027313/master_relay.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -82,6 +83,11 @@ bool activatedAT = false;
 int vencimientoAdmSec = 0;
 int vencimientoAT = 0;
 bool tenant = false;
+bool turnOn = false;
+late bool canControlDistance;
+double distOnValue = 0.0;
+double distOffValue = 0.0;
+Map<String, bool> isTaskScheduled = {};
 
 // Si esta en modo profile.
 const bool xProfileMode = bool.fromEnvironment('dart.vm.profile');
@@ -92,7 +98,7 @@ const bool xDebugMode = !xProfileMode && !xReleaseMode;
 
 //!------------------------------VERSION NUMBER---------------------------------------
 
-String appVersionNumber = '24090900';
+String appVersionNumber = '24092600';
 bool biocalden = true;
 //ACORDATE: Cambia el número de versión en el pubspec.yaml antes de publicar
 //ACORDATE: En caso de Silema, cambiar bool a false...
@@ -129,8 +135,10 @@ String command(String device) {
     return '015773_IOT';
   } else if (device.contains('Radiador')) {
     return '041220_IOT';
-  } else if (device.contains('Módulo') || device.contains('Domótica')) {
+  } else if (device.contains('Domótica')) {
     return '020010_IOT';
+  } else if (device.contains('Relé')) {
+    return '027313_IOT';
   } else {
     return '';
   }
@@ -763,7 +771,6 @@ void setupToken(String pc, String sn, String device) async {
     List<String> tokens = await getTokens(service, pc, sn);
     printLog('Tokens: $tokens');
     if (token != null) {
-      // await saveTokenasEndpoint(token);
       if (tokens.contains(tokensOfDevices[device])) {
         tokens.remove(tokensOfDevices[device]);
       }
@@ -2441,6 +2448,15 @@ class MyDevice {
           ioUuid = service.characteristics.firstWhere(
               (c) => c.uuid == Guid('03b1c5d9-534a-4980-aed3-f59615205216'));
           break;
+        case '027313':
+          BluetoothService espService = services.firstWhere(
+              (s) => s.uuid == Guid('6f2fa024-d122-4fa3-a288-8eca1af30502'));
+
+          varsUuid = espService.characteristics.firstWhere((c) =>
+              c.uuid ==
+              Guid(
+                  '52a2f121-a8e3-468c-a5de-45dca9a2a207')); //DistanceControl:WorkingTemp:WorkingStatus:EnergyTimer:FlamingStatus:NightMode:actualTemp:Thing?:TempMap?:Offset
+          break;
         case '030710':
           break;
       }
@@ -2781,6 +2797,7 @@ class MyDrawerState extends State<MyDrawer> {
                                     }
                                   });
                                   guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
                                 },
@@ -2835,6 +2852,11 @@ class MyDrawerState extends State<MyDrawer> {
                                                         .add(deviceName);
                                                   }
                                                 });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
                                               },
                                             ),
                                           ),
@@ -2960,6 +2982,7 @@ class MyDrawerState extends State<MyDrawer> {
                                     }
                                   });
                                   guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
                                 },
@@ -3014,6 +3037,11 @@ class MyDrawerState extends State<MyDrawer> {
                                                         .add(deviceName);
                                                   }
                                                 });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
                                               },
                                             ),
                                           ),
@@ -3139,6 +3167,7 @@ class MyDrawerState extends State<MyDrawer> {
                                     }
                                   });
                                   guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
                                 },
@@ -3193,6 +3222,11 @@ class MyDrawerState extends State<MyDrawer> {
                                                         .add(deviceName);
                                                   }
                                                 });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
                                               },
                                             ),
                                           ),
@@ -3318,6 +3352,7 @@ class MyDrawerState extends State<MyDrawer> {
                                     }
                                   });
                                   guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
                                 },
@@ -3372,6 +3407,11 @@ class MyDrawerState extends State<MyDrawer> {
                                                         .add(deviceName);
                                                   }
                                                 });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
                                               },
                                             ),
                                           ),
@@ -3505,6 +3545,7 @@ class MyDrawerState extends State<MyDrawer> {
                                     }
                                   });
                                   guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
                                   unSubToTopicMQTT(
                                       'devices_tx/$equipo/$deviceName');
                                 },
@@ -3559,6 +3600,11 @@ class MyDrawerState extends State<MyDrawer> {
                                                         .add(deviceName);
                                                   }
                                                 });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
                                               },
                                             ),
                                           ),
@@ -3817,6 +3863,193 @@ class MyDrawerState extends State<MyDrawer> {
                               },
                             ),
                           ),
+                        ),
+                      );
+                    } else if (equipo == '027313_IOT') {
+                      bool estado = deviceDATA['w_status'] ?? false;
+                      bool isNA = relayNA.contains(deviceName);
+                      return Card(
+                        color: const Color(0xFF1E242B),
+                        margin: const EdgeInsets.symmetric(
+                            vertical: 5, horizontal: 10),
+                        elevation: 2,
+                        child: ListTile(
+                          leading: SizedBox(
+                            width: 40,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color(0xFFB2B5AE),
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    if (isHighlighted) {
+                                      highlightedConnections.remove(deviceName);
+                                    } else {
+                                      previusConnections.remove(deviceName);
+                                    }
+                                  });
+                                  guardarLista(previusConnections);
+                                  guardarListaEstrella(highlightedConnections);
+                                  unSubToTopicMQTT(
+                                      'devices_tx/$equipo/$deviceName');
+                                },
+                              ),
+                            ),
+                          ),
+                          title: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          nicknamesMap[deviceName] ??
+                                              deviceName,
+                                          style: const TextStyle(
+                                              color: Color(0xFFB2B5AE),
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Align(
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
+                                          child: SizedBox(
+                                            width: 20,
+                                            child: IconButton(
+                                              icon: Icon(
+                                                size: 20,
+                                                isHighlighted
+                                                    ? Icons.star
+                                                    : Icons.star_border,
+                                                color: isHighlighted
+                                                    ? Colors.yellow
+                                                    : Colors.grey,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  if (isHighlighted) {
+                                                    highlightedConnections
+                                                        .remove(deviceName);
+                                                    previusConnections
+                                                        .add(deviceName);
+                                                  } else {
+                                                    previusConnections
+                                                        .remove(deviceName);
+                                                    highlightedConnections
+                                                        .add(deviceName);
+                                                  }
+                                                });
+
+                                                guardarLista(
+                                                    previusConnections);
+                                                guardarListaEstrella(
+                                                    highlightedConnections);
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          width: 20,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                online
+                                    ? const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● CONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.green,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : const Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '● DESCONECTADO',
+                                                textAlign: TextAlign.start,
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                              ]),
+                          subtitle: Text(
+                            estado
+                                ? isNA
+                                    ? 'CERRADO'
+                                    : 'ABIERTO'
+                                : isNA
+                                    ? 'ABIERTO'
+                                    : 'CERRADO',
+                            style: const TextStyle(
+                                color: Color(0xFFB2B5AE), fontSize: 15),
+                          ),
+                          trailing: owner
+                              ? Switch(
+                                  activeColor: const Color(0xFF9C9D98),
+                                  activeTrackColor: const Color(0xFFB2B5AE),
+                                  inactiveThumbColor: const Color(0xFFB2B5AE),
+                                  inactiveTrackColor: const Color(0xFF9C9D98),
+                                  value: estado,
+                                  onChanged: (newValue) {
+                                    deviceSerialNumber =
+                                        extractSerialNumber(deviceName);
+                                    globalDATA[
+                                            '${command(deviceName)}/$deviceSerialNumber']![
+                                        'w_status'] = newValue;
+                                    saveGlobalData(globalDATA);
+                                    String topic =
+                                        'devices_rx/${command(deviceName)}/$deviceSerialNumber';
+                                    String topic2 =
+                                        'devices_tx/${command(deviceName)}/$deviceSerialNumber';
+                                    String message =
+                                        jsonEncode({"w_status": newValue});
+                                    sendMessagemqtt(topic, message);
+                                    sendMessagemqtt(topic2, message);
+                                    setState(() {
+                                      estado = newValue;
+                                    });
+                                  },
+                                )
+                              : const SizedBox(
+                                  height: 0,
+                                  width: 0,
+                                ),
                         ),
                       );
                     } else {

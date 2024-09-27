@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:biocalden_smart_life/027313/master_relay.dart';
+
 import '/aws/dynamo/dynamo_certificates.dart';
 import '/aws/dynamo/dynamo.dart';
 import 'master.dart';
@@ -13,10 +15,11 @@ void loadValues() async {
   tokensOfDevices = await loadToken();
   subNicknamesMap = await loadSubNicknamesMap();
   notificationMap = await loadNotificationMap();
+  highlightedConnections = await cargarListaEstrella();
+  relayNA = await loadRelayNA();
 
   for (var device in previusConnections) {
-    await queryItems(
-        service, command(device), extractSerialNumber(device));
+    await queryItems(service, command(device), extractSerialNumber(device));
   }
 }
 // MASTERLOAD \\
@@ -30,6 +33,16 @@ Future<void> guardarLista(List<String> listaDispositivos) async {
 Future<List<String>> cargarLista() async {
   final SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getStringList('dispositivos_conectados') ?? [];
+}
+
+Future<void> guardarListaEstrella(List<String> listaDispositivos) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('estrella', listaDispositivos);
+}
+
+Future<List<String>> cargarListaEstrella() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getStringList('estrella') ?? [];
 }
 
 //*-Topics mqtt
@@ -238,4 +251,15 @@ Future<DateTime?> cargarFechaGuardada(String device) async {
   } else {
     return null;
   }
+}
+
+//*-Relé NA
+Future<void> saveRelayNA(List<String> listaDispositivos) async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('RelayNA', listaDispositivos);
+}
+
+Future<List<String>> loadRelayNA() async {
+  final SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getStringList('RelayNA') ?? [];
 }

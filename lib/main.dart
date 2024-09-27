@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:io';
+import 'package:biocalden_smart_life/027313/device_relay.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
@@ -148,6 +149,7 @@ class MyAppState extends State<MyApp> {
         '/detector': (context) => const DetectorPage(),
         '/radiador': (context) => const RadiadorPage(),
         '/io': (context) => const IODevices(),
+        '/rele': (context) => const RelayPage(),
       },
     );
   }

@@ -1012,7 +1012,7 @@ class RadiadorPageState extends State<RadiadorPage> {
                                 height: 20,
                               ),
                               const Text(
-                                'Actualmente no eres el administador del equipo.\nNo puedes modificar los parámetros',
+                                'No sos el dueño del equipo.\nNo puedes modificar los parámetros',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 25,

@@ -64,7 +64,8 @@ class ScanPageState extends State<ScanPage> {
               'Detector',
               'Radiador',
               'Módulo',
-              'Domótica'
+              'Domótica',
+              'Relé',
             ],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,
@@ -512,6 +513,8 @@ class LoadState extends State<LoadingPage> {
           navigatorKey.currentState?.pushReplacementNamed('/detector');
         } else if (deviceType == '020010') {
           navigatorKey.currentState?.pushReplacementNamed('/io');
+        } else if (deviceType == '027313') {
+          navigatorKey.currentState?.pushReplacementNamed('/rele');
         }
       } else {
         showToast('Error en el dispositivo, intente nuevamente');
@@ -709,6 +712,73 @@ class LoadState extends State<LoadingPage> {
         } else {
           activatedAT = false;
           tenant = false;
+        }
+      } else if (deviceType == '027313') {
+        varsValues = await myDevice.varsUuid.read();
+        var parts2 = utf8.decode(varsValues).split(':');
+        printLog('Valores vars: $parts2');
+        turnOn = parts2[1] == '1';
+
+        owner = globalDATA[
+                    '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                'owner'] ??
+            '';
+        printLog('Owner actual: $owner');
+        adminDevices = await getSecondaryAdmins(
+            service, command(deviceName), extractSerialNumber(deviceName));
+        printLog('Administradores: $adminDevices');
+
+        if (owner != '') {
+          if (owner == currentUserEmail) {
+            deviceOwner = true;
+          } else {
+            deviceOwner = false;
+            if (userConnected) {
+            } else {
+              if (adminDevices.contains(currentUserEmail)) {
+                secondaryAdmin = true;
+              } else {
+                secondaryAdmin = false;
+              }
+            }
+          }
+        } else {
+          deviceOwner = true;
+        }
+
+        await analizePayment(
+            command(deviceName), extractSerialNumber(deviceName));
+
+        if (payAT) {
+          activatedAT = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['AT'] ??
+              false;
+          tenant = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']
+                  ?['tenant'] ==
+              currentUserEmail;
+        } else {
+          activatedAT = false;
+          tenant = false;
+        }
+
+        var list = await loadDevicesForDistanceControl();
+        canControlDistance =
+            list.contains(deviceName) ? true : parts2[0] == '0';
+        printLog(
+            'Puede utilizar el control por distancia: $canControlDistance');
+
+        if (canControlDistance) {
+          distOffValue = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                  'distanceOff'] ??
+              100.0;
+          distOnValue = globalDATA[
+                      '${command(deviceName)}/${extractSerialNumber(deviceName)}']![
+                  'distanceOn'] ??
+              3000.0;
+          isTaskScheduled = await loadControlValue();
         }
       }
 

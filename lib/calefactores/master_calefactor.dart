@@ -12,14 +12,10 @@ import 'package:flutter/cupertino.dart';
 bool alreadySubOta = false;
 List<int> varsValues = [];
 bool alreadySubTools = false;
-double distOnValue = 0.0;
-double distOffValue = 0.0;
-bool turnOn = false;
-Map<String, bool> isTaskScheduled = {};
 bool trueStatus = false;
 bool userConnected = false;
 late bool nightMode;
-late bool canControlDistance;
+
 late List<String> pikachu;
 
 // FUNCIONES //

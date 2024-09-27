@@ -62,9 +62,10 @@
             android:value="2" />
         <!-- Provide required visibility configuration for API level 30 and above -->
         <service
-            android:name="com.ekasetiawans.flutter_background_service.FlutterBackgroundService"
+            android:name="id.flutter.flutter_background_service.BackgroundService"
             android:permission="android.permission.FOREGROUND_SERVICE"
-            android:foregroundServiceType="location"
-            android:exported="false" />
+            android:foregroundServiceType="location|dataSync"
+            android:exported="true">
+        </service>
     </application>
 </manifest>
