@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:aws_dynamodb_api/dynamodb-2012-08-10.dart';
 import '/master.dart';
 import '/stored_data.dart';
@@ -91,6 +93,26 @@ Future<void> queryItems(DynamoDB service, String pc, String sn) async {
                       .putIfAbsent('$pc/$sn', () => {})
                       .addAll({key: secAdm});
                 }
+                break;
+              case 'io0':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: jsonEncode(value.m ?? {})});
+                break;
+              case 'io1':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: jsonEncode(value.m ?? {})});
+                break;
+              case 'io2':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: jsonEncode(value.m ?? {})});
+                break;
+              case 'io3':
+                globalDATA
+                    .putIfAbsent('$pc/$sn', () => {})
+                    .addAll({key: jsonEncode(value.m ?? {})});
                 break;
             }
           }

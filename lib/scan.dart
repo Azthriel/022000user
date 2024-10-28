@@ -60,12 +60,14 @@ class ScanPageState extends State<ScanPage> {
         FlutterBluePlus.startScan(
             withKeywords: [
               'Eléctrico',
+              'Electrico',
               'Gas',
               'Detector',
               'Radiador',
-              'Módulo',
               'Domótica',
+              'Domotica',
               'Relé',
+              'Rele',
             ],
             timeout: const Duration(seconds: 30),
             androidUsesFineLocation: true,

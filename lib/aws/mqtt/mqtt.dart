@@ -117,12 +117,30 @@ void listenToTopics() {
     try {
       final Map<String, dynamic> messageMap = json.decode(messageString);
 
-      globalDATA.putIfAbsent(keyName, () => {}).addAll(messageMap);
-      saveGlobalData(globalDATA);
-      GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
-          navigatorKey.currentContext!,
-          listen: false);
-      notifier.updateData(keyName, messageMap);
+      if (listNames[1] == '020010_IOT' && !messageMap.keys.contains('cstate')) {
+        printLog('Mensaje domotica $messageMap');
+        int index = messageMap["index"];
+        globalDATA
+            .putIfAbsent(keyName, () => {})
+            .addAll({'io$index': json.encode(messageMap)});
+        saveGlobalData(globalDATA);
+        GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
+            navigatorKey.currentContext!,
+            listen: false);
+        notifier.updateData(
+          keyName,
+          {
+            'io$index': json.encode(messageMap),
+          },
+        );
+      } else {
+        globalDATA.putIfAbsent(keyName, () => {}).addAll(messageMap);
+        saveGlobalData(globalDATA);
+        GlobalDataNotifier notifier = Provider.of<GlobalDataNotifier>(
+            navigatorKey.currentContext!,
+            listen: false);
+        notifier.updateData(keyName, messageMap);
+      }
 
       printLog('Received message: $messageMap from topic: $topic');
     } catch (e) {

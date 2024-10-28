@@ -21,20 +21,20 @@ void controlOut(bool value, int index) {
   String fun = '$index#${value ? '1' : '0'}';
   myDevice.ioUuid.write(fun.codeUnits);
 
-  String fun2 =
-      '${tipo[index] == 'Entrada' ? '1' : '0'}:${value ? '1' : '0'}:${common[index]}';
-  deviceSerialNumber = extractSerialNumber(deviceName);
   String topic = 'devices_rx/${command(deviceName)}/$deviceSerialNumber';
   String topic2 = 'devices_tx/${command(deviceName)}/$deviceSerialNumber';
-  String message = jsonEncode({'io$index': fun2});
+  String message = jsonEncode({
+    'pinType': tipo[index] == 'Salida' ? '0' : '1',
+    'index': index,
+    'w_status': value,
+    'r_state': common[index],
+  });
   sendMessagemqtt(topic, message);
   sendMessagemqtt(topic2, message);
-  estado[index] = value ? '1' : '0';
-  for (int i = 0; i < estado.length; i++) {
-    String device =
-        '${tipo[i] == 'Salida' ? '0' : '1'}:${estado[i]}:${common[i]}';
-    globalDATA['${command(deviceName)}/$deviceSerialNumber']!['io$i'] = device;
-  }
+
+  globalDATA
+      .putIfAbsent('${command(deviceName)}/$deviceSerialNumber', () => {})
+      .addAll({'io$index': message});
 
   saveGlobalData(globalDATA);
 }
